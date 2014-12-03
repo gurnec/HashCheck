@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{15254295-37be-4bc7-b35c-abf3aac3a947}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{b59f8540-15b7-4509-a9e2-9f602524a0ca}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{45153c32-63d7-41f0-a17b-ceeee36bed5d}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="Libraries">
+      <UniqueIdentifier>{3d06f958-2b36-4a2d-a5a9-c4e7445f5196}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="HashCheck.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CHashCheck.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CHashCheckClassFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HashCheckCommon.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HashCalc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HashSave.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HashProp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HashVerify.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HashCheckOptions.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RegHelpers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SetAppID.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UnicodeHelpers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\SimpleString.c">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\SimpleList.c">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\SwapIntrinsics.c">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\IsFontAvailable.c">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\WinHash.c">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\Wow64.c">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="HashCheck.def">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CHashCheck.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CHashCheckClassFactory.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HashCheckUI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HashCheckCommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HashCalc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HashCheckOptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GetHighMSB.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RegHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SetAppID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UnicodeHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="globals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\WinIntrinsics.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\SimpleString.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\SimpleList.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\SwapIntrinsics.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\IsFontAvailable.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\WinHash.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\Wow64.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="HashCheck.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
