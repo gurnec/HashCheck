@@ -1,0 +1,140 @@
+//
+// NOTE: This file is encoded in UTF-8.
+//
+
+/**
+ * Why does this resource script require version 6 or newer of the Resource
+ * Compiler?  Microsoft's Resource Compiler (even the latest version from the
+ * Longhorn SDK) will fail with a fatal error if #pragma code_page is used to
+ * declare that the encoding of the resource script is double-byte Unicode
+ * (UTF-16).  This behavior is very puzzling considering that version 5 of the
+ * Resource Compiler found in Visual Studio 2002 thru 2005 can compile Unicode
+ * resource scripts only if they are in the UTF-16 encoding.  So the Resource
+ * Compiler forces the use of UTF-16, yet it does not support declaring that the
+ * code page is UTF-16.  This is not a problem in Visual Studio 2002 thru 2005,
+ * but in Visual Studio 6, the use of UTF-16 without the proper declaration
+ * results in strange messages being printed by the development environment
+ * during compilation.  As a result, it was decided that UTF-8 would be used
+ * (which is supported only by version 6 or higher), since the Resource Compiler
+ * does not reject the UTF-8 #pragma code_page declaration as it strangely and
+ * mysteriously does with UTF-16.  If you do not plan on compiling with VS6, you
+ * can simply convert from UTF-8 to UTF-16 and eliminate the #pragma code_page
+ * declaration to enable compilation with older versions of the Resource
+ * Compiler.
+ **/
+
+#include <winresrc.h>
+#include "HashCheckResources.h"
+#include "version.h"
+
+// Remove the following line if using UTF-16 instead of UTF-8
+#pragma code_page(65001)
+
+#ifdef _DEBUG
+#define MY_VS_FF_DEBUG VS_FF_DEBUG
+#else
+#define MY_VS_FF_DEBUG 0x0L
+#endif
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+VS_VERSION_INFO     VERSIONINFO
+    FILEVERSION     HASHCHECK_VERSION_FULL
+    PRODUCTVERSION  HASHCHECK_VERSION_FULL
+    FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+    FILEFLAGS       MY_VS_FF_DEBUG
+    FILEOS          VOS_NT_WINDOWS32
+    FILETYPE        VFT_DLL
+    FILESUBTYPE     VFT2_UNKNOWN
+{
+	BLOCK "StringFileInfo"
+	{
+		BLOCK "040904b0" // English (U.S.)
+		{
+			VALUE "CompanyName", HASHCHECK_AUTHOR_STR
+			VALUE "FileDescription", HASHCHECK_NAME_STR
+			VALUE "FileVersion", HASHCHECK_VERSION_STR ARCH_NAME_TAIL
+			VALUE "LegalCopyright", "Copyright © " HASHCHECK_COPYRIGHT_STR
+			VALUE "OriginalFilename", HASHCHECK_FILENAME_STR
+		}
+	}
+	BLOCK "VarFileInfo"
+	{
+		VALUE "Translation", 0x0409, 0x04b0 // English (U.S.)
+	}
+}
+
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+
+IDD_HASHSAVE DIALOGEX 0, 0, 300, 28
+    STYLE    DS_MODALFRAME | DS_SHELLFONT | DS_CENTER | WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX
+    EXSTYLE  WS_EX_APPWINDOW
+    FONT     8, "MS Shell Dlg"
+{
+    CONTROL         "", IDC_PROG_TOTAL, "msctls_progress32", PBS_SMOOTH, 7,  7, 178, 6
+    CONTROL         "", IDC_PROG_FILE,  "msctls_progress32", PBS_SMOOTH, 7, 15, 178, 6
+    PUSHBUTTON      "", IDC_PAUSE,  189, 7, 50, 14, WS_TABSTOP | WS_GROUP
+    PUSHBUTTON      "", IDC_CANCEL, 243, 7, 50, 14, WS_TABSTOP
+}
+
+IDD_HASHPROP DIALOGEX 0, 0, 227, 218
+    STYLE    DS_SHELLFONT | WS_CAPTION
+    FONT     8, "MS Shell Dlg"
+{
+    GROUPBOX        "", IDC_STATUSBOX,     7, 158, 213,  32, WS_GROUP
+    CONTROL         "", IDC_PROG_TOTAL, "msctls_progress32", PBS_SMOOTH, 13, 169, 201, 6
+    CONTROL         "", IDC_PROG_FILE,  "msctls_progress32", PBS_SMOOTH, 13, 177, 201, 6
+    EDITTEXT            IDC_SEARCHBOX     13, 169, 147,  14, WS_TABSTOP | WS_DISABLED | NOT WS_VISIBLE | ES_AUTOHSCROLL
+    PUSHBUTTON      "", IDC_FIND_NEXT    164, 169,  50,  14, WS_TABSTOP | WS_DISABLED | NOT WS_VISIBLE
+    PUSHBUTTON      "", IDC_PAUSE,        62, 197,  50,  14, WS_TABSTOP | WS_GROUP
+    PUSHBUTTON      "", IDC_STOP,        116, 197,  50,  14, WS_TABSTOP
+    PUSHBUTTON      "", IDC_SAVE,        116, 197,  50,  14, WS_TABSTOP | WS_DISABLED | NOT WS_VISIBLE
+    PUSHBUTTON      "", IDC_OPTIONS,     170, 197,  50,  14, WS_TABSTOP
+    EDITTEXT            IDC_RESULTS,       7,   7, 213, 144, WS_TABSTOP | WS_GROUP | WS_HSCROLL | WS_VSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY
+}
+
+IDD_HASHVERF DIALOGEX 0, 0, 400, 250
+    STYLE    DS_MODALFRAME | DS_SHELLFONT | DS_CENTER | WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX
+    EXSTYLE  WS_EX_APPWINDOW
+    FONT     8, "MS Shell Dlg"
+{
+    CONTROL         "", IDC_LIST, "SysListView32", WS_TABSTOP | WS_GROUP | WS_BORDER | LVS_OWNERDATA | LVS_REPORT | LVS_SHOWSELALWAYS, 7, 7, 386, 170
+    GROUPBOX        "", IDC_SUMMARY,              7, 184, 386, 38, WS_GROUP
+    LTEXT           "", IDC_MATCH_LABEL,         13, 195,  56,  8
+    RTEXT           "", IDC_MATCH_RESULTS,       73, 195, 104,  8
+    LTEXT           "", IDC_MISMATCH_LABEL,      13, 207,  56,  8
+    RTEXT           "", IDC_MISMATCH_RESULTS,    73, 207, 104,  8
+    LTEXT           "", IDC_UNREADABLE_LABEL,   223, 195,  56,  8
+    RTEXT           "", IDC_UNREADABLE_RESULTS, 283, 195, 104,  8
+    LTEXT           "", IDC_PENDING_LABEL,      223, 207,  56,  8
+    RTEXT           "", IDC_PENDING_RESULTS,    283, 207, 104,  8
+    CONTROL         "", IDC_PROG_TOTAL, "msctls_progress32", PBS_SMOOTH, 7, 229, 224, 6
+    CONTROL         "", IDC_PROG_FILE,  "msctls_progress32", PBS_SMOOTH, 7, 237, 224, 6
+    PUSHBUTTON      "", IDC_PAUSE,              235, 229,  50, 14, WS_TABSTOP | WS_GROUP
+    PUSHBUTTON      "", IDC_STOP,               289, 229,  50, 14, WS_TABSTOP
+    DEFPUSHBUTTON   "", IDC_EXIT,               343, 229,  50, 14, WS_TABSTOP
+}
+
+IDD_OPTIONS  DIALOGEX 10, 10, 200, 199
+    STYLE    DS_MODALFRAME | DS_SHELLFONT | WS_POPUPWINDOW | WS_CAPTION
+    FONT     8, "MS Shell Dlg"
+{
+    GROUPBOX        "", IDC_OPT_CM,              7,   7, 186, 58, WS_GROUP
+    AUTORADIOBUTTON "", IDC_OPT_CM_ALWAYS,      13,  20, 174, 10, WS_TABSTOP
+    AUTORADIOBUTTON "", IDC_OPT_CM_EXTENDED,    13,  34, 174, 10
+    AUTORADIOBUTTON "", IDC_OPT_CM_NEVER,       13,  48, 174, 10
+    GROUPBOX        "", IDC_OPT_ENCODING,        7,  72, 186, 58, WS_GROUP
+    AUTORADIOBUTTON "", IDC_OPT_ENCODING_UTF8,  13,  85, 174, 10, WS_TABSTOP
+    AUTORADIOBUTTON "", IDC_OPT_ENCODING_UTF16, 13,  99, 174, 10
+    AUTORADIOBUTTON "", IDC_OPT_ENCODING_ANSI,  13, 113, 174, 10
+    GROUPBOX        "", IDC_OPT_FONT,            7, 137, 186, 34, WS_GROUP
+    CTEXT           "", IDC_OPT_FONT_PREVIEW,   13, 150, 100, 14, SS_CENTERIMAGE | SS_SUNKEN
+    PUSHBUTTON      "", IDC_OPT_FONT_CHANGE,   117, 150,  70, 14, WS_TABSTOP
+    DEFPUSHBUTTON   "", IDC_OK,                 89, 178,  50, 14, WS_TABSTOP | WS_GROUP
+    PUSHBUTTON      "", IDC_CANCEL,            143, 178,  50, 14, WS_TABSTOP
+}
+
+IDR_RT_MANIFEST         RT_MANIFEST             "HashCheck.manifest"
+IDI_FILETYPE            ICON                    "HashCheck.ico"
+
+#include "HashCheckTranslations.rc"

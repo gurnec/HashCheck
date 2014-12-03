@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="HashCheck"
+	ProjectGUID="{DCAD938F-9032-4AF9-BA67-8C0CF309D986}"
+	>
+	<Platforms>
+		<Platform
+			Name="Win32"
+		/>
+		<Platform
+			Name="x64"
+		/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="bin.x86-32"
+			IntermediateDirectory="obj.x86-32"
+			ConfigurationType="2"
+			CharacterSet="1"
+			>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="1"
+				InlineFunctionExpansion="1"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0501;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000"
+				StringPooling="true"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="true"
+				WarningLevel="3"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG;_M_IX86"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/SUBSYSTEM:WINDOWS,5.1 /OSVERSION:5.1"
+				AdditionalDependencies="shlwapi.lib comctl32.lib uxtheme.lib winhash.lib qsort_s_uptr.lib"
+				AdditionalLibraryDirectories="libs\x86-32"
+				GenerateManifest="false"
+				ModuleDefinitionFile="HashCheck.def"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				SetChecksum="true"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|x64"
+			OutputDirectory="bin.x86-64"
+			IntermediateDirectory="obj.x86-64"
+			ConfigurationType="2"
+			CharacterSet="1"
+			>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="1"
+				InlineFunctionExpansion="1"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0502;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000"
+				StringPooling="true"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="true"
+				WarningLevel="3"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG;_M_AMD64"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/SUBSYSTEM:WINDOWS,5.2 /OSVERSION:5.2"
+				AdditionalDependencies="shlwapi.lib comctl32.lib uxtheme.lib winhash.lib qsort_s_uptr.lib"
+				AdditionalLibraryDirectories="libs\x86-64"
+				GenerateManifest="false"
+				ModuleDefinitionFile="HashCheck.def"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				SetChecksum="true"
+			/>
+		</Configuration>
+	</Configurations>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			>
+			<File RelativePath="HashCheck.cpp" />
+			<File RelativePath="CHashCheck.cpp" />
+			<File RelativePath="CHashCheckClassFactory.cpp" />
+			<File RelativePath="HashCheckCommon.c" />
+			<File RelativePath="HashCalc.c" />
+			<File RelativePath="HashSave.c" />
+			<File RelativePath="HashProp.c" />
+			<File RelativePath="HashVerify.c" />
+			<File RelativePath="HashCheckOptions.c" />
+			<File RelativePath="RegHelpers.c" />
+			<File RelativePath="SetAppID.c" />
+			<File RelativePath="UnicodeHelpers.c" />
+			<File RelativePath="HashCheck.def" />
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl"
+			>
+			<File RelativePath="CHashCheck.hpp" />
+			<File RelativePath="CHashCheckClassFactory.hpp" />
+			<File RelativePath="HashCheckUI.h" />
+			<File RelativePath="HashCheckCommon.h" />
+			<File RelativePath="HashCalc.h" />
+			<File RelativePath="HashCheckOptions.h" />
+			<File RelativePath="GetHighMSB.h" />
+			<File RelativePath="RegHelpers.h" />
+			<File RelativePath="SetAppID.h" />
+			<File RelativePath="UnicodeHelpers.h" />
+			<File RelativePath="globals.h" />
+			<File RelativePath="version.h" />
+		</Filter>
+		<Filter
+			Name="Resource Files"
+			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+			>
+			<File RelativePath="HashCheck.rc" />
+		</Filter>
+		<Filter
+			Name="Libraries"
+			Filter=""
+			>
+			<File RelativePath="libs\WinIntrinsics.h" />
+			<File RelativePath="libs\SimpleString.h" />
+			<File RelativePath="libs\SimpleString.c" />
+			<File RelativePath="libs\SimpleList.h" />
+			<File RelativePath="libs\SimpleList.c" />
+			<File RelativePath="libs\SwapIntrinsics.h" />
+			<File RelativePath="libs\SwapIntrinsics.c" />
+			<File RelativePath="libs\IsFontAvailable.h" />
+			<File RelativePath="libs\IsFontAvailable.c" />
+			<File RelativePath="libs\WinHash.h" />
+			<File RelativePath="libs\WinHash.c" />
+			<File RelativePath="libs\Wow64.h" />
+			<File RelativePath="libs\Wow64.c" />
+		</Filter>
+	</Files>
+</VisualStudioProject>
