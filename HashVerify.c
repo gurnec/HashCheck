@@ -1,6 +1,7 @@
 /**
  * HashCheck Shell Extension
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -313,7 +314,7 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 	{
 		PTSTR pszStartOfLine;  // First non-whitespace character of the line
 		PTSTR pszEndOfLine;    // Last non-whitespace character of the line
-		PTSTR pszChecksum, pszFileName = NULL;
+		PTSTR pszChecksum = NULL, pszFileName = NULL;
 		INT16 cchPath;         // This INCLUDES the NULL terminator!
 
 		// Step 1: Isolate the current line as a NULL-terminated string

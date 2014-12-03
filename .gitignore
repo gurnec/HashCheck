@@ -1,4 +1,5 @@
 /HashCheck.sdf
+/HashCheck.opensdf
 *.vcxproj.user
 *.suo
 /bin.x86-32/

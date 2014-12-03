@@ -1,6 +1,7 @@
 /**
  * HashCheck Shell Extension
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -404,6 +405,7 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 		case 2: pszHash = pItem->results.szHexMD4;   break;
 		case 3: pszHash = pItem->results.szHexMD5;   break;
 		case 4: pszHash = pItem->results.szHexSHA1;  break;
+		default: return(FALSE);
 	}
 
 	// Format the line
@@ -456,6 +458,8 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 				pvLine = phcctx->scratch.szA;
 				break;
 			}
+
+			default: return(FALSE);
 		}
 
 		if (cbLine > 0)
