@@ -1,10 +1,11 @@
 /**
  * Windows Hashing/Checksumming Library
  * Last modified: 2009/01/13
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  *
  * This is a wrapper for the MD4, MD5, SHA1, and CRC32 algorithms supported
- * natively by the Windows API.
+ * natively by the Windows API, plus the included SHA-256 library.
  *
  * WinHash.c is needed only if the WH*To* or WH*Ex functions are used.
  **/
@@ -113,6 +114,9 @@ VOID WHAPI WHInitEx( PWHCTXEX pContext )
 
 	if (pContext->flags & WHEX_CHECKSHA1)
 		WHInitSHA1(&pContext->ctxSHA1);
+
+	if (pContext->flags & WHEX_CHECKSHA256)
+		WHInitSHA256(&pContext->ctxSHA256);
 }
 
 VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn )
@@ -128,6 +132,9 @@ VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn )
 
 	if (pContext->flags & WHEX_CHECKSHA1)
 		WHUpdateSHA1(&pContext->ctxSHA1, pbIn, cbIn);
+
+	if (pContext->flags & WHEX_CHECKSHA256)
+		WHUpdateSHA256(&pContext->ctxSHA256, pbIn, cbIn);
 }
 
 VOID WHAPI WHFinishEx( PWHCTXEX pContext, PWHRESULTEX pResults )
@@ -157,5 +164,11 @@ VOID WHAPI WHFinishEx( PWHCTXEX pContext, PWHRESULTEX pResults )
 	{
 		WHFinishSHA1(&pContext->ctxSHA1);
 		WHByteToHex(pContext->ctxSHA1.result, pResults->szHexSHA1, 40, pContext->uCaseMode);
+	}
+
+	if (pContext->flags & WHEX_CHECKSHA256)
+	{
+		WHFinishSHA256(&pContext->ctxSHA256);
+		WHByteToHex(pContext->ctxSHA256.result, pResults->szHexSHA256, 64, pContext->uCaseMode);
 	}
 }

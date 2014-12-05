@@ -112,6 +112,7 @@
     <ClCompile Include="HashSave.c" />
     <ClCompile Include="HashVerify.c" />
     <ClCompile Include="libs\IsFontAvailable.c" />
+    <ClCompile Include="libs\sha256.c" />
     <ClCompile Include="libs\SimpleList.c" />
     <ClCompile Include="libs\SimpleString.c" />
     <ClCompile Include="libs\SwapIntrinsics.c" />
@@ -134,6 +135,7 @@
     <ClInclude Include="HashCheckOptions.h" />
     <ClInclude Include="HashCheckUI.h" />
     <ClInclude Include="libs\IsFontAvailable.h" />
+    <ClInclude Include="libs\sha256.h" />
     <ClInclude Include="libs\SimpleList.h" />
     <ClInclude Include="libs\SimpleString.h" />
     <ClInclude Include="libs\SwapIntrinsics.h" />

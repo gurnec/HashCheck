@@ -1,6 +1,7 @@
 /**
  * HashCheck Shell Extension
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -30,7 +31,7 @@ extern "C" {
  **/
 
 // Constants
-#define RESULTS_LEN 0xC0
+#define RESULTS_LEN 0x100
 #define SCRATCH_BUFFER_SIZE (MAX_PATH_BUFFER + RESULTS_LEN)
 
 // Scratch buffer

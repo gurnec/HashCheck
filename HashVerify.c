@@ -80,7 +80,7 @@ typedef struct {
 	INT16              cchDisplayName;
 	UINT8              uState;
 	UINT8              uStatusID;
-	TCHAR              szActual[41];
+	TCHAR              szActual[65];
 } HASHVERIFYITEM, *PHASHVERIFYITEM, *PHVITEM, **PPHVITEM;
 
 typedef CONST HASHVERIFYITEM **PPCHVITEM;
@@ -302,10 +302,15 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 				phvctx->whctx.flags = WHEX_CHECKMD5;
 				cchChecksum = 32;
 			}
-			else if (StrCmpI(pszExt - 1, TEXT(".sha1")) == 0)
+			else if (StrCmpI(pszExt, TEXT(".sha1")) == 0)
 			{
 				phvctx->whctx.flags = WHEX_CHECKSHA1;
 				cchChecksum = 40;
+			}
+			else if (StrCmpI(pszExt, TEXT(".sha256")) == 0)
+			{
+				phvctx->whctx.flags = WHEX_CHECKSHA256;
+				cchChecksum = 64;
 			}
 		}
 	}
@@ -390,6 +395,11 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 				{
 					cchChecksum = 40;
 					phvctx->whctx.flags = WHEX_ALL160;  // WHEX_CHECKSHA1
+				}
+				else if (ValidateHexSequence(pszStartOfLine, 64))
+				{
+					cchChecksum = 64;
+					phvctx->whctx.flags = WHEX_ALL256;  // WHEX_CHECKSHA256
 				}
 			}
 
@@ -571,6 +581,9 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 					break;
 				case WHEX_CHECKSHA1:
 					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHexSHA1);
+					break;
+				case WHEX_CHECKSHA256:
+					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHexSHA256);
 					break;
 			}
 
@@ -852,6 +865,8 @@ VOID WINAPI HashVerifyDlgInit( PHASHVERIFYCONTEXT phvctx )
 					rc.left =  8 * 4 + 20 + 40;  // extra size to accommodate the header labels
 				else if (phvctx->whctx.flags == WHEX_CHECKSHA1)
 					rc.left = 40 * 4 + 20;
+				else if (phvctx->whctx.flags == WHEX_CHECKSHA256)
+					rc.left = 64 * 4 + 20;
 				else if (phvctx->whctx.flags & WHEX_ALL128)
 					rc.left = 32 * 4 + 20;
 			}
@@ -985,6 +1000,7 @@ VOID WINAPI HashVerifyUpdateSummary( PHASHVERIFYCONTEXT phvctx, PHASHVERIFYITEM 
 			case WHEX_CHECKMD4:   pszSubtitle = TEXT("MD4");    break;
 			case WHEX_CHECKMD5:   pszSubtitle = TEXT("MD5");    break;
 			case WHEX_CHECKSHA1:  pszSubtitle = TEXT("SHA-1");  break;
+			case WHEX_CHECKSHA256:pszSubtitle = TEXT("SHA-256");  break;
 		}
 
 		if (pszSubtitle)

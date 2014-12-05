@@ -1,6 +1,7 @@
 /**
  * HashCheck Shell Extension
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -29,7 +30,8 @@ static const LPCTSTR ASSOCIATIONS[] =
 	TEXT(".sfv"),
 	TEXT(".md4"),
 	TEXT(".md5"),
-	TEXT(".sha1")
+	TEXT(".sha1"),
+	TEXT(".sha256")
 };
 
 // Prototypes for the self-registration/install/uninstall helper functions
@@ -179,7 +181,7 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
-	// The actual association of .sfv/.md4/.md5/.sha1 files with our program ID
+	// The actual association of .sfv/.md4/.md5/.sha1/.sha256 files with our program ID
 	// will be handled by DllInstall, not DllRegisterServer.
 
 	// Register approval

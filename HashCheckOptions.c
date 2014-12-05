@@ -1,6 +1,7 @@
 /**
  * HashCheck Shell Extension
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -101,10 +102,10 @@ VOID __fastcall OptionsLoad( PHASHCHECKOPTIONS popt )
 	{
 		if (!( hKey &&
 		       RegGetDW(hKey, TEXT("FilterIndex"), &popt->dwFilterIndex) &&
-		       popt->dwFilterIndex && popt->dwFilterIndex <= 4 ))
+		       popt->dwFilterIndex && popt->dwFilterIndex <= 5 ))
 		{
-			// Fall back to default (MD5)
-			popt->dwFilterIndex = 3;
+			// Fall back to default (SHA-256)
+			popt->dwFilterIndex = 5;
 		}
 	}
 

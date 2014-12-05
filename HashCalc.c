@@ -15,7 +15,8 @@
 #define SAVE_FILTERS TEXT("CRC-32 (*.sfv)\0*.sfv\0") \
                      TEXT("MD4 (*.md4)\0*.md4\0")    \
                      TEXT("MD5 (*.md5)\0*.md5\0")    \
-                     TEXT("SHA-1 (*.sha1)\0*.sha1\0")
+                     TEXT("SHA-1 (*.sha1)\0*.sha1\0")\
+                     TEXT("SHA-256 (*.sha256)\0*.sha256\0")
 
 static const PCTSTR SAVE_EXTS[] =
 {
@@ -23,7 +24,8 @@ static const PCTSTR SAVE_EXTS[] =
 	TEXT(".sfv"),
 	TEXT(".md4"),
 	TEXT(".md5"),
-	TEXT(".sha1")
+	TEXT(".sha1"),
+	TEXT(".sha256")
 };
 
 static const TCHAR SAVE_DEFAULT_NAME[] = TEXT("checksums");
@@ -305,7 +307,7 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 	// is set to a valid value since we depend on that to determine the format
 	if ( GetSaveFileName(&phcctx->ofn) &&
 	     phcctx->ofn.nFilterIndex &&
-	     phcctx->ofn.nFilterIndex <= 4 )
+	     phcctx->ofn.nFilterIndex <= 5 )
 	{
 		BOOL bSuccess = FALSE;
 
@@ -318,7 +320,7 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 		}
 
 		// Extension fixup: Correct the extension to match the selected
-		// type, but only if the extension was one of the 4 in the list
+		// type, but only if the extension was one of the 5 in the list
 		if (phcctx->ofn.nFileExtension)
 		{
 			PTSTR pszExt = pszFile + phcctx->ofn.nFileExtension - 1;
@@ -326,7 +328,8 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 			if ( StrCmpI(pszExt, TEXT(".sfv")) == 0 ||
 			     StrCmpI(pszExt, TEXT(".md4")) == 0 ||
 			     StrCmpI(pszExt, TEXT(".md5")) == 0 ||
-			     StrCmpI(pszExt, TEXT(".sha1")) == 0 )
+			     StrCmpI(pszExt, TEXT(".sha1")) == 0||
+			     StrCmpI(pszExt, TEXT(".sha256")) == 0 )
 			{
 				if (StrCmpI(pszExt, SAVE_EXTS[phcctx->ofn.nFilterIndex]))
 					SSCpy(pszExt, SAVE_EXTS[phcctx->ofn.nFilterIndex]);
@@ -405,6 +408,7 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 		case 2: pszHash = pItem->results.szHexMD4;   break;
 		case 3: pszHash = pItem->results.szHexMD5;   break;
 		case 4: pszHash = pItem->results.szHexSHA1;  break;
+		case 5: pszHash = pItem->results.szHexSHA256;break;
 		default: return(FALSE);
 	}
 

@@ -11,21 +11,21 @@
 #define HASHCHECK_NAME_STR "HashCheck Shell Extension"
 
 // Full version: MUST be in the form of major,minor,revision,build
-#define HASHCHECK_VERSION_FULL 2,1,12,2
+#define HASHCHECK_VERSION_FULL 2,2,0,3
 
 // String version: May be any suitable string
-#define HASHCHECK_VERSION_STR "2.1.12.2"
+#define HASHCHECK_VERSION_STR "2.2.0.3"
 
 #ifdef _USRDLL
 // PE version: MUST be in the form of major.minor
-#pragma comment(linker, "/version:2.1")
+#pragma comment(linker, "/version:2.2")
 #endif
 
 // String used in the "CompanyName" field of the version resource
 #define HASHCHECK_AUTHOR_STR "code.kliu.org"
 
 // Tail portion of the copyright string for the version resource
-#define HASHCHECK_COPYRIGHT_STR "Kai Liu. All rights reserved."
+#define HASHCHECK_COPYRIGHT_STR "Kai Liu and Christopher Gurnee. All rights reserved."
 
 // Name of the DLL
 #define HASHCHECK_FILENAME_STR "HashCheck.dll"

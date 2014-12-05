@@ -1,6 +1,7 @@
 /**
  * HashCheck Shell Extension
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -19,10 +20,11 @@
 #define PHASHPROPITEM    PHASHCALCITEM
 
 #define RESULTS_FMT TEXT("\r\n") \
-                    TEXT("CRC-32: %s\r\n") \
-                    TEXT("   MD4: %s\r\n") \
-                    TEXT("   MD5: %s\r\n") \
-                    TEXT(" SHA-1: %s\r\n\r\n")
+                    TEXT(" CRC-32: %s\r\n") \
+                    TEXT("    MD4: %s\r\n") \
+                    TEXT("    MD5: %s\r\n") \
+                    TEXT("  SHA-1: %s\r\n") \
+                    TEXT("SHA-256: %s\r\n\r\n")
 
 
 
@@ -540,8 +542,9 @@ VOID WINAPI HashPropUpdateResults( PHASHPROPCONTEXT phpctx, PHASHPROPITEM pItem 
 			pItem->results.szHexCRC32,
 			pItem->results.szHexMD4,
 			pItem->results.szHexMD5,
-			pItem->results.szHexSHA1
-		);
+			pItem->results.szHexSHA1,
+			pItem->results.szHexSHA256
+			);
 
 		// Update the new buffer offset for use by the next update
 		phpctx->obScratch = (UINT)BYTEDIFF(pszScratchAppend, &phpctx->scratch);

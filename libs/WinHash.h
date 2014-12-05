@@ -1,10 +1,11 @@
 /**
  * Windows Hashing/Checksumming Library
  * Last modified: 2009/01/13
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  *
  * This is a wrapper for the MD4, MD5, SHA1, and CRC32 algorithms supported
- * natively by the Windows API.
+ * natively by the Windows API, plus the included SHA-256 library.
  **/
 
 #ifndef __WINHASH_H__
@@ -16,6 +17,7 @@ extern "C" {
 
 #include <windows.h>
 #include "SwapIntrinsics.h"
+#include "sha256.h"
 
 typedef CONST BYTE *PCBYTE;
 
@@ -80,6 +82,9 @@ typedef struct {
 	BYTE result[20];
 } WHCTXSHA1, *PWHCTXSHA1;
 
+#define  WHCTXSHA256  Sha256Context
+#define PWHCTXSHA256 *Sha256Context
+
 typedef struct {
 	MD4_CTX ctxList;
 	MD4_CTX ctxChunk;
@@ -128,6 +133,10 @@ __forceinline VOID WHFinishSHA1( PWHCTXSHA1 pContext )
 {
 	A_SHAFinal(&pContext->ctx, pContext->result);
 }
+
+#define WHInitSHA256 sha256_init
+#define WHUpdateSHA256 sha256_update
+#define WHFinishSHA256 sha256_finalize
 
 __forceinline VOID WHInitED2K( PWHCTXED2K pContext )
 {
@@ -188,6 +197,7 @@ typedef struct {
 	TCHAR szHexMD4[33];
 	TCHAR szHexMD5[33];
 	TCHAR szHexSHA1[41];
+	TCHAR szHexSHA256[65];
 } WHRESULTEX, *PWHRESULTEX;
 
 typedef struct {
@@ -197,6 +207,7 @@ typedef struct {
 	WHCTXMD4   ctxMD4;
 	WHCTXMD5   ctxMD5;
 	WHCTXSHA1  ctxSHA1;
+	WHCTXSHA256 ctxSHA256;
 	WHRESULTEX results;
 } WHCTXEX, *PWHCTXEX;
 
@@ -204,10 +215,12 @@ typedef struct {
 #define WHEX_CHECKMD4   0x02
 #define WHEX_CHECKMD5   0x04
 #define WHEX_CHECKSHA1  0x08
-#define WHEX_ALL        0x0F
+#define WHEX_CHECKSHA256 0x10
+#define WHEX_ALL        0x1F
 #define WHEX_ALL32      0x01
 #define WHEX_ALL128     0x06
 #define WHEX_ALL160     0x08
+#define WHEX_ALL256     0x10
 
 VOID WHAPI WHInitEx( PWHCTXEX pContext );
 VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn );

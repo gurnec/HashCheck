@@ -32,7 +32,7 @@ STRINGTABLE LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 	IDS_HP_FIND_NOTFOUND     "Text not found."
 	IDS_HP_SAVE              "&Save..."
 	IDS_HP_OPTIONS           "&Options"
-	IDS_HP_FILELABEL         "  File: "                // should have the same width as "CRC-32: "; may translate "Name" if "File" is too long
+	IDS_HP_FILELABEL         "   File: "               // should have the same width as "CRC-32: "; may translate "Name" if "File" is too long
 
 	// Strings used exclusively in the HashVerify module
 	IDS_HV_LOADERROR_FMT     "Cannot load ""%s"""      // %s == name of the checksum file
@@ -90,7 +90,7 @@ STRINGTABLE LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_TRADITIONAL
 	IDS_HP_FIND_NOTFOUND     "未找到文字。"
 	IDS_HP_SAVE              "儲存(&S)..."
 	IDS_HP_OPTIONS           "選項(&O)"
-	IDS_HP_FILELABEL         "  File: "  // alternatively, "　　檔案: "
+	IDS_HP_FILELABEL         "   File: "  // alternatively, "　　檔案: "
 
 	IDS_HV_LOADERROR_FMT     "無法載入 ""%s"""
 	IDS_HV_SUMMARY           "摘要"
@@ -146,7 +146,7 @@ STRINGTABLE LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 	IDS_HP_FIND_NOTFOUND     "未找到文本。"
 	IDS_HP_SAVE              "保存(&S)..."
 	IDS_HP_OPTIONS           "选项(&O)"
-	IDS_HP_FILELABEL         "  File: "  // alternatively, "　　文件: "
+	IDS_HP_FILELABEL         "   File: "  // alternatively, "　　文件: "
 
 	IDS_HV_LOADERROR_FMT     "无法载入 ""%s"""
 	IDS_HV_SUMMARY           "摘要"
@@ -482,7 +482,7 @@ STRINGTABLE LANGUAGE LANG_ITALIAN, SUBLANG_NEUTRAL
 	IDS_HP_FIND_NOTFOUND     "Testo non trovato."
 	IDS_HP_SAVE              "&Salva..."
 	IDS_HP_OPTIONS           "&Opzioni"
-	IDS_HP_FILELABEL         "  File: "
+	IDS_HP_FILELABEL         "   File: "
 
 	IDS_HV_LOADERROR_FMT     "Impossibile caricare ""%s"""
 	IDS_HV_SUMMARY           "Sommario"
@@ -538,7 +538,7 @@ STRINGTABLE LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 	IDS_HP_FIND_NOTFOUND     "指定したキーワードは見つかりません。"
 	IDS_HP_SAVE              "保存(&S)..."
 	IDS_HP_OPTIONS           "ｵﾌﾟｼｮﾝ(&O)"
-	IDS_HP_FILELABEL         "  File: "  // alternatively, "  ﾌｧｲﾙ: "
+	IDS_HP_FILELABEL         "   File: "  // alternatively, "  ﾌｧｲﾙ: "
 
 	IDS_HV_LOADERROR_FMT     """%s"" の読み込みに失敗します"
 	IDS_HV_SUMMARY           "概略"
@@ -594,7 +594,7 @@ STRINGTABLE LANGUAGE LANG_KOREAN, SUBLANG_DEFAULT
 	IDS_HP_FIND_NOTFOUND     "찾지 못했습니다."
 	IDS_HP_SAVE              "저장(&S)..."
 	IDS_HP_OPTIONS           "옵션(&O)"
-	IDS_HP_FILELABEL         "  File: "
+	IDS_HP_FILELABEL         "   File: "
 
 	IDS_HV_LOADERROR_FMT     """%s"" 불러올 수 없음"
 	IDS_HV_SUMMARY           "요약"

@@ -72,6 +72,9 @@
     <ClCompile Include="libs\Wow64.c">
       <Filter>Libraries</Filter>
     </ClCompile>
+    <ClCompile Include="libs\sha256.c">
+      <Filter>Libraries</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="HashCheck.def">
@@ -134,6 +137,9 @@
       <Filter>Libraries</Filter>
     </ClInclude>
     <ClInclude Include="libs\Wow64.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\sha256.h">
       <Filter>Libraries</Filter>
     </ClInclude>
   </ItemGroup>
