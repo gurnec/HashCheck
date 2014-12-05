@@ -1,6 +1,6 @@
 /**
  * Windows Hashing/Checksumming Library
- * Last modified: 2009/01/13
+ * Last modified: 2014/12/04
  * Original work copyright (C) Kai Liu.  All rights reserved.
  * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  *

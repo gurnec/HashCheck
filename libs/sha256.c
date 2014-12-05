@@ -20,8 +20,10 @@
 //
 #if _MSC_VER >= 1300
 #  define ROTR(n, x)  _rotr(x, n)
+#  define SWAP_32(x)  _byteswap_ulong(x)  // swap endianness of a uint32
 #else
 #  define ROTR(n, x)  (  (x) >> (n)  |  (x) << (32-(n))  )
+#  define SWAP_32(x)  (  (x) << 24   |  ((x) & 0xff00) << 8  |  ((x) & 0xff0000) >> 8  |  (x) >> 24  )
 #endif
 
 // secion 4.1.2
@@ -45,9 +47,6 @@ const uint32_t K[] = {
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-
-// swap endianness of a uint32
-#define SWAP_32(x)  (  (x) << 24  |  ((x) & 0xff00) << 8  |  ((x) & 0xff0000) >> 8  |  (x) >> 24  )
 
 // array length (WARNING: arg must be of array type, not pointer)
 #define ARRAYLEN(a)  ( sizeof(a) / sizeof(a[0]) )
@@ -110,14 +109,14 @@ void sha256_block(uint32_t H[8], const uint32_t M[16])
     }
 
     // section 6.2.2 step 4
-    H[0] = a + H[0];
-    H[1] = b + H[1];
-    H[2] = c + H[2];
-    H[3] = d + H[3];
-    H[4] = e + H[4];
-    H[5] = f + H[5];
-    H[6] = g + H[6];
-    H[7] = h + H[7];
+    H[0] += a;
+    H[1] += b;
+    H[2] += c;
+    H[3] += d;
+    H[4] += e;
+    H[5] += f;
+    H[6] += g;
+    H[7] += h;
 }
 
 
@@ -135,7 +134,7 @@ void sha256_update(Sha256Context* context, const uint8_t* input, size_t input_si
         // copy bytes from the input to the working buffer
         int num_bytes_to_copy = (int)min(input_size, sizeof(context->buffer) - context->cur_buffer_size);
         memcpy(&context->buffer[context->cur_buffer_size], input, num_bytes_to_copy);
- 
+
         // update our data structures
         context->cur_buffer_size += num_bytes_to_copy;
         input                    += num_bytes_to_copy;
@@ -190,7 +189,7 @@ void sha256_finalize(Sha256Context* context)
         context->cur_buffer_size = 0;
         empty_bytes = sizeof(context->buffer);
     }
-    
+
     // append the "0" padding bits (leaving 64 bits at the end untouched)
     memset(&context->buffer[context->cur_buffer_size], 0, empty_bytes - 8);
 

@@ -32,7 +32,7 @@ STRINGTABLE LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 	IDS_HP_FIND_NOTFOUND     "Text not found."
 	IDS_HP_SAVE              "&Save..."
 	IDS_HP_OPTIONS           "&Options"
-	IDS_HP_FILELABEL         "   File: "               // should have the same width as "CRC-32: "; may translate "Name" if "File" is too long
+	IDS_HP_FILELABEL         "   File: "               // should have the same width as "SHA-256: "; may translate "Name" if "File" is too long
 
 	// Strings used exclusively in the HashVerify module
 	IDS_HV_LOADERROR_FMT     "Cannot load ""%s"""      // %s == name of the checksum file
