@@ -1,7 +1,8 @@
 /**
  * SimpleString Library
  * Last modified: 2009/01/06
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  *
  * This is a custom C string library that provides wide-character inline
  * intrinsics for older compilers as well as some helpful chained functions.
@@ -187,7 +188,7 @@ __forceinline wchar_t * intrin_strcat_w( wchar_t *dest, const wchar_t *src )
 
 
 #define SSINLINE __forceinline
-#define SSCALL __stdcall
+#define SSCALL
 
 
 // BEGIN: SSCpyNCh -------------------------------------------------------------

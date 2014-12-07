@@ -1,7 +1,8 @@
 /**
  * SimpleString Library
- * Last modified: 2009/01/06
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Last modified: 2012/12/07
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  **/
 
 #include "SimpleString.h"
@@ -19,15 +20,12 @@ PSTR SSCALL SSChainNCpy2FA( PSTR pszDest, PCSTR pszSrc1, SIZE_T cch1,
 {
 	__asm
 	{
-		// The auto-generated pushing of edi and esi onto the stack means that
-		// our esp is offset by 8 bytes
-
-		mov         edi,[esp+0x0C] // pszDest
-		mov         esi,[esp+0x10] // pszSrc1
-		mov         ecx,[esp+0x14] // cch1
+		mov         edi,[pszDest]
+		mov         esi,[pszSrc1]
+		mov         ecx,[cch1]
 		rep movsb
-		mov         esi,[esp+0x18] // pszSrc2
-		mov         ecx,[esp+0x1C] // cch2
+		mov         esi,[pszSrc2]
+		mov         ecx,[cch2]
 		rep movsb
 		xchg        eax,edi
 	}
@@ -39,18 +37,15 @@ PSTR SSCALL SSChainNCpy3FA( PSTR pszDest, PCSTR pszSrc1, SIZE_T cch1,
 {
 	__asm
 	{
-		// The auto-generated pushing of edi and esi onto the stack means that
-		// our esp is offset by 8 bytes
-
-		mov         edi,[esp+0x0C] // pszDest
-		mov         esi,[esp+0x10] // pszSrc1
-		mov         ecx,[esp+0x14] // cch1
+		mov         edi,[pszDest]
+		mov         esi,[pszSrc1]
+		mov         ecx,[cch1]
 		rep movsb
-		mov         esi,[esp+0x18] // pszSrc2
-		mov         ecx,[esp+0x1C] // cch2
+		mov         esi,[pszSrc2]
+		mov         ecx,[cch2]
 		rep movsb
-		mov         esi,[esp+0x20] // pszSrc3
-		mov         ecx,[esp+0x24] // cch3
+		mov         esi,[pszSrc3]
+		mov         ecx,[cch3]
 		rep movsb
 		xchg        eax,edi
 	}
@@ -61,15 +56,12 @@ PWSTR SSCALL SSChainNCpy2FW( PWSTR pszDest, PCWSTR pszSrc1, SIZE_T cch1,
 {
 	__asm
 	{
-		// The auto-generated pushing of edi and esi onto the stack means that
-		// our esp is offset by 8 bytes
-
-		mov         edi,[esp+0x0C] // pszDest
-		mov         esi,[esp+0x10] // pszSrc1
-		mov         ecx,[esp+0x14] // cch1
+		mov         edi,[pszDest]
+		mov         esi,[pszSrc1]
+		mov         ecx,[cch1]
 		rep movsw
-		mov         esi,[esp+0x18] // pszSrc2
-		mov         ecx,[esp+0x1C] // cch2
+		mov         esi,[pszSrc2]
+		mov         ecx,[cch2]
 		rep movsw
 		xchg        eax,edi
 	}
@@ -81,18 +73,15 @@ PWSTR SSCALL SSChainNCpy3FW( PWSTR pszDest, PCWSTR pszSrc1, SIZE_T cch1,
 {
 	__asm
 	{
-		// The auto-generated pushing of edi and esi onto the stack means that
-		// our esp is offset by 8 bytes
-
-		mov         edi,[esp+0x0C] // pszDest
-		mov         esi,[esp+0x10] // pszSrc1
-		mov         ecx,[esp+0x14] // cch1
+		mov         edi,[pszDest]
+		mov         esi,[pszSrc1]
+		mov         ecx,[cch1]
 		rep movsw
-		mov         esi,[esp+0x18] // pszSrc2
-		mov         ecx,[esp+0x1C] // cch2
+		mov         esi,[pszSrc2]
+		mov         ecx,[cch2]
 		rep movsw
-		mov         esi,[esp+0x20] // pszSrc3
-		mov         ecx,[esp+0x24] // cch3
+		mov         esi,[pszSrc3]
+		mov         ecx,[cch3]
 		rep movsw
 		xchg        eax,edi
 	}
@@ -102,21 +91,18 @@ PSTR SSCALL SSChainCpyCatA( PSTR pszDest, PCSTR pszSrc1, PCSTR pszSrc2 )
 {
 	__asm
 	{
-		// The auto-generated pushing of edi and esi onto the stack means that
-		// our esp is offset by 8 bytes
-
 		xor         eax,eax
 
-		mov         esi,[esp+0x10] // pszSrc1
+		mov         esi,[pszSrc1]
 		mov         edi,esi
 		or          ecx,-1
 		repnz scasb
 		not         ecx
 		dec         ecx
-		mov         edi,[esp+0x0C] // pszDest
+		mov         edi,[pszDest]
 		rep movsb
 
-		mov         esi,[esp+0x14] // pszSrc2
+		mov         esi,[pszSrc2]
 		push        edi
 		mov         edi,esi
 		or          ecx,-1
@@ -133,21 +119,18 @@ PWSTR SSCALL SSChainCpyCatW( PWSTR pszDest, PCWSTR pszSrc1, PCWSTR pszSrc2 )
 {
 	__asm
 	{
-		// The auto-generated pushing of edi and esi onto the stack means that
-		// our esp is offset by 8 bytes
-
 		xor         eax,eax
 
-		mov         esi,[esp+0x10] // pszSrc1
+		mov         esi,[pszSrc1]
 		mov         edi,esi
 		or          ecx,-1
 		repnz scasw
 		not         ecx
 		dec         ecx
-		mov         edi,[esp+0x0C] // pszDest
+		mov         edi, [pszDest]
 		rep movsw
 
-		mov         esi,[esp+0x14] // pszSrc2
+		mov         esi, [pszSrc2]
 		push        edi
 		mov         edi,esi
 		or          ecx,-1
