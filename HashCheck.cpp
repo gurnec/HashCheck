@@ -31,7 +31,8 @@ static const LPCTSTR ASSOCIATIONS[] =
 	TEXT(".md4"),
 	TEXT(".md5"),
 	TEXT(".sha1"),
-	TEXT(".sha256")
+	TEXT(".sha256"),
+	TEXT(".asc")
 };
 
 // Prototypes for the self-registration/install/uninstall helper functions
@@ -181,7 +182,7 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
-	// The actual association of .sfv/.md4/.md5/.sha1/.sha256 files with our program ID
+	// The actual association of .sfv/.md4/.md5/.sha1/.sha256/.asc files with our program ID
 	// will be handled by DllInstall, not DllRegisterServer.
 
 	// Register approval
