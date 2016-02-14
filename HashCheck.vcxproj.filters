@@ -72,9 +72,6 @@
     <ClCompile Include="libs\Wow64.c">
       <Filter>Libraries</Filter>
     </ClCompile>
-    <ClCompile Include="libs\sha256.c">
-      <Filter>Libraries</Filter>
-    </ClCompile>
     <ClCompile Include="libs\crc32.c">
       <Filter>Libraries</Filter>
     </ClCompile>
@@ -85,6 +82,9 @@
       <Filter>Libraries</Filter>
     </ClCompile>
     <ClCompile Include="libs\sha1.c">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\sha2.c">
       <Filter>Libraries</Filter>
     </ClCompile>
   </ItemGroup>
@@ -149,9 +149,6 @@
       <Filter>Libraries</Filter>
     </ClInclude>
     <ClInclude Include="libs\Wow64.h">
-      <Filter>Libraries</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\sha256.h">
       <Filter>Libraries</Filter>
     </ClInclude>
   </ItemGroup>

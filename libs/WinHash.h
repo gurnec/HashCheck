@@ -17,7 +17,6 @@ extern "C" {
 
 #include <windows.h>
 #include "SwapIntrinsics.h"
-#include "sha256.h"
 
 typedef CONST BYTE *PCBYTE;
 
@@ -33,12 +32,21 @@ typedef struct {
 } MD4_CTX, *PMD4_CTX, MD5_CTX, *PMD5_CTX;
 
 typedef struct {
-	UINT32 reserved[6];
 	UINT32 state[5];
 	UINT64 count;
 	BYTE buffer[64];
 	BYTE result[20];
 } SHA1_CTX, *PSHA1_CTX;
+
+typedef struct _SHA2_CTX {
+	union {
+		UINT32	st32[8];
+		UINT64	st64[8];
+	} state;
+	UINT64 bitcount[2];
+	BYTE buffer[128];
+	BYTE result[64];
+} SHA2_CTX, *PSHA2_CTX;
 
 
 UINT32 crc32( UINT32 uInitial, PCBYTE pbIn, UINT cbIn );
@@ -54,6 +62,10 @@ void MD5Final( PMD5_CTX pContext );
 void SHA1Init( PSHA1_CTX pContext );
 void SHA1Update( PSHA1_CTX pContext, PCBYTE pbIn, UINT cbIn );
 void SHA1Final( PSHA1_CTX pContext );
+
+void SHA256Init( PSHA2_CTX pContext );
+void SHA256Update( PSHA2_CTX pContext, PCBYTE pbIn, UINT cbIn );
+void SHA256Final( PSHA2_CTX pContext );
 
 /**
  * Structures used by our consistency wrapper layer
@@ -72,8 +84,8 @@ typedef union {
 #define  WHCTXSHA1  SHA1_CTX
 #define PWHCTXSHA1 PSHA1_CTX
 
-#define  WHCTXSHA256  Sha256Context
-#define PWHCTXSHA256 *Sha256Context
+#define  WHCTXSHA256  SHA2_CTX
+#define PWHCTXSHA256 PSHA2_CTX
 
 typedef struct {
 	MD4_CTX ctxList;
@@ -113,9 +125,9 @@ __forceinline VOID WHFinishCRC32( PWHCTXCRC32 pContext )
 #define WHUpdateSHA1 SHA1Update
 #define WHFinishSHA1 SHA1Final
 
-#define WHInitSHA256 sha256_init
-#define WHUpdateSHA256 sha256_update
-#define WHFinishSHA256 sha256_finalize
+#define WHInitSHA256 SHA256Init
+#define WHUpdateSHA256 SHA256Update
+#define WHFinishSHA256 SHA256Final
 
 __forceinline VOID WHInitED2K( PWHCTXED2K pContext )
 {

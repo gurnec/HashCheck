@@ -53,7 +53,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0501;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0501;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
@@ -78,7 +78,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0502;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0502;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
@@ -116,7 +116,7 @@
     <ClCompile Include="libs\md4.c" />
     <ClCompile Include="libs\md5.c" />
     <ClCompile Include="libs\sha1.c" />
-    <ClCompile Include="libs\sha256.c" />
+    <ClCompile Include="libs\sha2.c" />
     <ClCompile Include="libs\SimpleList.c" />
     <ClCompile Include="libs\SimpleString.c" />
     <ClCompile Include="libs\SwapIntrinsics.c" />
@@ -139,7 +139,6 @@
     <ClInclude Include="HashCheckOptions.h" />
     <ClInclude Include="HashCheckUI.h" />
     <ClInclude Include="libs\IsFontAvailable.h" />
-    <ClInclude Include="libs\sha256.h" />
     <ClInclude Include="libs\SimpleList.h" />
     <ClInclude Include="libs\SimpleString.h" />
     <ClInclude Include="libs\SwapIntrinsics.h" />
