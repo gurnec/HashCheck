@@ -160,12 +160,14 @@ void SHA1Pad(PSHA1_CTX context)
 
 void SHA1Final(PSHA1_CTX context)
 {
-	u_int i;
+	UINT i;
 
 	SHA1Pad(context);
 	for (i = 0; i < SHA1_DIGEST_LENGTH; i++) {
 		context->result[i] = (BYTE)
 		   ((context->state[i>>2] >> ((3-(i & 3)) * 8) ) & 255);
 	}
-	memset(context, 0, sizeof(*context));
+	
+	/* Clear the context structure except the result field */
+	memset(context, 0, (UINT) FINDOFFSET(SHA1_CTX, result));
 }

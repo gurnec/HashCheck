@@ -131,7 +131,9 @@ void MD4Final(PMD4_CTX ctx)
 	MD4Pad(ctx);
 	for (i = 0; i < 4; i++)
 		PUT_32BIT_LE(ctx->result + i * 4, ctx->state[i]);
-	memset(ctx, 0, sizeof(*ctx));
+
+	/* Clear the context structure except the result field */
+	memset(ctx, 0, (UINT) FINDOFFSET(MD4_CTX, result));
 }
 
 
@@ -159,11 +161,11 @@ void MD4Transform(UINT32 state[4], const BYTE block[MD4_BLOCK_LENGTH])
 	memcpy(in, block, sizeof(in));
 #else
 	for (a = 0; a < MD4_BLOCK_LENGTH / 4; a++) {
-		in[a] = (u_int32_t)(
-		    (u_int32_t)(block[a * 4 + 0]) |
-		    (u_int32_t)(block[a * 4 + 1]) <<  8 |
-		    (u_int32_t)(block[a * 4 + 2]) << 16 |
-		    (u_int32_t)(block[a * 4 + 3]) << 24);
+		in[a] = (UINT32)(
+		    (UINT32)(block[a * 4 + 0]) |
+		    (UINT32)(block[a * 4 + 1]) <<  8 |
+		    (UINT32)(block[a * 4 + 2]) << 16 |
+		    (UINT32)(block[a * 4 + 3]) << 24);
 	}
 #endif
 

@@ -21,6 +21,12 @@ extern "C" {
 typedef CONST BYTE *PCBYTE;
 
 /**
+ * Returns the offset of a member in a struct such that:
+ * type * t; &t->member == ((BYTE *) t) + FINDOFFSET(type, member)
+ */
+#define FINDOFFSET(type,member) (&(((type *) 0)->member))
+
+/**
  * Structures used by the system libraries
  **/
 

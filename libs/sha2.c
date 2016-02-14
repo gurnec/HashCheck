@@ -331,7 +331,9 @@ void SHA224Final(PSHA2_CTX context)
 #else
 	memcpy(context->result, context->state.st32, SHA224_DIGEST_LENGTH);
 #endif
-	memset(context, 0, sizeof(*context));
+	
+	/* Clear the context structure except the result field */
+	memset(context, 0, (UINT) FINDOFFSET(SHA2_CTX, result));
 }
 #endif /* !defined(SHA2_SMALL) */
 
@@ -587,8 +589,7 @@ void SHA256Pad(PSHA2_CTX context)
 	usedspace = 0;
 }
 
-void
-SHA256Final(PSHA2_CTX context)
+void SHA256Final(PSHA2_CTX context)
 {
 	SHA256Pad(context);
 
@@ -603,7 +604,9 @@ SHA256Final(PSHA2_CTX context)
 #else
 	memcpy(context->result, context->state.st32, SHA256_DIGEST_LENGTH);
 #endif
-	memset(context, 0, sizeof(*context));
+	
+	/* Clear the context structure except the result field */
+	memset(context, 0, (UINT) FINDOFFSET(SHA2_CTX, result));
 }
 
 
@@ -875,7 +878,9 @@ void SHA512Final(PSHA2_CTX context)
 #else
 	memcpy(context->result, context->state.st64, SHA512_DIGEST_LENGTH);
 #endif
-	memset(context, 0, sizeof(*context));
+	
+	/* Clear the context structure except the result field */
+	memset(context, 0, (UINT) FINDOFFSET(SHA2_CTX, result));
 }
 
 #if !defined(SHA2_SMALL)
@@ -908,7 +913,8 @@ void SHA384Final(PSHA2_CTX context)
 #else
 	memcpy(context->result, context->state.st64, SHA384_DIGEST_LENGTH);
 #endif
-	/* Zero out state data */
-	memset(context, 0, sizeof(*context));
+	
+	/* Clear the context structure except the result field */
+	memset(context, 0, (UINT) FINDOFFSET(SHA2_CTX, result));
 }
 #endif /* !defined(SHA2_SMALL) */
