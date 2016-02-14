@@ -66,8 +66,8 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/SUBSYSTEM:WINDOWS,5.1 /OSVERSION:5.1 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>shlwapi.lib;comctl32.lib;uxtheme.lib;winhash.lib;qsort_s_uptr.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>libs\x86-32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shlwapi.lib;comctl32.lib;uxtheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>HashCheck.def</ModuleDefinitionFile>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -92,8 +92,8 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/SUBSYSTEM:WINDOWS,5.2 /OSVERSION:5.2 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>shlwapi.lib;comctl32.lib;uxtheme.lib;winhash.lib;qsort_s_uptr.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>libs\x86-64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shlwapi.lib;comctl32.lib;uxtheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>HashCheck.def</ModuleDefinitionFile>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -111,7 +111,11 @@
     <ClCompile Include="HashProp.c" />
     <ClCompile Include="HashSave.c" />
     <ClCompile Include="HashVerify.c" />
+    <ClCompile Include="libs\crc32.c" />
     <ClCompile Include="libs\IsFontAvailable.c" />
+    <ClCompile Include="libs\md4.c" />
+    <ClCompile Include="libs\md5.c" />
+    <ClCompile Include="libs\sha1.c" />
     <ClCompile Include="libs\sha256.c" />
     <ClCompile Include="libs\SimpleList.c" />
     <ClCompile Include="libs\SimpleString.c" />

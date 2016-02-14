@@ -27,7 +27,7 @@ typedef CONST BYTE *PCBYTE;
 
 typedef struct {
 	UINT32 state[4];
-	UINT32 count[2];
+	UINT64 count;
 	BYTE buffer[64];
 	BYTE result[16];
 } MD4_CTX, *PMD4_CTX, MD5_CTX, *PMD5_CTX;
@@ -35,33 +35,25 @@ typedef struct {
 typedef struct {
 	UINT32 reserved[6];
 	UINT32 state[5];
-	UINT32 count[2];
+	UINT64 count;
 	BYTE buffer[64];
+	BYTE result[20];
 } SHA1_CTX, *PSHA1_CTX;
 
-/**
- * Functions imported from system libraries
- **/
 
-#ifndef WH_NO_DLL_IMPORT
-#define WHDLLIMP __declspec( dllimport )
-#else
-#define WHDLLIMP
-#endif
+UINT32 crc32( UINT32 uInitial, PCBYTE pbIn, UINT cbIn );
 
-WHDLLIMP UINT32 WINAPI RtlComputeCrc32( UINT32 uInitial, PCBYTE pbIn, UINT cbIn );
+void MD4Init( PMD4_CTX pContext );
+void MD4Update( PMD4_CTX pContext, PCBYTE pbIn, UINT cbIn );
+void MD4Final( PMD4_CTX pContext );
 
-WHDLLIMP VOID WINAPI MD4Init( PMD4_CTX pContext );
-WHDLLIMP VOID WINAPI MD4Update( PMD4_CTX pContext, PCBYTE pbIn, UINT cbIn );
-WHDLLIMP VOID WINAPI MD4Final( PMD4_CTX pContext );
+void MD5Init( PMD5_CTX pContext );
+void MD5Update( PMD5_CTX pContext, PCBYTE pbIn, UINT cbIn );
+void MD5Final( PMD5_CTX pContext );
 
-WHDLLIMP VOID WINAPI MD5Init( PMD5_CTX pContext );
-WHDLLIMP VOID WINAPI MD5Update( PMD5_CTX pContext, PCBYTE pbIn, UINT cbIn );
-WHDLLIMP VOID WINAPI MD5Final( PMD5_CTX pContext );
-
-WHDLLIMP VOID WINAPI A_SHAInit( PSHA1_CTX pContext );
-WHDLLIMP VOID WINAPI A_SHAUpdate( PSHA1_CTX pContext, PCBYTE pbIn, UINT cbIn );
-WHDLLIMP VOID WINAPI A_SHAFinal( PSHA1_CTX pContext, PBYTE pbResult );
+void SHA1Init( PSHA1_CTX pContext );
+void SHA1Update( PSHA1_CTX pContext, PCBYTE pbIn, UINT cbIn );
+void SHA1Final( PSHA1_CTX pContext );
 
 /**
  * Structures used by our consistency wrapper layer
@@ -77,10 +69,8 @@ typedef union {
 #define  WHCTXMD5  MD5_CTX
 #define PWHCTXMD5 PMD5_CTX
 
-typedef struct {
-	SHA1_CTX ctx;
-	BYTE result[20];
-} WHCTXSHA1, *PWHCTXSHA1;
+#define  WHCTXSHA1  SHA1_CTX
+#define PWHCTXSHA1 PSHA1_CTX
 
 #define  WHCTXSHA256  Sha256Context
 #define PWHCTXSHA256 *Sha256Context
@@ -103,7 +93,7 @@ __forceinline VOID WHInitCRC32( PWHCTXCRC32 pContext )
 
 __forceinline VOID WHUpdateCRC32( PWHCTXCRC32 pContext, PCBYTE pbIn, UINT cbIn )
 {
-	pContext->state = RtlComputeCrc32(pContext->state, pbIn, cbIn);
+	pContext->state = crc32(pContext->state, pbIn, cbIn);
 }
 
 __forceinline VOID WHFinishCRC32( PWHCTXCRC32 pContext )
@@ -119,20 +109,9 @@ __forceinline VOID WHFinishCRC32( PWHCTXCRC32 pContext )
 #define WHUpdateMD5 MD5Update
 #define WHFinishMD5 MD5Final
 
-__forceinline VOID WHInitSHA1( PWHCTXSHA1 pContext )
-{
-	A_SHAInit(&pContext->ctx);
-}
-
-__forceinline VOID WHUpdateSHA1( PWHCTXSHA1 pContext, PCBYTE pbIn, UINT cbIn )
-{
-	A_SHAUpdate(&pContext->ctx, pbIn, cbIn);
-}
-
-__forceinline VOID WHFinishSHA1( PWHCTXSHA1 pContext )
-{
-	A_SHAFinal(&pContext->ctx, pContext->result);
-}
+#define WHInitSHA1 SHA1Init
+#define WHUpdateSHA1 SHA1Update
+#define WHFinishSHA1 SHA1Final
 
 #define WHInitSHA256 sha256_init
 #define WHUpdateSHA256 sha256_update
