@@ -104,8 +104,8 @@ VOID __fastcall OptionsLoad( PHASHCHECKOPTIONS popt )
 		       RegGetDW(hKey, TEXT("FilterIndex"), &popt->dwFilterIndex) &&
 		       popt->dwFilterIndex && popt->dwFilterIndex <= 5 ))
 		{
-			// Fall back to default (SHA-256)
-			popt->dwFilterIndex = 5;
+			// Fall back to default (MD5)
+			popt->dwFilterIndex = 3;
 		}
 	}
 
