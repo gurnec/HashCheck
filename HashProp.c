@@ -2,6 +2,7 @@
  * HashCheck Shell Extension
  * Original work copyright (C) Kai Liu.  All rights reserved.
  * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -24,7 +25,8 @@
                     TEXT("    MD4: %s\r\n") \
                     TEXT("    MD5: %s\r\n") \
                     TEXT("  SHA-1: %s\r\n") \
-                    TEXT("SHA-256: %s\r\n\r\n")
+                    TEXT("SHA-256: %s\r\n") \
+                    TEXT("SHA-512: %s\r\n\r\n")
 
 
 
@@ -543,7 +545,8 @@ VOID WINAPI HashPropUpdateResults( PHASHPROPCONTEXT phpctx, PHASHPROPITEM pItem 
 			pItem->results.szHexMD4,
 			pItem->results.szHexMD5,
 			pItem->results.szHexSHA1,
-			pItem->results.szHexSHA256
+			pItem->results.szHexSHA256,
+			pItem->results.szHexSHA512
 			);
 
 		// Update the new buffer offset for use by the next update

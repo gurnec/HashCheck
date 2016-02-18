@@ -2,6 +2,7 @@
  * HashCheck Shell Extension
  * Original work copyright (C) Kai Liu.  All rights reserved.
  * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -312,6 +313,11 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 				phvctx->whctx.flags = WHEX_CHECKSHA256;
 				cchChecksum = 64;
 			}
+			else if (StrCmpI(pszExt, TEXT(".sha512")) == 0)
+			{
+				phvctx->whctx.flags = WHEX_CHECKSHA512;
+				cchChecksum = 128;
+			}
 		}
 	}
 
@@ -400,6 +406,11 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 				{
 					cchChecksum = 64;
 					phvctx->whctx.flags = WHEX_ALL256;  // WHEX_CHECKSHA256
+				}
+				else if (ValidateHexSequence(pszStartOfLine, 128))
+				{
+					cchChecksum = 128;
+					phvctx->whctx.flags = WHEX_ALL512;  // WHEX_CHECKSHA512
 				}
 			}
 
@@ -584,6 +595,9 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 					break;
 				case WHEX_CHECKSHA256:
 					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHexSHA256);
+					break;
+				case WHEX_CHECKSHA512:
+					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHexSHA512);
 					break;
 			}
 
@@ -867,6 +881,8 @@ VOID WINAPI HashVerifyDlgInit( PHASHVERIFYCONTEXT phvctx )
 					rc.left = 40 * 4 + 20;
 				else if (phvctx->whctx.flags == WHEX_CHECKSHA256)
 					rc.left = 64 * 4 + 20;
+				else if (phvctx->whctx.flags == WHEX_CHECKSHA512)
+					rc.left = 128 * 4 + 20;
 				else if (phvctx->whctx.flags & WHEX_ALL128)
 					rc.left = 32 * 4 + 20;
 			}
@@ -1001,6 +1017,7 @@ VOID WINAPI HashVerifyUpdateSummary( PHASHVERIFYCONTEXT phvctx, PHASHVERIFYITEM 
 			case WHEX_CHECKMD5:   pszSubtitle = TEXT("MD5");    break;
 			case WHEX_CHECKSHA1:  pszSubtitle = TEXT("SHA-1");  break;
 			case WHEX_CHECKSHA256:pszSubtitle = TEXT("SHA-256");  break;
+			case WHEX_CHECKSHA512:pszSubtitle = TEXT("SHA-512");  break;
 		}
 
 		if (pszSubtitle)

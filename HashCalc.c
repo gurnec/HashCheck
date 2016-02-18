@@ -2,6 +2,7 @@
  * HashCheck Shell Extension
  * Original work copyright (C) Kai Liu.  All rights reserved.
  * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -16,7 +17,8 @@
                      TEXT("MD4 (*.md4)\0*.md4\0")    \
                      TEXT("MD5 (*.md5)\0*.md5\0")    \
                      TEXT("SHA-1 (*.sha1)\0*.sha1\0")\
-                     TEXT("SHA-256 (*.sha256)\0*.sha256\0")
+                     TEXT("SHA-256 (*.sha256)\0*.sha256\0")\
+                     TEXT("SHA-512 (*.sha512)\0*.sha512\0")
 
 static const PCTSTR SAVE_EXTS[] =
 {
@@ -25,7 +27,8 @@ static const PCTSTR SAVE_EXTS[] =
 	TEXT(".md4"),
 	TEXT(".md5"),
 	TEXT(".sha1"),
-	TEXT(".sha256")
+	TEXT(".sha256"),
+	TEXT(".sha512")
 };
 
 static const TCHAR SAVE_DEFAULT_NAME[] = TEXT("checksums");
@@ -307,7 +310,7 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 	// is set to a valid value since we depend on that to determine the format
 	if ( GetSaveFileName(&phcctx->ofn) &&
 	     phcctx->ofn.nFilterIndex &&
-	     phcctx->ofn.nFilterIndex <= 5 )
+	     phcctx->ofn.nFilterIndex <= WHALGORITHMS )
 	{
 		BOOL bSuccess = FALSE;
 
@@ -328,8 +331,9 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 			if ( StrCmpI(pszExt, TEXT(".sfv")) == 0 ||
 			     StrCmpI(pszExt, TEXT(".md4")) == 0 ||
 			     StrCmpI(pszExt, TEXT(".md5")) == 0 ||
-			     StrCmpI(pszExt, TEXT(".sha1")) == 0||
-			     StrCmpI(pszExt, TEXT(".sha256")) == 0 )
+				 StrCmpI(pszExt, TEXT(".sha1")) == 0 ||
+				 StrCmpI(pszExt, TEXT(".sha256")) == 0 ||
+				 StrCmpI(pszExt, TEXT(".sha512")) == 0)
 			{
 				if (StrCmpI(pszExt, SAVE_EXTS[phcctx->ofn.nFilterIndex]))
 					SSCpy(pszExt, SAVE_EXTS[phcctx->ofn.nFilterIndex]);
@@ -404,11 +408,12 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 	// Translate the filter index to a hash
 	switch (phcctx->ofn.nFilterIndex)
 	{
-		case 1: pszHash = pItem->results.szHexCRC32; break;
-		case 2: pszHash = pItem->results.szHexMD4;   break;
-		case 3: pszHash = pItem->results.szHexMD5;   break;
-		case 4: pszHash = pItem->results.szHexSHA1;  break;
-		case 5: pszHash = pItem->results.szHexSHA256;break;
+		case WHCRC32:  pszHash = pItem->results.szHexCRC32;  break;
+		case WHMD4:    pszHash = pItem->results.szHexMD4;    break;
+		case WHMD5:    pszHash = pItem->results.szHexMD5;    break;
+		case WHSHA1:   pszHash = pItem->results.szHexSHA1;   break;
+		case WHSHA256: pszHash = pItem->results.szHexSHA256; break;
+		case WHSHA512: pszHash = pItem->results.szHexSHA512; break;
 		default: return(FALSE);
 	}
 

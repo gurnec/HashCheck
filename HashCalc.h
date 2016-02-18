@@ -31,7 +31,7 @@ extern "C" {
  **/
 
 // Constants
-#define RESULTS_LEN 0x100
+#define RESULTS_LEN 0x200
 #define SCRATCH_BUFFER_SIZE (MAX_PATH_BUFFER + RESULTS_LEN)
 
 // Scratch buffer

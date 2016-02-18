@@ -2,6 +2,7 @@
  * HashCheck Shell Extension
  * Original work copyright (C) Kai Liu.  All rights reserved.
  * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -146,6 +147,7 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 	// WHEX_CHECKMD5   = 0x04 = 1 << 2
 	// WHEX_CHECKSHA1  = 0x08 = 1 << 3
 	// WHEX_CHECKSHA256= 0x10 = 1 << 4
+	// WHEX_CHECKSHA512= 0x20 = 1 << 5
 	phsctx->whctx.flags = 1 << (phsctx->ofn.nFilterIndex - 1);
 
 	while (pItem = SLGetDataAndStep(phsctx->hList))

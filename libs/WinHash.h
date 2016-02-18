@@ -3,9 +3,10 @@
  * Last modified: 2014/12/04
  * Original work copyright (C) Kai Liu.  All rights reserved.
  * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
- * This is a wrapper for the MD4, MD5, SHA1, and CRC32 algorithms supported
- * natively by the Windows API, plus the included SHA-256 library.
+ * This is a wrapper for the CRC32, MD4, MD5, SHA1, SHA2-256, and SHA2-512
+ * algorithms.
  **/
 
 #ifndef __WINHASH_H__
@@ -73,6 +74,10 @@ void SHA256Init( PSHA2_CTX pContext );
 void SHA256Update( PSHA2_CTX pContext, PCBYTE pbIn, UINT cbIn );
 void SHA256Final( PSHA2_CTX pContext );
 
+void SHA512Init( PSHA2_CTX pContext );
+void SHA512Update( PSHA2_CTX pContext, PCBYTE pbIn, UINT cbIn );
+void SHA512Final( PSHA2_CTX pContext );
+
 /**
  * Structures used by our consistency wrapper layer
  **/
@@ -92,6 +97,9 @@ typedef union {
 
 #define  WHCTXSHA256  SHA2_CTX
 #define PWHCTXSHA256 PSHA2_CTX
+
+#define  WHCTXSHA512  SHA2_CTX
+#define PWHCTXSHA512 PSHA2_CTX
 
 typedef struct {
 	MD4_CTX ctxList;
@@ -134,6 +142,10 @@ __forceinline VOID WHFinishCRC32( PWHCTXCRC32 pContext )
 #define WHInitSHA256 SHA256Init
 #define WHUpdateSHA256 SHA256Update
 #define WHFinishSHA256 SHA256Final
+
+#define WHInitSHA512 SHA512Init
+#define WHUpdateSHA512 SHA512Update
+#define WHFinishSHA512 SHA512Final
 
 __forceinline VOID WHInitED2K( PWHCTXED2K pContext )
 {
@@ -195,6 +207,7 @@ typedef struct {
 	TCHAR szHexMD5[33];
 	TCHAR szHexSHA1[41];
 	TCHAR szHexSHA256[65];
+	TCHAR szHexSHA512[129];
 } WHRESULTEX, *PWHRESULTEX;
 
 typedef struct {
@@ -205,6 +218,7 @@ typedef struct {
 	WHCTXMD5   ctxMD5;
 	WHCTXSHA1  ctxSHA1;
 	WHCTXSHA256 ctxSHA256;
+	WHCTXSHA512 ctxSHA512;
 	WHRESULTEX results;
 } WHCTXEX, *PWHCTXEX;
 
@@ -213,11 +227,24 @@ typedef struct {
 #define WHEX_CHECKMD5   0x04
 #define WHEX_CHECKSHA1  0x08
 #define WHEX_CHECKSHA256 0x10
-#define WHEX_ALL        0x1F
+#define WHEX_CHECKSHA512 0x20
+#define WHEX_CHECKLAST WHEX_CHECKSHA512
+
+#define WHEX_ALL        0x3F
 #define WHEX_ALL32      0x01
 #define WHEX_ALL128     0x06
 #define WHEX_ALL160     0x08
 #define WHEX_ALL256     0x10
+#define WHEX_ALL512     0x20
+
+#define WHCRC32 1
+#define WHMD4 2
+#define WHMD5 3
+#define WHSHA1 4
+#define WHSHA256 5
+#define WHSHA512 6
+#define WHALGORITHMS WHSHA512
+
 
 VOID WHAPI WHInitEx( PWHCTXEX pContext );
 VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn );
