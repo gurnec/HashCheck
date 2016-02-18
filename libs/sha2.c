@@ -504,7 +504,7 @@ void SHA256Transform(UINT32 state[8], const BYTE data[SHA256_BLOCK_LENGTH])
 
 void SHA256Update(PSHA2_CTX context, PCBYTE data, UINT len)
 {
-	size_t	freespace, usedspace;
+	UINT32	freespace, usedspace;
 
 	/* Calling with no data is valid (we do nothing) */
 	if (len == 0)
@@ -778,7 +778,7 @@ void SHA512Transform(UINT64 state[8], const BYTE data[SHA512_BLOCK_LENGTH])
 
 void SHA512Update(PSHA2_CTX context, PCBYTE data, UINT len)
 {
-	size_t	freespace, usedspace;
+	UINT32 freespace, usedspace;
 
 	/* Calling with no data is valid (we do nothing) */
 	if (len == 0)

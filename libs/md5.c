@@ -68,10 +68,10 @@ void MD5Init(PMD5_CTX ctx)
  */
 void MD5Update(PMD5_CTX ctx, PCBYTE input, UINT len)
 {
-	size_t have, need;
+	UINT32 have, need;
 
 	/* Check how many bytes we already have and how many more we need. */
-	have = (size_t)((ctx->count >> 3) & (MD5_BLOCK_LENGTH - 1));
+	have = (UINT32)((ctx->count >> 3) & (MD5_BLOCK_LENGTH - 1));
 	need = MD5_BLOCK_LENGTH - have;
 
 	/* Update bitcount */
@@ -106,7 +106,7 @@ void MD5Update(PMD5_CTX ctx, PCBYTE input, UINT len)
 void MD5Pad(PMD5_CTX ctx)
 {
 	BYTE count[8];
-	size_t padlen;
+	UINT32 padlen;
 
 	/* Convert count to 8 bytes in little endian order. */
 	PUT_64BIT_LE(count, ctx->count);
