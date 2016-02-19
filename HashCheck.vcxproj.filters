@@ -151,9 +151,15 @@
     <ClInclude Include="libs\Wow64.h">
       <Filter>Libraries</Filter>
     </ClInclude>
+    <ClInclude Include="HashCheckTranslations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="HashCheck.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="HashCheckTranslations.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

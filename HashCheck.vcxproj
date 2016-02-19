@@ -59,6 +59,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;_M_IX86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -85,6 +86,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;_M_AMD64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -137,6 +139,7 @@
     <ClInclude Include="HashCalc.h" />
     <ClInclude Include="HashCheckCommon.h" />
     <ClInclude Include="HashCheckOptions.h" />
+    <ClInclude Include="HashCheckTranslations.h" />
     <ClInclude Include="HashCheckUI.h" />
     <ClInclude Include="libs\IsFontAvailable.h" />
     <ClInclude Include="libs\SimpleList.h" />
@@ -152,6 +155,10 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="HashCheck.rc" />
+    <ResourceCompile Include="HashCheckTranslations.rc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ResourceCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
