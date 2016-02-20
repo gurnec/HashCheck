@@ -41,20 +41,6 @@
 #define StrCmpLogical StrCmpIA
 #endif
 
-// VC6/7 do not support qsort_s, so we have to provide our own (qsort_s_uptr);
-// if the environment does support qsort_s, we will use that instead
-#if __STDC_WANT_SECURE_LIB__
-#define qsort_s_uptr qsort_s
-#else
-void __cdecl qsort_s_uptr(
-	void *base,
-	size_t num,
-	size_t width,
-	int (__cdecl *compare)( void *, const void *, const void * ),
-	void *context
-);
-#endif
-
 // Due to the stupidity of the x64 compiler, the code emitted for the non-inline
 // function is not as efficient as it is on x86
 #ifdef _M_IX86
@@ -81,7 +67,7 @@ typedef struct {
 	INT16              cchDisplayName;
 	UINT8              uState;
 	UINT8              uStatusID;
-	TCHAR              szActual[65];
+	TCHAR              szActual[129];
 } HASHVERIFYITEM, *PHASHVERIFYITEM, *PHVITEM, **PPHVITEM;
 
 typedef CONST HASHVERIFYITEM **PPCHVITEM;
@@ -1219,7 +1205,7 @@ VOID WINAPI HashVerifySortColumn( PHASHVERIFYCONTEXT phvctx, LPNMLISTVIEW plv )
 		// Change to a new column
 		phvctx->sort.iColumn = plv->iSubItem;
 		phvctx->sort.bReverse = FALSE;
-		qsort_s_uptr(phvctx->index, phvctx->cTotal, sizeof(PHVITEM), HashVerifySortCompare, phvctx);
+		qsort_s(phvctx->index, phvctx->cTotal, sizeof(PHVITEM), HashVerifySortCompare, phvctx);
 	}
 	else if (phvctx->sort.bReverse)
 	{
