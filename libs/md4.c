@@ -21,10 +21,6 @@
 #include <string.h>
 #include "WinHash.h"
 
-#define	MD4_BLOCK_LENGTH		64
-#define	MD4_DIGEST_LENGTH		16
-#define	MD4_DIGEST_STRING_LENGTH	(MD4_DIGEST_LENGTH * 2 + 1)
-
 #define PUT_64BIT_LE(cp, value) do {			\
 	(cp)[7] = (BYTE) ((value) >> 56);			\
 	(cp)[6] = (BYTE) ((value) >> 48);			\

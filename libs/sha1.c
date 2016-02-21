@@ -17,10 +17,6 @@
 #include <string.h>
 #include "WinHash.h"
 
-#define	SHA1_BLOCK_LENGTH		64
-#define	SHA1_DIGEST_LENGTH		20
-#define	SHA1_DIGEST_STRING_LENGTH	(SHA1_DIGEST_LENGTH * 2 + 1)
-
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
 
 /*

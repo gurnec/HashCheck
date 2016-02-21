@@ -28,6 +28,37 @@ typedef CONST BYTE *PCBYTE;
 #define FINDOFFSET(type,member) (&(((type *) 0)->member))
 
 /**
+ * Some constants related to the hash algorithms
+ */
+
+// The block lengths of the hash algorithms
+#define MD4_BLOCK_LENGTH            64
+#define MD5_BLOCK_LENGTH            64
+#define SHA1_BLOCK_LENGTH           64
+#define SHA224_BLOCK_LENGTH         64
+#define SHA256_BLOCK_LENGTH         64
+#define SHA384_BLOCK_LENGTH         128
+#define SHA512_BLOCK_LENGTH         128
+
+// The digest lengths of the hash algorithms
+#define MD4_DIGEST_LENGTH           16
+#define MD5_DIGEST_LENGTH           16
+#define SHA1_DIGEST_LENGTH          20
+#define SHA224_DIGEST_LENGTH        28
+#define SHA256_DIGEST_LENGTH        32
+#define SHA384_DIGEST_LENGTH        48
+#define SHA512_DIGEST_LENGTH        64
+
+// The minimum string length required to hold the hex digest strings
+#define MD4_DIGEST_STRING_LENGTH    (MD4_DIGEST_LENGTH * 2 + 1)
+#define MD5_DIGEST_STRING_LENGTH    (MD5_DIGEST_LENGTH * 2 + 1)
+#define SHA1_DIGEST_STRING_LENGTH   (SHA1_DIGEST_LENGTH * 2 + 1)
+#define SHA224_DIGEST_STRING_LENGTH (SHA224_DIGEST_LENGTH * 2 + 1)
+#define SHA256_DIGEST_STRING_LENGTH (SHA256_DIGEST_LENGTH * 2 + 1)
+#define SHA384_DIGEST_STRING_LENGTH (SHA384_DIGEST_LENGTH * 2 + 1)
+#define SHA512_DIGEST_STRING_LENGTH (SHA512_DIGEST_LENGTH * 2 + 1)
+
+/**
  * Structures used by the system libraries
  **/
 
