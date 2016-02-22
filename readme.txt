@@ -1,6 +1,10 @@
 HashCheck Shell Extension
-Original work copyright (C) Kai Liu.  All rights reserved.
-Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+
+Contributors:
+    Kai Liu
+    Christopher Gurnee
+    David B. Trout
+    Tim Schlueter
 
 
 I.  Building the source

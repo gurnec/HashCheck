@@ -26,17 +26,6 @@ HANDLE g_hActCtx;
 // Major and minor Windows version (declared as extern in globals.h)
 UINT16 g_uWinVer;
 
-// File extensions to associate with
-static const LPCTSTR ASSOCIATIONS[] =
-{
-	TEXT(".sfv"),
-	TEXT(".md4"),
-	TEXT(".md5"),
-	TEXT(".sha1"),
-	TEXT(".sha256"),
-	TEXT(".sha512")
-};
-
 // Prototypes for the self-registration/install/uninstall helper functions
 STDAPI DllRegisterServerEx( LPCTSTR );
 HRESULT Install( BOOL );
@@ -184,8 +173,8 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
-	// The actual association of .sfv/.md4/.md5/.sha1/.sha256 files with our
-	// program ID will be handled by DllInstall, not DllRegisterServer.
+	// The actual association of .sfv/.md4/.md5/.sha1/.sha256/.sha512 files with
+	// our program ID will be handled by DllInstall, not DllRegisterServer.
 
 	// Register approval
 	if (hKey = RegOpen(HKEY_LOCAL_MACHINE, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Approved"), NULL))
@@ -297,9 +286,9 @@ HRESULT Install( BOOL bCopyFile )
 			HKEY hKey, hKeySub;
 
 			// Associate file extensions
-			for (UINT i = 0; i < countof(ASSOCIATIONS); ++i)
+			for (UINT i = 0; i < countof(g_szHashExtsTab); ++i)
 			{
-				if (hKey = RegOpen(HKEY_CLASSES_ROOT, ASSOCIATIONS[i], NULL))
+				if (hKey = RegOpen(HKEY_CLASSES_ROOT, g_szHashExtsTab[i], NULL))
 				{
 					RegSetSZ(hKey, NULL, PROGID_STR_HashCheck);
 					RegSetSZ(hKey, TEXT("PerceivedType"), TEXT("text"));
@@ -385,11 +374,11 @@ HRESULT Uninstall( )
 	// why this step is skipped for Wow64 processes
 	if (!Wow64CheckProcess())
 	{
-		for (UINT i = 0; i < countof(ASSOCIATIONS); ++i)
+		for (UINT i = 0; i < countof(g_szHashExtsTab); ++i)
 		{
 			HKEY hKey;
 
-			if (hKey = RegOpen(HKEY_CLASSES_ROOT, ASSOCIATIONS[i], NULL))
+			if (hKey = RegOpen(HKEY_CLASSES_ROOT, g_szHashExtsTab[i], NULL))
 			{
 				RegDeleteValue(hKey, NULL);
 				RegCloseKey(hKey);

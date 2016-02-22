@@ -21,15 +21,6 @@
 #define  HASHPROPITEM     HASHCALCITEM
 #define PHASHPROPITEM    PHASHCALCITEM
 
-#define RESULTS_FMT TEXT("\r\n") \
-                    TEXT(" CRC-32: %s\r\n") \
-                    TEXT("    MD4: %s\r\n") \
-                    TEXT("    MD5: %s\r\n") \
-                    TEXT("  SHA-1: %s\r\n") \
-                    TEXT("SHA-256: %s\r\n") \
-                    TEXT("SHA-512: %s\r\n\r\n")
-
-
 
 /*============================================================================*\
 	Function declarations
@@ -541,7 +532,7 @@ VOID WINAPI HashPropUpdateResults( PHASHPROPCONTEXT phpctx, PHASHPROPITEM pItem 
 		// Copy the results
 		pszScratchAppend += wnsprintf(
 			pszScratchAppend,
-			RESULTS_LEN, RESULTS_FMT,
+			HASH_RESULTS_BUFSIZE, HASH_RESULTS_FMT,
 			pItem->results.szHexCRC32,
 			pItem->results.szHexMD4,
 			pItem->results.szHexMD5,

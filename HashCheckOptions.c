@@ -103,10 +103,10 @@ VOID __fastcall OptionsLoad( PHASHCHECKOPTIONS popt )
 	{
 		if (!( hKey &&
 		       RegGetDW(hKey, TEXT("FilterIndex"), &popt->dwFilterIndex) &&
-		       popt->dwFilterIndex && popt->dwFilterIndex <= WHALGORITHMS))
+			   popt->dwFilterIndex && popt->dwFilterIndex <= NUM_HASHES))
 		{
 			// Fall back to default (MD5)
-			popt->dwFilterIndex = WHMD5;
+			popt->dwFilterIndex = DEFAULT_HASH_ALGORITHM;
 		}
 	}
 

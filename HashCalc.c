@@ -14,24 +14,6 @@
 #include "UnicodeHelpers.h"
 #include "libs/WinHash.h"
 
-#define SAVE_FILTERS TEXT("CRC-32 (*.sfv)\0*.sfv\0") \
-                     TEXT("MD4 (*.md4)\0*.md4\0")    \
-                     TEXT("MD5 (*.md5)\0*.md5\0")    \
-                     TEXT("SHA-1 (*.sha1)\0*.sha1\0")\
-                     TEXT("SHA-256 (*.sha256)\0*.sha256\0")\
-                     TEXT("SHA-512 (*.sha512)\0*.sha512\0")
-
-static const PCTSTR SAVE_EXTS[] =
-{
-	NULL,
-	TEXT(".sfv"),
-	TEXT(".md4"),
-	TEXT(".md5"),
-	TEXT(".sha1"),
-	TEXT(".sha256"),
-	TEXT(".sha512")
-};
-
 static const TCHAR SAVE_DEFAULT_NAME[] = TEXT("checksums");
 
 // Due to the stupidity of the x64 compiler, the code emitted for the non-inline
@@ -275,7 +257,7 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 	{
 		phcctx->ofn.lStructSize = sizeof(phcctx->ofn);
 		phcctx->ofn.hwndOwner = hWnd;
-		phcctx->ofn.lpstrFilter = SAVE_FILTERS;
+		phcctx->ofn.lpstrFilter = HASH_FILE_FILTERS;
 		phcctx->ofn.nFilterIndex = phcctx->opt.dwFilterIndex;
 		phcctx->ofn.lpstrFile = pszFile;
 		phcctx->ofn.nMaxFile = MAX_PATH_BUFFER + 10;
@@ -302,7 +284,7 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 			{
 				// Only one item was selected in Explorer (may be a single
 				// file or a directory containing multiple files)
-				SSChainCpyCat(pszFile, pszOrigPath, SAVE_EXTS[phcctx->ofn.nFilterIndex]);
+				SSChainCpyCat(pszFile, pszOrigPath, g_szHashExtsTab[phcctx->ofn.nFilterIndex - 1]);
 			}
 		}
 	}
@@ -311,7 +293,7 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 	// is set to a valid value since we depend on that to determine the format
 	if ( GetSaveFileName(&phcctx->ofn) &&
 	     phcctx->ofn.nFilterIndex &&
-	     phcctx->ofn.nFilterIndex <= WHALGORITHMS )
+		 phcctx->ofn.nFilterIndex <= NUM_HASHES)
 	{
 		BOOL bSuccess = FALSE;
 
@@ -329,15 +311,15 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 		{
 			PTSTR pszExt = pszFile + phcctx->ofn.nFileExtension - 1;
 
-			if ( StrCmpI(pszExt, TEXT(".sfv")) == 0 ||
-			     StrCmpI(pszExt, TEXT(".md4")) == 0 ||
-			     StrCmpI(pszExt, TEXT(".md5")) == 0 ||
-				 StrCmpI(pszExt, TEXT(".sha1")) == 0 ||
-				 StrCmpI(pszExt, TEXT(".sha256")) == 0 ||
-				 StrCmpI(pszExt, TEXT(".sha512")) == 0)
+			if (StrCmpI(pszExt, HASH_EXT_CRC32) == 0 ||
+				StrCmpI(pszExt, HASH_EXT_MD4) == 0 ||
+				StrCmpI(pszExt, HASH_EXT_MD5) == 0 ||
+				StrCmpI(pszExt, HASH_EXT_SHA1) == 0 ||
+				StrCmpI(pszExt, HASH_EXT_SHA256) == 0 ||
+				StrCmpI(pszExt, HASH_EXT_SHA512) == 0)
 			{
-				if (StrCmpI(pszExt, SAVE_EXTS[phcctx->ofn.nFilterIndex]))
-					SSCpy(pszExt, SAVE_EXTS[phcctx->ofn.nFilterIndex]);
+				if (StrCmpI(pszExt, g_szHashExtsTab[phcctx->ofn.nFilterIndex - 1]))
+					SSCpy(pszExt, g_szHashExtsTab[phcctx->ofn.nFilterIndex - 1]);
 			}
 		}
 
@@ -409,12 +391,12 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 	// Translate the filter index to a hash
 	switch (phcctx->ofn.nFilterIndex)
 	{
-		case WHCRC32:  pszHash = pItem->results.szHexCRC32;  break;
-		case WHMD4:    pszHash = pItem->results.szHexMD4;    break;
-		case WHMD5:    pszHash = pItem->results.szHexMD5;    break;
-		case WHSHA1:   pszHash = pItem->results.szHexSHA1;   break;
-		case WHSHA256: pszHash = pItem->results.szHexSHA256; break;
-		case WHSHA512: pszHash = pItem->results.szHexSHA512; break;
+		case CRC32:  pszHash = pItem->results.szHexCRC32;  break;
+		case MD4:    pszHash = pItem->results.szHexMD4;    break;
+		case MD5:    pszHash = pItem->results.szHexMD5;    break;
+		case SHA1:   pszHash = pItem->results.szHexSHA1;   break;
+		case SHA256: pszHash = pItem->results.szHexSHA256; break;
+		case SHA512: pszHash = pItem->results.szHexSHA512; break;
 		default: return(FALSE);
 	}
 

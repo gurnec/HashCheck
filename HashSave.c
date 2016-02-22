@@ -141,13 +141,7 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 	HashCalcPrepare(phsctx);
 	PostMessage(phsctx->hWnd, HM_WORKERTHREAD_TOGGLEPREP, (WPARAM)phsctx, FALSE);
 
-	// Indicate which hash type we are after
-	// WHEX_CHECKCRC32 = 0x01 = 1 << 0
-	// WHEX_CHECKMD4   = 0x02 = 1 << 1
-	// WHEX_CHECKMD5   = 0x04 = 1 << 2
-	// WHEX_CHECKSHA1  = 0x08 = 1 << 3
-	// WHEX_CHECKSHA256= 0x10 = 1 << 4
-	// WHEX_CHECKSHA512= 0x20 = 1 << 5
+	// Indicate which hash type we are after, see WHEX... values in WinHash.h
 	phsctx->whctx.flags = 1 << (phsctx->ofn.nFilterIndex - 1);
 
 	while (pItem = SLGetDataAndStep(phsctx->hList))

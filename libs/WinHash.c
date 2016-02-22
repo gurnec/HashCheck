@@ -1,6 +1,6 @@
 /**
  * Windows Hashing/Checksumming Library
- * Last modified: 2014/12/04
+ * Last modified: 2016/02/21
  * Original work copyright (C) Kai Liu.  All rights reserved.
  * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
@@ -12,6 +12,16 @@
  **/
 
 #include "WinHash.h"
+
+// Table of supported Hash file extensions
+LPCTSTR g_szHashExtsTab[NUM_HASHES] = {
+	HASH_EXT_CRC32,
+	HASH_EXT_MD4,
+	HASH_EXT_MD5,
+	HASH_EXT_SHA1,
+	HASH_EXT_SHA256,
+	HASH_EXT_SHA512
+};
 
 /**
  * WH*To* hex string conversion functions
@@ -152,36 +162,36 @@ VOID WHAPI WHFinishEx( PWHCTXEX pContext, PWHRESULTEX pResults )
 	if (pContext->flags & WHEX_CHECKCRC32)
 	{
 		WHFinishCRC32(&pContext->ctxCRC32);
-		WHByteToHex(pContext->ctxCRC32.result, pResults->szHexCRC32, 8, pContext->uCaseMode);
+		WHByteToHex(pContext->ctxCRC32.result, pResults->szHexCRC32, CRC32_DIGEST_LENGTH * 2, pContext->uCaseMode);
 	}
 
 	if (pContext->flags & WHEX_CHECKMD4)
 	{
 		WHFinishMD4(&pContext->ctxMD4);
-		WHByteToHex(pContext->ctxMD4.result, pResults->szHexMD4, 32, pContext->uCaseMode);
+		WHByteToHex(pContext->ctxMD4.result, pResults->szHexMD4, MD4_DIGEST_LENGTH * 2, pContext->uCaseMode);
 	}
 
 	if (pContext->flags & WHEX_CHECKMD5)
 	{
 		WHFinishMD5(&pContext->ctxMD5);
-		WHByteToHex(pContext->ctxMD5.result, pResults->szHexMD5, 32, pContext->uCaseMode);
+		WHByteToHex(pContext->ctxMD5.result, pResults->szHexMD5, MD5_DIGEST_LENGTH * 2, pContext->uCaseMode);
 	}
 
 	if (pContext->flags & WHEX_CHECKSHA1)
 	{
 		WHFinishSHA1(&pContext->ctxSHA1);
-		WHByteToHex(pContext->ctxSHA1.result, pResults->szHexSHA1, 40, pContext->uCaseMode);
+		WHByteToHex(pContext->ctxSHA1.result, pResults->szHexSHA1, SHA1_DIGEST_LENGTH * 2, pContext->uCaseMode);
 	}
 
 	if (pContext->flags & WHEX_CHECKSHA256)
 	{
 		WHFinishSHA256(&pContext->ctxSHA256);
-		WHByteToHex(pContext->ctxSHA256.result, pResults->szHexSHA256, 64, pContext->uCaseMode);
+		WHByteToHex(pContext->ctxSHA256.result, pResults->szHexSHA256, SHA256_DIGEST_LENGTH * 2, pContext->uCaseMode);
 	}
 
 	if (pContext->flags & WHEX_CHECKSHA512)
 	{
 		WHFinishSHA512(&pContext->ctxSHA512);
-		WHByteToHex(pContext->ctxSHA512.result, pResults->szHexSHA512, 128, pContext->uCaseMode);
+		WHByteToHex(pContext->ctxSHA512.result, pResults->szHexSHA512, SHA512_DIGEST_LENGTH * 2, pContext->uCaseMode);
 	}
 }

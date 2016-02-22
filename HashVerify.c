@@ -67,7 +67,7 @@ typedef struct {
 	INT16              cchDisplayName;
 	UINT8              uState;
 	UINT8              uStatusID;
-	TCHAR              szActual[129];
+	TCHAR              szActual[MAX_DIGEST_STRING_LENGTH];
 } HASHVERIFYITEM, *PHASHVERIFYITEM, *PHVITEM, **PPHVITEM;
 
 typedef CONST HASHVERIFYITEM **PPCHVITEM;
@@ -273,36 +273,36 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 
 		if (pszExt)
 		{
-			if (StrCmpI(pszExt, TEXT(".sfv")) == 0)
+			if (StrCmpI(pszExt, HASH_EXT_CRC32) == 0)
 			{
 				phvctx->whctx.flags = WHEX_CHECKCRC32;
-				cchChecksum = 8;
+				cchChecksum = CRC32_DIGEST_LENGTH * 2;
 				bReverseFormat = TRUE;
 			}
-			else if (StrCmpI(pszExt, TEXT(".md4")) == 0)
+			else if (StrCmpI(pszExt, HASH_EXT_MD4) == 0)
 			{
 				phvctx->whctx.flags = WHEX_CHECKMD4;
-				cchChecksum = 32;
+				cchChecksum = MD4_DIGEST_LENGTH * 2;
 			}
-			else if (StrCmpI(pszExt, TEXT(".md5")) == 0)
+			else if (StrCmpI(pszExt, HASH_EXT_MD5) == 0)
 			{
 				phvctx->whctx.flags = WHEX_CHECKMD5;
-				cchChecksum = 32;
+				cchChecksum = MD5_DIGEST_LENGTH * 2;
 			}
-			else if (StrCmpI(pszExt, TEXT(".sha1")) == 0)
+			else if (StrCmpI(pszExt, HASH_EXT_SHA1) == 0)
 			{
 				phvctx->whctx.flags = WHEX_CHECKSHA1;
-				cchChecksum = 40;
+				cchChecksum = SHA1_DIGEST_LENGTH * 2;
 			}
-			else if (StrCmpI(pszExt, TEXT(".sha256")) == 0)
+			else if (StrCmpI(pszExt, HASH_EXT_SHA256) == 0)
 			{
 				phvctx->whctx.flags = WHEX_CHECKSHA256;
-				cchChecksum = 64;
+				cchChecksum = SHA256_DIGEST_LENGTH * 2;
 			}
-			else if (StrCmpI(pszExt, TEXT(".sha512")) == 0)
+			else if (StrCmpI(pszExt, HASH_EXT_SHA512) == 0)
 			{
 				phvctx->whctx.flags = WHEX_CHECKSHA512;
-				cchChecksum = 128;
+				cchChecksum = SHA512_DIGEST_LENGTH * 2;
 			}
 		}
 	}
@@ -367,32 +367,37 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 			// If we do not know the type yet, make a stab at detecting it
 			if (phvctx->whctx.flags == 0)
 			{
+				// 32-bit algorithms
 				if (ValidateHexSequence(pszStartOfLine, 8))
 				{
 					cchChecksum = 8;
 					phvctx->whctx.flags = WHEX_ALL32;  // WHEX_CHECKCRC32
 				}
+				// 128-bit algorithms
 				else if (ValidateHexSequence(pszStartOfLine, 32))
 				{
 					cchChecksum = 32;
 					phvctx->whctx.flags = WHEX_ALL128;  // WHEX_CHECKMD4 | WHEX_CHECKMD5
 
 					// Disambiguate from the filename, if possible
-					if (StrStrI(phvctx->pszPath, TEXT("MD5")))
+					if (StrStrI(phvctx->pszPath, HASH_NAME_MD5))
 						phvctx->whctx.flags = WHEX_CHECKMD5;
-					else if (StrStrI(phvctx->pszPath, TEXT("MD4")))
+					else if (StrStrI(phvctx->pszPath, HASH_NAME_MD4))
 						phvctx->whctx.flags = WHEX_CHECKMD4;
 				}
+				// 160-bit algorithms
 				else if (ValidateHexSequence(pszStartOfLine, 40))
 				{
 					cchChecksum = 40;
 					phvctx->whctx.flags = WHEX_ALL160;  // WHEX_CHECKSHA1
 				}
+				// 256-bit algorithms
 				else if (ValidateHexSequence(pszStartOfLine, 64))
 				{
 					cchChecksum = 64;
 					phvctx->whctx.flags = WHEX_ALL256;  // WHEX_CHECKSHA256
 				}
+				// 512-bit algorithms
 				else if (ValidateHexSequence(pszStartOfLine, 128))
 				{
 					cchChecksum = 128;
@@ -861,16 +866,16 @@ VOID WINAPI HashVerifyDlgInit( PHASHVERIFYCONTEXT phvctx )
 
 			if (rc.left == 0)
 			{
-				if (phvctx->whctx.flags == WHEX_CHECKCRC32)
-					rc.left =  8 * 4 + 20 + 40;  // extra size to accommodate the header labels
-				else if (phvctx->whctx.flags == WHEX_CHECKSHA1)
-					rc.left = 40 * 4 + 20;
-				else if (phvctx->whctx.flags == WHEX_CHECKSHA256)
-					rc.left = 64 * 4 + 20;
-				else if (phvctx->whctx.flags == WHEX_CHECKSHA512)
-					rc.left = 128 * 4 + 20;
-				else if (phvctx->whctx.flags & WHEX_ALL128)
-					rc.left = 32 * 4 + 20;
+                if (phvctx->whctx.flags & WHEX_ALL512)
+                    rc.left = 512 + 20;
+                else if (phvctx->whctx.flags & WHEX_ALL256)
+                    rc.left = 256 + 20;
+                else if (phvctx->whctx.flags & WHEX_ALL160)
+                    rc.left = 160 + 20;
+                else if (phvctx->whctx.flags & WHEX_ALL128)
+                    rc.left = 128 + 20;
+                else if (phvctx->whctx.flags & WHEX_ALL32)
+                    rc.left =  32 + 20 + 40;  // extra size to accommodate the header labels
 			}
 
 			MapDialogRect(hWnd, &rc);
@@ -998,12 +1003,12 @@ VOID WINAPI HashVerifyUpdateSummary( PHASHVERIFYCONTEXT phvctx, PHASHVERIFYITEM 
 
 		switch (phvctx->whctx.flags)
 		{
-			case WHEX_CHECKCRC32: pszSubtitle = TEXT("CRC-32"); break;
-			case WHEX_CHECKMD4:   pszSubtitle = TEXT("MD4");    break;
-			case WHEX_CHECKMD5:   pszSubtitle = TEXT("MD5");    break;
-			case WHEX_CHECKSHA1:  pszSubtitle = TEXT("SHA-1");  break;
-			case WHEX_CHECKSHA256:pszSubtitle = TEXT("SHA-256");  break;
-			case WHEX_CHECKSHA512:pszSubtitle = TEXT("SHA-512");  break;
+			case WHEX_CHECKCRC32:   pszSubtitle = HASH_NAME_CRC32;  break;
+			case WHEX_CHECKMD4:     pszSubtitle = HASH_NAME_MD4;    break;
+			case WHEX_CHECKMD5:     pszSubtitle = HASH_NAME_MD5;    break;
+			case WHEX_CHECKSHA1:    pszSubtitle = HASH_NAME_SHA1;   break;
+			case WHEX_CHECKSHA256:  pszSubtitle = HASH_NAME_SHA256; break;
+			case WHEX_CHECKSHA512:  pszSubtitle = HASH_NAME_SHA512; break;
 		}
 
 		if (pszSubtitle)
