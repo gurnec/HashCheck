@@ -7,8 +7,8 @@
  **/
 
 #include "RegHelpers.h"
-#include "libs\Wow64.h"
-#include "libs\SimpleString.h"
+#include "libs/Wow64.h"
+#include "libs/SimpleString.h"
 
 #define countof(x) (sizeof(x)/sizeof(x[0]))
 

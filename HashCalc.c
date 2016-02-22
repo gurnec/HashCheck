@@ -12,6 +12,7 @@
 #include "HashCheckCommon.h"
 #include "HashCalc.h"
 #include "UnicodeHelpers.h"
+#include "libs/WinHash.h"
 
 #define SAVE_FILTERS TEXT("CRC-32 (*.sfv)\0*.sfv\0") \
                      TEXT("MD4 (*.md4)\0*.md4\0")    \

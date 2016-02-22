@@ -16,7 +16,7 @@ extern "C" {
 
 #include <windows.h>
 #include "HashCheckOptions.h"
-#include "libs\WinHash.h"
+#include "libs/WinHash.h"
 
 /**
  * Much of what is in the HashCalc module used to reside within HashProp; with

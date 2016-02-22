@@ -11,6 +11,7 @@
 #include "globals.h"
 #include "HashCheckCommon.h"
 #include "HashCalc.h"
+#include "libs/WinHash.h"
 
 // Control structures, from HashCalc.h
 #define  HASHPROPSCRATCH  HASHCALCSCRATCH

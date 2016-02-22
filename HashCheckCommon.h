@@ -15,7 +15,7 @@ extern "C" {
 
 #include <windows.h>
 #include "HashCheckUI.h"
-#include "libs\WinHash.h"
+#include "libs/WinHash.h"
 
 // Tuning constants
 #define MAX_PATH_BUFFER       0x800
