@@ -78,9 +78,6 @@
     <ClCompile Include="libs\md5.c">
       <Filter>Libraries</Filter>
     </ClCompile>
-    <ClCompile Include="libs\md4.c">
-      <Filter>Libraries</Filter>
-    </ClCompile>
     <ClCompile Include="libs\sha1.c">
       <Filter>Libraries</Filter>
     </ClCompile>

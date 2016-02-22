@@ -279,11 +279,6 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 				cchChecksum = CRC32_DIGEST_LENGTH * 2;
 				bReverseFormat = TRUE;
 			}
-			else if (StrCmpI(pszExt, HASH_EXT_MD4) == 0)
-			{
-				phvctx->whctx.flags = WHEX_CHECKMD4;
-				cchChecksum = MD4_DIGEST_LENGTH * 2;
-			}
 			else if (StrCmpI(pszExt, HASH_EXT_MD5) == 0)
 			{
 				phvctx->whctx.flags = WHEX_CHECKMD5;
@@ -377,13 +372,7 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 				else if (ValidateHexSequence(pszStartOfLine, 32))
 				{
 					cchChecksum = 32;
-					phvctx->whctx.flags = WHEX_ALL128;  // WHEX_CHECKMD4 | WHEX_CHECKMD5
-
-					// Disambiguate from the filename, if possible
-					if (StrStrI(phvctx->pszPath, HASH_NAME_MD5))
-						phvctx->whctx.flags = WHEX_CHECKMD5;
-					else if (StrStrI(phvctx->pszPath, HASH_NAME_MD4))
-						phvctx->whctx.flags = WHEX_CHECKMD4;
+					phvctx->whctx.flags = WHEX_ALL128;  // WHEX_CHECKMD5
 				}
 				// 160-bit algorithms (40-byte)
 				else if (ValidateHexSequence(pszStartOfLine, 40))
@@ -558,25 +547,10 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 		// Part 3: Do something with the results
 		if (bSuccess)
 		{
-			if (phvctx->whctx.flags == WHEX_ALL128)
-			{
-				// If the MD4/MD5 STILL has not been settled by this point, then
-				// settle it by a simple heuristic: if the checksum matches MD4,
-				// go with that, otherwise default to MD5.
-
-				if (StrCmpI(pItem->pszExpected, phvctx->whctx.results.szHexMD4) == 0)
-					phvctx->whctx.flags = WHEX_CHECKMD4;
-				else
-					phvctx->whctx.flags = WHEX_CHECKMD5;
-			}
-
 			switch (phvctx->whctx.flags)
 			{
 				case WHEX_CHECKCRC32:
 					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHexCRC32);
-					break;
-				case WHEX_CHECKMD4:
-					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHexMD4);
 					break;
 				case WHEX_CHECKMD5:
 					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHexMD5);
@@ -1004,7 +978,6 @@ VOID WINAPI HashVerifyUpdateSummary( PHASHVERIFYCONTEXT phvctx, PHASHVERIFYITEM 
 		switch (phvctx->whctx.flags)
 		{
 			case WHEX_CHECKCRC32:   pszSubtitle = HASH_NAME_CRC32;  break;
-			case WHEX_CHECKMD4:     pszSubtitle = HASH_NAME_MD4;    break;
 			case WHEX_CHECKMD5:     pszSubtitle = HASH_NAME_MD5;    break;
 			case WHEX_CHECKSHA1:    pszSubtitle = HASH_NAME_SHA1;   break;
 			case WHEX_CHECKSHA256:  pszSubtitle = HASH_NAME_SHA256; break;

@@ -5,7 +5,7 @@
  * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
- * This is a wrapper for the CRC32, MD4, MD5, SHA1, SHA2-256, and SHA2-512
+ * This is a wrapper for the CRC32, MD5, SHA1, SHA2-256, and SHA2-512
  * algorithms.
  **/
 
@@ -35,7 +35,6 @@ typedef CONST BYTE *PCBYTE;
  * @param   op      A macro to perform on every hash algorithm
  */
 #define FOR_EACH_HASH(op)   op(CRC32)   \
-                            op(MD4)     \
                             op(MD5)     \
                             op(SHA1)    \
                             op(SHA256)  \
@@ -48,7 +47,6 @@ typedef CONST BYTE *PCBYTE;
 // Hash algorithms
 enum hash_algorithm {
     CRC32 = 1,
-    MD4,
     MD5,
     SHA1,
     SHA256,
@@ -61,7 +59,6 @@ enum hash_algorithm {
 
 // Bitwise representation of the hash algorithms
 #define WHEX_CHECKCRC32     (1UL << (CRC32  - 1))
-#define WHEX_CHECKMD4       (1UL << (MD4    - 1))
 #define WHEX_CHECKMD5       (1UL << (MD5    - 1))
 #define WHEX_CHECKSHA1      (1UL << (SHA1   - 1))
 #define WHEX_CHECKSHA256    (1UL << (SHA256 - 1))
@@ -71,14 +68,13 @@ enum hash_algorithm {
 // Bitwise representation of the hash algorithms, by digest length (in bits)
 #define WHEX_ALL            ((1UL << NUM_HASHES) - 1)
 #define WHEX_ALL32          WHEX_CHECKCRC32
-#define WHEX_ALL128         (WHEX_CHECKMD4 | WHEX_CHECKMD5)
+#define WHEX_ALL128         WHEX_CHECKMD5
 #define WHEX_ALL160         WHEX_CHECKSHA1
 #define WHEX_ALL256         WHEX_CHECKSHA256
 #define WHEX_ALL512         WHEX_CHECKSHA512
 
 // The block lengths of the hash algorithms
 #define CRC32_BLOCK_LENGTH          1
-#define MD4_BLOCK_LENGTH            64
 #define MD5_BLOCK_LENGTH            64
 #define SHA1_BLOCK_LENGTH           64
 #define SHA224_BLOCK_LENGTH         64
@@ -89,7 +85,6 @@ enum hash_algorithm {
 
 // The digest lengths of the hash algorithms
 #define CRC32_DIGEST_LENGTH         4
-#define MD4_DIGEST_LENGTH           16
 #define MD5_DIGEST_LENGTH           16
 #define SHA1_DIGEST_LENGTH          20
 #define SHA224_DIGEST_LENGTH        28
@@ -100,7 +95,6 @@ enum hash_algorithm {
 
 // The minimum string length required to hold the hex digest strings
 #define CRC32_DIGEST_STRING_LENGTH  (CRC32_DIGEST_LENGTH  * 2 + 1)
-#define MD4_DIGEST_STRING_LENGTH    (MD4_DIGEST_LENGTH    * 2 + 1)
 #define MD5_DIGEST_STRING_LENGTH    (MD5_DIGEST_LENGTH    * 2 + 1)
 #define SHA1_DIGEST_STRING_LENGTH   (SHA1_DIGEST_LENGTH   * 2 + 1)
 #define SHA224_DIGEST_STRING_LENGTH (SHA224_DIGEST_LENGTH * 2 + 1)
@@ -111,7 +105,6 @@ enum hash_algorithm {
 
 // Hash file extensions
 #define HASH_EXT_CRC32          _T(".sfv")
-#define HASH_EXT_MD4            _T(".md4")
 #define HASH_EXT_MD5            _T(".md5")
 #define HASH_EXT_SHA1           _T(".sha1")
 #define HASH_EXT_SHA256         _T(".sha256")
@@ -122,7 +115,6 @@ extern LPCTSTR g_szHashExtsTab[NUM_HASHES];
 
 // Hash names
 #define HASH_NAME_CRC32         _T("CRC-32")
-#define HASH_NAME_MD4           _T("MD4")
 #define HASH_NAME_MD5           _T("MD5")
 #define HASH_NAME_SHA1          _T("SHA-1")
 #define HASH_NAME_SHA256        _T("SHA-256")
@@ -130,7 +122,6 @@ extern LPCTSTR g_szHashExtsTab[NUM_HASHES];
 
 // Right-justified Hash names
 #define HASH_RNAME_CRC32        _T(" CRC-32")
-#define HASH_RNAME_MD4          _T("    MD4")
 #define HASH_RNAME_MD5          _T("    MD5")
 #define HASH_RNAME_SHA1         _T("  SHA-1")
 #define HASH_RNAME_SHA256       _T("SHA-256")
@@ -169,7 +160,7 @@ typedef struct {
 	UINT64 count;
 	BYTE buffer[MD5_BLOCK_LENGTH];
 	BYTE result[MD5_DIGEST_LENGTH];
-} MD4_CTX, *PMD4_CTX, MD5_CTX, *PMD5_CTX;
+} MD5_CTX, *PMD5_CTX;
 
 typedef struct {
 	UINT32 state[5];
@@ -190,10 +181,6 @@ typedef struct _SHA2_CTX {
 
 
 UINT32 crc32( UINT32 uInitial, PCBYTE pbIn, UINT cbIn );
-
-void MD4Init( PMD4_CTX pContext );
-void MD4Update( PMD4_CTX pContext, PCBYTE pbIn, UINT cbIn );
-void MD4Final( PMD4_CTX pContext );
 
 void MD5Init( PMD5_CTX pContext );
 void MD5Update( PMD5_CTX pContext, PCBYTE pbIn, UINT cbIn );
@@ -220,8 +207,6 @@ typedef union {
 	BYTE result[4];
 } WHCTXCRC32, *PWHCTXCRC32;
 
-#define  WHCTXMD4  MD4_CTX
-#define PWHCTXMD4 PMD4_CTX
 #define  WHCTXMD5  MD5_CTX
 #define PWHCTXMD5 PMD5_CTX
 
@@ -233,13 +218,6 @@ typedef union {
 
 #define  WHCTXSHA512  SHA2_CTX
 #define PWHCTXSHA512 PSHA2_CTX
-
-typedef struct {
-	MD4_CTX ctxList;
-	MD4_CTX ctxChunk;
-	PBYTE result;
-	UINT cbChunkRemaining;
-} WHCTXED2K, *PWHCTXED2K;
 
 /**
  * Wrapper layer functions to ensure a more consistent interface
@@ -262,10 +240,6 @@ __inline void WHAPI WHFinishCRC32( PWHCTXCRC32 pContext )
 	pContext->state = SwapV32(pContext->state);
 }
 
-#define WHInitMD4 MD4Init
-#define WHUpdateMD4 MD4Update
-#define WHFinishMD4 MD4Final
-
 #define WHInitMD5 MD5Init
 #define WHUpdateMD5 MD5Update
 #define WHFinishMD5 MD5Final
@@ -281,44 +255,6 @@ __inline void WHAPI WHFinishCRC32( PWHCTXCRC32 pContext )
 #define WHInitSHA512 SHA512Init
 #define WHUpdateSHA512 SHA512Update
 #define WHFinishSHA512 SHA512Final
-
-__inline void WHAPI WHInitED2K( PWHCTXED2K pContext )
-{
-	MD4Init(&pContext->ctxList);
-	MD4Init(&pContext->ctxChunk);
-	pContext->cbChunkRemaining = 9500 << 10;
-	pContext->result = pContext->ctxChunk.result;
-}
-
-__inline void WHAPI WHUpdateED2K( PWHCTXED2K pContext, PCBYTE pbIn, UINT cbIn )
-{
-	if (cbIn >= pContext->cbChunkRemaining)
-	{
-		// Finish off the current chunk and add it to the list hash
-		MD4Update(&pContext->ctxChunk, pbIn, pContext->cbChunkRemaining);
-		MD4Final(&pContext->ctxChunk);
-		MD4Update(&pContext->ctxList, pContext->ctxChunk.result, sizeof(pContext->ctxChunk.result));
-		pbIn += pContext->cbChunkRemaining;
-		cbIn -= pContext->cbChunkRemaining;
-
-		// Reset the chunk context
-		MD4Init(&pContext->ctxChunk);
-		pContext->cbChunkRemaining = 9500 << 10;
-
-		// The final result will now be the list hash, not the chunk hash
-		pContext->result = pContext->ctxList.result;
-	}
-
-	MD4Update(&pContext->ctxChunk, pbIn, cbIn);
-	pContext->cbChunkRemaining -= cbIn;
-}
-
-__inline void WHAPI WHFinishED2K( PWHCTXED2K pContext )
-{
-	MD4Final(&pContext->ctxChunk);
-	MD4Update(&pContext->ctxList, pContext->ctxChunk.result, sizeof(pContext->ctxChunk.result));
-	MD4Final(&pContext->ctxList);
-}
 
 /**
  * WH*To* hex string conversion functions: These require WinHash.c
@@ -338,7 +274,6 @@ PTSTR WHAPI WHByteToHex( PBYTE pbSrc, PTSTR pszDest, UINT cchHex, UINT8 uCaseMod
 
 typedef struct {
     TCHAR szHexCRC32[CRC32_DIGEST_STRING_LENGTH];
-    TCHAR szHexMD4[MD4_DIGEST_STRING_LENGTH];
     TCHAR szHexMD5[MD5_DIGEST_STRING_LENGTH];
     TCHAR szHexSHA1[SHA1_DIGEST_STRING_LENGTH];
     TCHAR szHexSHA256[SHA256_DIGEST_STRING_LENGTH];
@@ -349,7 +284,6 @@ typedef struct {
 	UINT8       flags;
 	UINT8       uCaseMode;
 	WHCTXCRC32  ctxCRC32;
-	WHCTXMD4    ctxMD4;
 	WHCTXMD5    ctxMD5;
 	WHCTXSHA1   ctxSHA1;
 	WHCTXSHA256 ctxSHA256;

@@ -534,7 +534,6 @@ VOID WINAPI HashPropUpdateResults( PHASHPROPCONTEXT phpctx, PHASHPROPITEM pItem 
 			pszScratchAppend,
 			HASH_RESULTS_BUFSIZE, HASH_RESULTS_FMT,
 			pItem->results.szHexCRC32,
-			pItem->results.szHexMD4,
 			pItem->results.szHexMD5,
 			pItem->results.szHexSHA1,
 			pItem->results.szHexSHA256,

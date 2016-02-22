@@ -312,7 +312,6 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 			PTSTR pszExt = pszFile + phcctx->ofn.nFileExtension - 1;
 
 			if (StrCmpI(pszExt, HASH_EXT_CRC32) == 0 ||
-				StrCmpI(pszExt, HASH_EXT_MD4) == 0 ||
 				StrCmpI(pszExt, HASH_EXT_MD5) == 0 ||
 				StrCmpI(pszExt, HASH_EXT_SHA1) == 0 ||
 				StrCmpI(pszExt, HASH_EXT_SHA256) == 0 ||
@@ -392,7 +391,6 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 	switch (phcctx->ofn.nFilterIndex)
 	{
 		case CRC32:  pszHash = pItem->results.szHexCRC32;  break;
-		case MD4:    pszHash = pItem->results.szHexMD4;    break;
 		case MD5:    pszHash = pItem->results.szHexMD5;    break;
 		case SHA1:   pszHash = pItem->results.szHexSHA1;   break;
 		case SHA256: pszHash = pItem->results.szHexSHA256; break;

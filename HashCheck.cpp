@@ -173,7 +173,7 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
-	// The actual association of .sfv/.md4/.md5/.sha1/.sha256/.sha512 files with
+	// The actual association of .sfv/.md5/.sha1/.sha256/.sha512 files with
 	// our program ID will be handled by DllInstall, not DllRegisterServer.
 
 	// Register approval

@@ -5,7 +5,7 @@
  * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
  * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
- * This is a wrapper for the CRC32, MD4, MD5, SHA1, SHA2-256, and SHA2-512
+ * This is a wrapper for the CRC32, MD5, SHA1, SHA2-256, and SHA2-512
  * algorithms.
  *
  * WinHash.c is needed only if the WH*To* or WH*Ex functions are used.
@@ -115,9 +115,6 @@ VOID WHAPI WHInitEx( PWHCTXEX pContext )
 	if (pContext->flags & WHEX_CHECKCRC32)
 		WHInitCRC32(&pContext->ctxCRC32);
 
-	if (pContext->flags & WHEX_CHECKMD4)
-		WHInitMD4(&pContext->ctxMD4);
-
 	if (pContext->flags & WHEX_CHECKMD5)
 		WHInitMD5(&pContext->ctxMD5);
 
@@ -135,9 +132,6 @@ VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn )
 {
 	if (pContext->flags & WHEX_CHECKCRC32)
 		WHUpdateCRC32(&pContext->ctxCRC32, pbIn, cbIn);
-
-	if (pContext->flags & WHEX_CHECKMD4)
-		WHUpdateMD4(&pContext->ctxMD4, pbIn, cbIn);
 
 	if (pContext->flags & WHEX_CHECKMD5)
 		WHUpdateMD5(&pContext->ctxMD5, pbIn, cbIn);
@@ -161,12 +155,6 @@ VOID WHAPI WHFinishEx( PWHCTXEX pContext, PWHRESULTEX pResults )
 	{
 		WHFinishCRC32(&pContext->ctxCRC32);
 		WHByteToHex(pContext->ctxCRC32.result, pResults->szHexCRC32, CRC32_DIGEST_LENGTH * 2, pContext->uCaseMode);
-	}
-
-	if (pContext->flags & WHEX_CHECKMD4)
-	{
-		WHFinishMD4(&pContext->ctxMD4);
-		WHByteToHex(pContext->ctxMD4.result, pResults->szHexMD4, MD4_DIGEST_LENGTH * 2, pContext->uCaseMode);
 	}
 
 	if (pContext->flags & WHEX_CHECKMD5)

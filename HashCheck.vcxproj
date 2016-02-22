@@ -226,7 +226,6 @@
     <ClCompile Include="HashVerify.c" />
     <ClCompile Include="libs\crc32.c" />
     <ClCompile Include="libs\IsFontAvailable.c" />
-    <ClCompile Include="libs\md4.c" />
     <ClCompile Include="libs\md5.c" />
     <ClCompile Include="libs\sha1.c" />
     <ClCompile Include="libs\sha2.c" />
