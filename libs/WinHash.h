@@ -30,7 +30,10 @@ typedef CONST BYTE *PCBYTE;
  */
 #define FINDOFFSET(type,member) (&(((type *) 0)->member))
 
-// Apply a macro for every hash algorithm
+/**
+ * Apply a macro for every hash algorithm
+ * @param   op      A macro to perform on every hash algorithm
+ */
 #define FOR_EACH_HASH(op)   op(CRC32)   \
                             op(MD4)     \
                             op(MD5)     \
@@ -57,21 +60,21 @@ enum hash_algorithm {
 #define DEFAULT_HASH_ALGORITHM MD5
 
 // Bitwise representation of the hash algorithms
-#define WHEX_CHECKCRC32     (1UL << (CRC32 - 1))
-#define WHEX_CHECKMD4       (1UL << (MD4 - 1))
-#define WHEX_CHECKMD5       (1UL << (MD5 - 1))
-#define WHEX_CHECKSHA1      (1UL << (SHA1 - 1))
+#define WHEX_CHECKCRC32     (1UL << (CRC32  - 1))
+#define WHEX_CHECKMD4       (1UL << (MD4    - 1))
+#define WHEX_CHECKMD5       (1UL << (MD5    - 1))
+#define WHEX_CHECKSHA1      (1UL << (SHA1   - 1))
 #define WHEX_CHECKSHA256    (1UL << (SHA256 - 1))
 #define WHEX_CHECKSHA512    (1UL << (SHA512 - 1))
 #define WHEX_CHECKLAST      WHEX_CHECKSHA512
 
 // Bitwise representation of the hash algorithms, by digest length (in bits)
-#define WHEX_ALL        ((1UL << NUM_HASHES) - 1)
-#define WHEX_ALL32      WHEX_CHECKCRC32
-#define WHEX_ALL128     (WHEX_CHECKMD4 | WHEX_CHECKMD5)
-#define WHEX_ALL160     WHEX_CHECKSHA1
-#define WHEX_ALL256     WHEX_CHECKSHA256
-#define WHEX_ALL512     WHEX_CHECKSHA512
+#define WHEX_ALL            ((1UL << NUM_HASHES) - 1)
+#define WHEX_ALL32          WHEX_CHECKCRC32
+#define WHEX_ALL128         (WHEX_CHECKMD4 | WHEX_CHECKMD5)
+#define WHEX_ALL160         WHEX_CHECKSHA1
+#define WHEX_ALL256         WHEX_CHECKSHA256
+#define WHEX_ALL512         WHEX_CHECKSHA512
 
 // The block lengths of the hash algorithms
 #define CRC32_BLOCK_LENGTH          1
@@ -96,10 +99,10 @@ enum hash_algorithm {
 #define MAX_DIGEST_LENGTH           SHA512_DIGEST_LENGTH
 
 // The minimum string length required to hold the hex digest strings
-#define CRC32_DIGEST_STRING_LENGTH  (CRC32_DIGEST_LENGTH * 2 + 1)
-#define MD4_DIGEST_STRING_LENGTH    (MD4_DIGEST_LENGTH * 2 + 1)
-#define MD5_DIGEST_STRING_LENGTH    (MD5_DIGEST_LENGTH * 2 + 1)
-#define SHA1_DIGEST_STRING_LENGTH   (SHA1_DIGEST_LENGTH * 2 + 1)
+#define CRC32_DIGEST_STRING_LENGTH  (CRC32_DIGEST_LENGTH  * 2 + 1)
+#define MD4_DIGEST_STRING_LENGTH    (MD4_DIGEST_LENGTH    * 2 + 1)
+#define MD5_DIGEST_STRING_LENGTH    (MD5_DIGEST_LENGTH    * 2 + 1)
+#define SHA1_DIGEST_STRING_LENGTH   (SHA1_DIGEST_LENGTH   * 2 + 1)
 #define SHA224_DIGEST_STRING_LENGTH (SHA224_DIGEST_LENGTH * 2 + 1)
 #define SHA256_DIGEST_STRING_LENGTH (SHA256_DIGEST_LENGTH * 2 + 1)
 #define SHA384_DIGEST_STRING_LENGTH (SHA384_DIGEST_LENGTH * 2 + 1)
@@ -134,9 +137,9 @@ extern LPCTSTR g_szHashExtsTab[NUM_HASHES];
 #define HASH_RNAME_SHA512       _T("SHA-512")
 
 // Hash OPENFILENAME filters, E.G. "MD5 (*.md5)\0*.md5\0"
-#define HASH_FILTER_op(alg)     HASH_NAME_##alg     _T(" (*")   \
-                                HASH_EXT_##alg      _T(")\0*")  \
-                                HASH_EXT_##alg      _T("\0")
+#define HASH_FILTER_op(alg)     HASH_NAME_##alg _T(" (*")   \
+                                HASH_EXT_##alg  _T(")\0*")  \
+                                HASH_EXT_##alg  _T("\0")
 
 // All OPENFILENAME filters together as one big string
 #define HASH_FILE_FILTERS       FOR_EACH_HASH(HASH_FILTER_op)
@@ -146,7 +149,7 @@ extern LPCTSTR g_szHashExtsTab[NUM_HASHES];
 #define HASH_RESULT_op(alg)     HASH_RNAME_##alg _T(": %s") _T(CRLF)
 
 // All printf formats strings together as one big string
-#define HASH_RESULTS_FMT        _T(CRLF)                            \
+#define HASH_RESULTS_FMT        _T(CRLF)                        \
                                 FOR_EACH_HASH(HASH_RESULT_op)   \
                                 _T(CRLF)
 
@@ -333,28 +336,28 @@ PTSTR WHAPI WHByteToHex( PBYTE pbSrc, PTSTR pszDest, UINT cchHex, UINT8 uCaseMod
  * WH*Ex functions: These require WinHash.c
  **/
 
-// define a field in the RESULTEX struct for the specified hash algorithm
-#define RESULTEX_op(alg) TCHAR szHex##alg[alg##_DIGEST_STRING_LENGTH];
-
 typedef struct {
-    FOR_EACH_HASH(RESULTEX_op)
-    // Expands to:
-    // TCHAR szHexMD5[MD5_DIGEST_STRING_LENGTH];
-    // ...
+    TCHAR szHexCRC32[CRC32_DIGEST_STRING_LENGTH];
+    TCHAR szHexMD4[MD4_DIGEST_STRING_LENGTH];
+    TCHAR szHexMD5[MD5_DIGEST_STRING_LENGTH];
+    TCHAR szHexSHA1[SHA1_DIGEST_STRING_LENGTH];
+    TCHAR szHexSHA256[SHA256_DIGEST_STRING_LENGTH];
+    TCHAR szHexSHA512[SHA512_DIGEST_STRING_LENGTH];
 } WHRESULTEX, *PWHRESULTEX;
 
-// define a field in the CTXEX struct for the specified hash algorithm
-#define CTXEX_op(alg) WHCTX##alg ctx##alg;
-
 typedef struct {
-	UINT8      flags;
-	UINT8      uCaseMode;
-    FOR_EACH_HASH(CTXEX_op)
-    // Expands to:
-	// WHCTXMD5   ctxMD5;
-    // ...
-	WHRESULTEX results;
+	UINT8       flags;
+	UINT8       uCaseMode;
+	WHCTXCRC32  ctxCRC32;
+	WHCTXMD4    ctxMD4;
+	WHCTXMD5    ctxMD5;
+	WHCTXSHA1   ctxSHA1;
+	WHCTXSHA256 ctxSHA256;
+	WHCTXSHA512 ctxSHA512;
+	WHRESULTEX  results;
 } WHCTXEX, *PWHCTXEX;
+
+
 VOID WHAPI WHInitEx( PWHCTXEX pContext );
 VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn );
 VOID WHAPI WHFinishEx( PWHCTXEX pContext, PWHRESULTEX pResults );

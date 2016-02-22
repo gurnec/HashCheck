@@ -13,14 +13,12 @@
 
 #include "WinHash.h"
 
+// Macro to populate the extensions table. E.g. HASH_EXT_MD5,
+#define HASH_EXT_op(alg) HASH_EXT_##alg,
+
 // Table of supported Hash file extensions
 LPCTSTR g_szHashExtsTab[NUM_HASHES] = {
-	HASH_EXT_CRC32,
-	HASH_EXT_MD4,
-	HASH_EXT_MD5,
-	HASH_EXT_SHA1,
-	HASH_EXT_SHA256,
-	HASH_EXT_SHA512
+	FOR_EACH_HASH(HASH_EXT_op)
 };
 
 /**

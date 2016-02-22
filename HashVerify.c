@@ -367,13 +367,13 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 			// If we do not know the type yet, make a stab at detecting it
 			if (phvctx->whctx.flags == 0)
 			{
-				// 32-bit algorithms
+				// 32-bit algorithms (8-byte)
 				if (ValidateHexSequence(pszStartOfLine, 8))
 				{
 					cchChecksum = 8;
 					phvctx->whctx.flags = WHEX_ALL32;  // WHEX_CHECKCRC32
 				}
-				// 128-bit algorithms
+				// 128-bit algorithms (32-byte)
 				else if (ValidateHexSequence(pszStartOfLine, 32))
 				{
 					cchChecksum = 32;
@@ -385,19 +385,19 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 					else if (StrStrI(phvctx->pszPath, HASH_NAME_MD4))
 						phvctx->whctx.flags = WHEX_CHECKMD4;
 				}
-				// 160-bit algorithms
+				// 160-bit algorithms (40-byte)
 				else if (ValidateHexSequence(pszStartOfLine, 40))
 				{
 					cchChecksum = 40;
 					phvctx->whctx.flags = WHEX_ALL160;  // WHEX_CHECKSHA1
 				}
-				// 256-bit algorithms
+				// 256-bit algorithms (64-byte)
 				else if (ValidateHexSequence(pszStartOfLine, 64))
 				{
 					cchChecksum = 64;
 					phvctx->whctx.flags = WHEX_ALL256;  // WHEX_CHECKSHA256
 				}
-				// 512-bit algorithms
+				// 512-bit algorithms (128-byte)
 				else if (ValidateHexSequence(pszStartOfLine, 128))
 				{
 					cchChecksum = 128;
