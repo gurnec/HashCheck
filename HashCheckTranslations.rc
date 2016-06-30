@@ -202,7 +202,7 @@ STRINGTABLE LANGUAGE LANG_CZECH, SUBLANG_DEFAULT
 	IDS_HP_FIND_NOTFOUND     "Text nenalezen."
 	IDS_HP_SAVE              "&Ulož..."
 	IDS_HP_OPTIONS           "&Nastavení"
-	IDS_HP_FILELABEL         "Soubor: "
+	IDS_HP_FILELABEL         " Soubor: "
 
 	IDS_HV_LOADERROR_FMT     "Nemohu načíst ""%s"""
 	IDS_HV_SUMMARY           "Souhrn"
@@ -258,7 +258,7 @@ STRINGTABLE LANGUAGE LANG_GERMAN, SUBLANG_NEUTRAL
 	IDS_HP_FIND_NOTFOUND     "Text nicht gefunden."
 	IDS_HP_SAVE              "&Speichern..."
 	IDS_HP_OPTIONS           "&Optionen"
-	IDS_HP_FILELABEL         " Datei: "
+	IDS_HP_FILELABEL         "  Datei: "
 
 	IDS_HV_LOADERROR_FMT     "Kann ""%s"" nicht öffnen"
 	IDS_HV_SUMMARY           "Report"
@@ -314,7 +314,7 @@ STRINGTABLE LANGUAGE LANG_GREEK, SUBLANG_DEFAULT
 	IDS_HP_FIND_NOTFOUND     "Δεν βρέθηκε κείμενο."
 	IDS_HP_SAVE              "&Αποθήκευση"
 	IDS_HP_OPTIONS           "&Επιλογές"
-	IDS_HP_FILELABEL         "Αρχείο: "
+	IDS_HP_FILELABEL         " Αρχείο: "
 
 	IDS_HV_LOADERROR_FMT     "Αδύνατο το φόρτωμα του «%s»"
 	IDS_HV_SUMMARY           "Σύνοψη"
@@ -370,7 +370,7 @@ STRINGTABLE LANGUAGE LANG_SPANISH, SUBLANG_NEUTRAL
 	IDS_HP_FIND_NOTFOUND     "Texto no encontrado."
 	IDS_HP_SAVE              "&Guardar..."
 	IDS_HP_OPTIONS           "&Opciones"
-	IDS_HP_FILELABEL         "Nombre: "
+	IDS_HP_FILELABEL         " Nombre: "
 
 	IDS_HV_LOADERROR_FMT     "No se puede abrir ""%s"""
 	IDS_HV_SUMMARY           "Resumen"
@@ -426,7 +426,7 @@ STRINGTABLE LANGUAGE LANG_FRENCH, SUBLANG_NEUTRAL
 	IDS_HP_FIND_NOTFOUND     "Texte non trouvé."
 	IDS_HP_SAVE              "&Enregistrer"
 	IDS_HP_OPTIONS           "&Options"
-	IDS_HP_FILELABEL         "   Nom: "
+	IDS_HP_FILELABEL         "    Nom: "
 
 	IDS_HV_LOADERROR_FMT     "Impossible de charger ""%s"""
 	IDS_HV_SUMMARY           "Résumé"
@@ -650,7 +650,7 @@ STRINGTABLE LANGUAGE LANG_DUTCH, SUBLANG_NEUTRAL
 	IDS_HP_FIND_NOTFOUND     "Zoektekst niet gevonden."
 	IDS_HP_SAVE              "Op&slaan..."
 	IDS_HP_OPTIONS           "&Opties"
-	IDS_HP_FILELABEL         "  Naam: "
+	IDS_HP_FILELABEL         "   Naam: "
 
 	IDS_HV_LOADERROR_FMT     "Kan ""%s"" niet openen"
 	IDS_HV_SUMMARY           "Samenvatting"
@@ -706,7 +706,7 @@ STRINGTABLE LANGUAGE LANG_POLISH, SUBLANG_DEFAULT
 	IDS_HP_FIND_NOTFOUND     "Tekst nieodnaleziony."
 	IDS_HP_SAVE              "&Zapisz..."
 	IDS_HP_OPTIONS           "&Opcje"
-	IDS_HP_FILELABEL         "  Plik: "
+	IDS_HP_FILELABEL         "   Plik: "
 
 	IDS_HV_LOADERROR_FMT     "Nie mogę wczytać ""%s"""
 	IDS_HV_SUMMARY           "Sumowanie"
@@ -762,7 +762,7 @@ STRINGTABLE LANGUAGE LANG_PORTUGUESE, SUBLANG_PORTUGUESE_BRAZILIAN
 	IDS_HP_FIND_NOTFOUND     "Texto náo encontrado."
 	IDS_HP_SAVE              "&Salvar..."
 	IDS_HP_OPTIONS           "&Opções"
-	IDS_HP_FILELABEL         "  Nome: "
+	IDS_HP_FILELABEL         "   Nome: "
 
 	IDS_HV_LOADERROR_FMT     "Impossível carregar ""%s"""
 	IDS_HV_SUMMARY           "Sumário"
@@ -818,7 +818,7 @@ STRINGTABLE LANGUAGE LANG_PORTUGUESE, SUBLANG_PORTUGUESE
 	IDS_HP_FIND_NOTFOUND     "Texto não encontrado."
 	IDS_HP_SAVE              "&Guardar..."
 	IDS_HP_OPTIONS           "&Opções"
-	IDS_HP_FILELABEL         "  Nome: "
+	IDS_HP_FILELABEL         "   Nome: "
 
 	IDS_HV_LOADERROR_FMT     "Impossível carregar ""%s"""
 	IDS_HV_SUMMARY           "Summário"
@@ -874,7 +874,7 @@ STRINGTABLE LANGUAGE LANG_ROMANIAN, SUBLANG_DEFAULT
 	IDS_HP_FIND_NOTFOUND     "Text negăsit."
 	IDS_HP_SAVE              "&Salvare..."
 	IDS_HP_OPTIONS           "Optiu&ni"
-	IDS_HP_FILELABEL         "Fişier: "
+	IDS_HP_FILELABEL         " Fişier: "
 
 	IDS_HV_LOADERROR_FMT     "Nu pot încărca ""%s"""
 	IDS_HV_SUMMARY           "Sumar"
@@ -930,7 +930,7 @@ STRINGTABLE LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 	IDS_HP_FIND_NOTFOUND     "Текст не найден."
 	IDS_HP_SAVE              "&Сохранить..."
 	IDS_HP_OPTIONS           "&Опции"
-	IDS_HP_FILELABEL         "  Файл: "
+	IDS_HP_FILELABEL         "   Файл: "
 
 	IDS_HV_LOADERROR_FMT     "Невозможно открыть ""%s"""
 	IDS_HV_SUMMARY           "Результаты"
@@ -986,7 +986,7 @@ STRINGTABLE LANGUAGE LANG_SWEDISH, SUBLANG_NEUTRAL
 	IDS_HP_FIND_NOTFOUND     "Sökord ej funnet."
 	IDS_HP_SAVE              "&Spara..."
 	IDS_HP_OPTIONS           "&Inställningar"
-	IDS_HP_FILELABEL         "   Fil: "
+	IDS_HP_FILELABEL         "    Fil: "
 
 	IDS_HV_LOADERROR_FMT     "Kan ej ladda ""%s"""
 	IDS_HV_SUMMARY           "Summering"
@@ -1042,7 +1042,7 @@ STRINGTABLE LANGUAGE LANG_TURKISH, SUBLANG_DEFAULT
 	IDS_HP_FIND_NOTFOUND     "Metin bulunamadı."
 	IDS_HP_SAVE              "&Kaydet..."
 	IDS_HP_OPTIONS           "&Özellikler"
-	IDS_HP_FILELABEL         " Dosya: "
+	IDS_HP_FILELABEL         "  Dosya: "
 
 	IDS_HV_LOADERROR_FMT     """%s"" açılamıyor"
 	IDS_HV_SUMMARY           "Özet"
@@ -1098,7 +1098,7 @@ STRINGTABLE LANGUAGE LANG_UKRAINIAN, SUBLANG_DEFAULT
 	IDS_HP_FIND_NOTFOUND     "Текст не знайдений."
 	IDS_HP_SAVE              "&Зберегти..."
 	IDS_HP_OPTIONS           "&Опції"
-	IDS_HP_FILELABEL         "  Файл: "
+	IDS_HP_FILELABEL         "   Файл: "
 
 	IDS_HV_LOADERROR_FMT     "Неможливо відкрити ""%s"""
 	IDS_HV_SUMMARY           "Результати"
@@ -1127,4 +1127,60 @@ STRINGTABLE LANGUAGE LANG_UKRAINIAN, SUBLANG_DEFAULT
 	IDS_OPT_ENCODING_ANSI    "&Зберегти як ANSI"
 	IDS_OPT_FONT             "Шрифт у вікні властивостей"
 	IDS_OPT_FONT_CHANGE      "З&мінити..."
+}
+
+// Català
+STRINGTABLE LANGUAGE LANG_CATALAN, SUBLANG_CATALAN_CATALAN
+{
+	IDS_FILETYPE_DESC        "Fitxer de verificació"
+
+	IDS_HC_PAUSE             "&Posa en pausa"
+	IDS_HC_RESUME            "&Reprèn"
+	IDS_HC_STOP              "&Atura"
+	IDS_HC_RESULT_FMT        "%u d'%u fitxer"
+	IDS_HC_RESULTS_FMT       "%u de %u fitxers"
+	IDS_HC_SAVE_ERROR        "No es pot obrir el fitxer de verificació per escriure."
+	IDS_HC_OK                "D'acord"
+	IDS_HC_CANCEL            "Cancel·la"
+
+	IDS_HS_MENUTEXT          "Crea fitxer de verificació..."
+	IDS_HS_TITLE_FMT         "Creant ""%s""..."
+
+	IDS_HP_TITLE             "Checksum"
+	IDS_HP_STATUSBOX         "Progrés"
+	IDS_HP_STATUSTEXT_FMT    "%s processats correctament"
+	IDS_HP_FIND              "&Cerca"
+	IDS_HP_FIND_NOSTRING     "Introdueix el text de cerca."
+	IDS_HP_FIND_NOTFOUND     "No s'ha trobat el text."
+	IDS_HP_SAVE              "&Desa..."
+	IDS_HP_OPTIONS           "&Opcions"
+	IDS_HP_FILELABEL         " Fitxer: "
+
+	IDS_HV_LOADERROR_FMT     "No es pot carregar ""%s"""
+	IDS_HV_SUMMARY           "Resum"
+	IDS_HV_MATCH             "Coincideix:"
+	IDS_HV_MISMATCH          "No coincideix:"
+	IDS_HV_UNREADABLE        "Il·legible:"
+	IDS_HV_PENDING           "Restants:"
+	IDS_HV_EXIT              "&Surt"
+	IDS_HV_COL_FILENAME      "Fitxer"
+	IDS_HV_COL_SIZE          "Mida"
+	IDS_HV_COL_STATUS        "Estat"
+	IDS_HV_COL_EXPECTED      "Suma de verificació esperada"
+	IDS_HV_COL_ACTUAL        "Suma de verificació actual"
+	IDS_HV_STATUS_MATCH      "COINCIDEIX"
+	IDS_HV_STATUS_MISMATCH   "NO COINCIDEIX"
+	IDS_HV_STATUS_UNREADABLE "IL·LEGIBLE"
+
+	IDS_OPT_TITLE            "Opcions de HashCheck"
+	IDS_OPT_CM               "Integració amb Windows"
+	IDS_OPT_CM_ALWAYS        "Mostra HashCheck en el menú &contextual"
+	IDS_OPT_CM_EXTENDED      "Mostra HashCheck en el menú contextual &estès"
+	IDS_OPT_CM_NEVER         "&No mostris mai HashCheck en el menú contextual"
+	IDS_OPT_ENCODING         "Codificació de caràcters"
+	IDS_OPT_ENCODING_UTF8    "Desa utilitzant U&TF-8"
+	IDS_OPT_ENCODING_UTF16   "Desa utilitzant &UTF-16LE"
+	IDS_OPT_ENCODING_ANSI    "Desa utilitzant &ANSI"
+	IDS_OPT_FONT             "Tipus de lletra"
+	IDS_OPT_FONT_CHANGE      "&Canvia..."
 }
