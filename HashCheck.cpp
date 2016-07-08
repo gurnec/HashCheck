@@ -2,6 +2,7 @@
  * HashCheck Shell Extension
  * Original work copyright (C) Kai Liu.  All rights reserved.
  * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -11,7 +12,8 @@
 #include "CHashCheck.hpp"
 #include "CHashCheckClassFactory.hpp"
 #include "RegHelpers.h"
-#include "libs\Wow64.h"
+#include "libs/WinHash.h"
+#include "libs/Wow64.h"
 
 // Bookkeeping globals (declared as extern in globals.h)
 HMODULE g_hModThisDll;
@@ -32,6 +34,7 @@ static const LPCTSTR ASSOCIATIONS[] =
 	TEXT(".md5"),
 	TEXT(".sha1"),
 	TEXT(".sha256"),
+	TEXT(".sha512"),
 	TEXT(".asc")
 };
 
@@ -182,7 +185,7 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
-	// The actual association of .sfv/.md4/.md5/.sha1/.sha256/.asc files with our program ID
+	// The actual association of .sfv/.md4/.md5/.sha1/.sha256/.sha512/.asc files with our program ID
 	// will be handled by DllInstall, not DllRegisterServer.
 
 	// Register approval
@@ -295,9 +298,9 @@ HRESULT Install( BOOL bCopyFile )
 			HKEY hKey, hKeySub;
 
 			// Associate file extensions
-			for (UINT i = 0; i < countof(ASSOCIATIONS); ++i)
+			for (UINT i = 0; i < countof(g_szHashExtsTab); ++i)
 			{
-				if (hKey = RegOpen(HKEY_CLASSES_ROOT, ASSOCIATIONS[i], NULL))
+				if (hKey = RegOpen(HKEY_CLASSES_ROOT, g_szHashExtsTab[i], NULL))
 				{
 					RegSetSZ(hKey, NULL, PROGID_STR_HashCheck);
 					RegSetSZ(hKey, TEXT("PerceivedType"), TEXT("text"));
@@ -383,11 +386,11 @@ HRESULT Uninstall( )
 	// why this step is skipped for Wow64 processes
 	if (!Wow64CheckProcess())
 	{
-		for (UINT i = 0; i < countof(ASSOCIATIONS); ++i)
+		for (UINT i = 0; i < countof(g_szHashExtsTab); ++i)
 		{
 			HKEY hKey;
 
-			if (hKey = RegOpen(HKEY_CLASSES_ROOT, ASSOCIATIONS[i], NULL))
+			if (hKey = RegOpen(HKEY_CLASSES_ROOT, g_szHashExtsTab[i], NULL))
 			{
 				RegDeleteValue(hKey, NULL);
 				RegCloseKey(hKey);

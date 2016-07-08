@@ -16,7 +16,7 @@ extern "C" {
 
 #include <windows.h>
 #include "HashCheckOptions.h"
-#include "libs\WinHash.h"
+#include "libs/WinHash.h"
 
 /**
  * Much of what is in the HashCalc module used to reside within HashProp; with
@@ -31,7 +31,7 @@ extern "C" {
  **/
 
 // Constants
-#define RESULTS_LEN 0x100
+#define RESULTS_LEN 0x200
 #define SCRATCH_BUFFER_SIZE (MAX_PATH_BUFFER + RESULTS_LEN)
 
 // Scratch buffer

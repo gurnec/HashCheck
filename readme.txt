@@ -1,13 +1,17 @@
 HashCheck Shell Extension
-Original work copyright (C) Kai Liu.  All rights reserved.
-Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+
+Contributors:
+    Kai Liu
+    Christopher Gurnee
+    David B. Trout
+    Tim Schlueter
 
 
 I.  Building the source
 
     1.  Compiler
 
-        Visual Studio 2013 or VS Express 2013 for Windows Desktop
+        Visual Studio 2012 or VS Express 2012 for Windows Desktop
 
     2.  Localizations
 
@@ -16,6 +20,8 @@ I.  Building the source
 
 
 II. License and miscellanea
+
+    Standard 3-Clause BSD license.
 
     Please refer to license.txt for details about distribution and modification.
 

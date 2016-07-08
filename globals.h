@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#include "libs\WinIntrinsics.h"
+#include "libs/WinIntrinsics.h"
 
 #include <windows.h>
 #include <olectl.h>
@@ -21,9 +21,9 @@ extern "C" {
 #include <shlwapi.h>
 #include <process.h>
 
-#include "libs\SimpleString.h"
-#include "libs\SimpleList.h"
-#include "libs\SwapIntrinsics.h"
+#include "libs/SimpleString.h"
+#include "libs/SimpleList.h"
+#include "libs/SwapIntrinsics.h"
 #include "HashCheckResources.h"
 #include "HashCheckTranslations.h"
 #include "version.h"

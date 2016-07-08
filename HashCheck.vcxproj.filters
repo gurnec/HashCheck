@@ -72,7 +72,16 @@
     <ClCompile Include="libs\Wow64.c">
       <Filter>Libraries</Filter>
     </ClCompile>
-    <ClCompile Include="libs\sha256.c">
+    <ClCompile Include="libs\crc32.c">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\md5.c">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\sha1.c">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\sha2.c">
       <Filter>Libraries</Filter>
     </ClCompile>
   </ItemGroup>
@@ -112,6 +121,9 @@
     <ClInclude Include="UnicodeHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HashCheckResources.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
     <ClInclude Include="globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -139,12 +151,15 @@
     <ClInclude Include="libs\Wow64.h">
       <Filter>Libraries</Filter>
     </ClInclude>
-    <ClInclude Include="libs\sha256.h">
-      <Filter>Libraries</Filter>
+    <ClInclude Include="HashCheckTranslations.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="HashCheck.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="HashCheckTranslations.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

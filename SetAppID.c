@@ -7,7 +7,7 @@
  **/
 
 #include "globals.h"
-#include "libs\SimpleString.h"
+#include "libs/SimpleString.h"
 #include <propidl.h>
 
 
