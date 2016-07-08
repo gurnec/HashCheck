@@ -55,7 +55,7 @@ enum hash_algorithm {
 #define NUM_HASHES SHA512
 
 // The default hash algorithm to use when creating a checksum file
-#define DEFAULT_HASH_ALGORITHM MD5
+#define DEFAULT_HASH_ALGORITHM SHA256
 
 // Bitwise representation of the hash algorithms
 #define WHEX_CHECKCRC32     (1UL << (CRC32  - 1))
