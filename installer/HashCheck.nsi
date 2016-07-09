@@ -73,7 +73,7 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "2.3.1.7"
 Section
 
     GetTempFileName $0
-    File /oname=$0 ..\bin.x86-32\HashCheck.dll
+    File /oname=$0 ..\Bin\Win32\Release\HashCheck.dll
     ExecWait 'regsvr32 /i /n /s "$0"'
     IfErrors abort_on_error
     Delete $0
@@ -94,7 +94,7 @@ Section
     ${If} ${RunningX64}
         ${DisableX64FSRedirection}
 
-        File /oname=$0 ..\bin.x86-64\HashCheck.dll
+        File /oname=$0 ..\Bin\x64\Release\HashCheck.dll
         ExecWait 'regsvr32 /i /n /s "$0"'
         IfErrors abort_on_error
         Delete $0
