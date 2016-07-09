@@ -36,6 +36,7 @@
 
 #include <string.h>
 #include "WinHash.h"
+#include "SwapIntrinsics.h"
 
 /*
  * UNROLLED TRANSFORM LOOP NOTE:
@@ -97,35 +98,17 @@
 #define SHA512_SHORT_BLOCK_LENGTH	(SHA512_BLOCK_LENGTH - 16)
 
 /*** ENDIAN SPECIFIC COPY MACROS **************************************/
-#define BE_8_TO_32(dst, cp) do {							\
-	(dst) = (UINT32)(cp)[3] | ((UINT32)(cp)[2] << 8) |		\
-	    ((UINT32)(cp)[1] << 16) | ((UINT32)(cp)[0] << 24);	\
-} while(0)
-
-#define BE_8_TO_64(dst, cp) do {							\
-	(dst) = (UINT64)(cp)[7] | ((UINT64)(cp)[6] << 8) |		\
-	    ((UINT64)(cp)[5] << 16) | ((UINT64)(cp)[4] << 24) |	\
-	    ((UINT64)(cp)[3] << 32) | ((UINT64)(cp)[2] << 40) |	\
-	    ((UINT64)(cp)[1] << 48) | ((UINT64)(cp)[0] << 56);	\
-} while (0)
-
-#define BE_64_TO_8(cp, src) do {			\
-	(cp)[0] = (BYTE) ((src) >> 56);			\
-	(cp)[1] = (BYTE) ((src) >> 48);			\
-	(cp)[2] = (BYTE) ((src) >> 40);			\
-	(cp)[3] = (BYTE) ((src) >> 32);			\
-	(cp)[4] = (BYTE) ((src) >> 24);			\
-	(cp)[5] = (BYTE) ((src) >> 16);			\
-	(cp)[6] = (BYTE) ((src) >> 8);			\
-	(cp)[7] = (BYTE) (src);					\
-} while (0)
-
-#define BE_32_TO_8(cp, src) do {			\
-	(cp)[0] = (BYTE) ((src) >> 24);			\
-	(cp)[1] = (BYTE) ((src) >> 16);			\
-	(cp)[2] = (BYTE) ((src) >> 8);			\
-	(cp)[3] = (BYTE) (src);					\
-} while (0)
+#if BYTE_ORDER == LITTLE_ENDIAN
+#define BE_8_TO_32(dst, cp) ((dst) = SwapV32(*(UINT32*)(cp)))
+#define BE_8_TO_64(dst, cp) ((dst) = SwapV64(*(UINT64*)(cp)))
+#define BE_64_TO_8(cp, src) (*(UINT64*)(cp) = SwapV64(src))
+#define BE_32_TO_8(cp, src) (*(UINT32*)(cp) = SwapV32(src))
+#else
+#define BE_8_TO_32(dst, cp) ((dst) = *(UINT32*)(cp))
+#define BE_8_TO_64(dst, cp) ((dst) = *(UINT64*)(cp))
+#define BE_64_TO_8(cp, src) (*(UINT64*)(cp) = (src))
+#define BE_32_TO_8(cp, src) (*(UINT32*)(cp) = (src))
+#endif
 
 /*
  * Macro for incrementally adding the unsigned 64-bit integer n to the

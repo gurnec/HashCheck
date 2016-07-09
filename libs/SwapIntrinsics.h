@@ -16,7 +16,7 @@ extern "C" {
 
 
 // -----------------------------------------------------------------------------
-// SwapV16/SwapV32
+// SwapV16/SwapV32/SwapV64
 // These are functions for use with variable data (for constants, the Swap__C
 // macros are more efficient, as they can be evaluated at compile-time); for
 // VC7.1+, we can just use the compiler's built-in intrinsic, but for older
@@ -25,6 +25,7 @@ extern "C" {
 #include <stdlib.h>
 #pragma intrinsic(_byteswap_ushort)
 #pragma intrinsic(_byteswap_ulong)
+#pragma intrinsic(_byteswap_uint64)
 #elif defined(_M_IX86)
 #pragma warning(push)
 #pragma warning(disable: 4035) // returns for inline asm functions
@@ -52,6 +53,7 @@ __forceinline unsigned long _byteswap_ulong( unsigned long val )
 
 #define SwapV16 _byteswap_ushort
 #define SwapV32 _byteswap_ulong
+#define SwapV64 _byteswap_uint64
 // -----------------------------------------------------------------------------
 
 

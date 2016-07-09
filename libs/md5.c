@@ -19,22 +19,15 @@
 
 #include <string.h>
 #include "WinHash.h"
+#include "SwapIntrinsics.h"
 
-#define PUT_64BIT_LE(cp, value) do {			\
-	(cp)[7] = (BYTE) ((value) >> 56);			\
-	(cp)[6] = (BYTE) ((value) >> 48);			\
-	(cp)[5] = (BYTE) ((value) >> 40);			\
-	(cp)[4] = (BYTE) ((value) >> 32);			\
-	(cp)[3] = (BYTE) ((value) >> 24);			\
-	(cp)[2] = (BYTE) ((value) >> 16);			\
-	(cp)[1] = (BYTE) ((value) >> 8);			\
-	(cp)[0] = (BYTE) (value); } while (0)
-
-#define PUT_32BIT_LE(cp, value) do {			\
-	(cp)[3] = (BYTE) ((value) >> 24);			\
-	(cp)[2] = (BYTE) ((value) >> 16);			\
-	(cp)[1] = (BYTE) ((value) >> 8);			\
-	(cp)[0] = (BYTE) (value); } while (0)
+#if BYTE_ORDER == LITTLE_ENDIAN
+	#define PUT_64BIT_LE(cp, value) (*(UINT64*)(cp) = (value))
+	#define PUT_32BIT_LE(cp, value) (*(UINT32*)(cp) = (value))
+#else
+	#define PUT_64BIT_LE(cp, value) (*(UINT64*)(cp) = SwapV64(value))
+	#define PUT_32BIT_LE(cp, value) (*(UINT32*)(cp) = SwapV32(value))
+#endif
 
 static BYTE PADDING[MD5_BLOCK_LENGTH] = {
 	0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -157,11 +150,7 @@ void MD5Transform(UINT32 state[4], const BYTE block[MD5_BLOCK_LENGTH])
 	memcpy(in, block, sizeof(in));
 #else
 	for (a = 0; a < MD5_BLOCK_LENGTH / 4; a++) {
-		in[a] = (UINT32)(
-		    (UINT32)(block[a * 4 + 0]) |
-		    (UINT32)(block[a * 4 + 1]) <<  8 |
-		    (UINT32)(block[a * 4 + 2]) << 16 |
-		    (UINT32)(block[a * 4 + 3]) << 24);
+		in[a] = SwapV32(*(UINT32*) &block[a * 4]);
 	}
 #endif
 
