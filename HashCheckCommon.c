@@ -50,7 +50,7 @@ HANDLE __fastcall OpenFileForReading( PCTSTR pszPath )
 	));
 }
 
-VOID __fastcall NormalizeString( PTSTR psz )
+VOID __fastcall HCNormalizeString( PTSTR psz )
 {
 	if (!psz) return;
 

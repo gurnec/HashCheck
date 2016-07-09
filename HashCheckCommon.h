@@ -90,7 +90,7 @@ typedef struct {
 HANDLE __fastcall OpenFileForReading( PCTSTR pszPath );
 
 // Parsing helpers
-VOID __fastcall NormalizeString( PTSTR psz );
+VOID __fastcall HCNormalizeString( PTSTR psz );
 
 // UI-related functions
 VOID WINAPI SetControlText( HWND hWnd, UINT uCtrlID, UINT uStringID );
