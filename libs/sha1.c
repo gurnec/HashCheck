@@ -165,5 +165,5 @@ void SHA1Final(PSHA1_CTX context)
 	}
 	
 	/* Clear the context structure except the result field */
-	memset(context, 0, (UINT) FINDOFFSET(SHA1_CTX, result));
+	memset(context, 0, (size_t) FINDOFFSET(SHA1_CTX, result));
 }

@@ -319,7 +319,7 @@ void SHA224Final(PSHA2_CTX context)
 #endif
 	
 	/* Clear the context structure except the result field */
-	memset(context, 0, (UINT) FINDOFFSET(SHA2_CTX, result));
+	memset(context, 0, (size_t) FINDOFFSET(SHA2_CTX, result));
 }
 #endif /* !defined(SHA2_SMALL) */
 
@@ -592,7 +592,7 @@ void SHA256Final(PSHA2_CTX context)
 #endif
 	
 	/* Clear the context structure except the result field */
-	memset(context, 0, (UINT) FINDOFFSET(SHA2_CTX, result));
+	memset(context, 0, (size_t) FINDOFFSET(SHA2_CTX, result));
 }
 
 
@@ -866,7 +866,7 @@ void SHA512Final(PSHA2_CTX context)
 #endif
 	
 	/* Clear the context structure except the result field */
-	memset(context, 0, (UINT) FINDOFFSET(SHA2_CTX, result));
+	memset(context, 0, (size_t) FINDOFFSET(SHA2_CTX, result));
 }
 
 #if !defined(SHA2_SMALL)
@@ -901,6 +901,6 @@ void SHA384Final(PSHA2_CTX context)
 #endif
 	
 	/* Clear the context structure except the result field */
-	memset(context, 0, (UINT) FINDOFFSET(SHA2_CTX, result));
+	memset(context, 0, (size_t) FINDOFFSET(SHA2_CTX, result));
 }
 #endif /* !defined(SHA2_SMALL) */

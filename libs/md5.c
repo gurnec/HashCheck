@@ -128,7 +128,7 @@ void MD5Final(PMD5_CTX ctx)
 		PUT_32BIT_LE(ctx->result + i * 4, ctx->state[i]);
 	
 	/* Clear the context structure except the result field */
-	memset(ctx, 0, (UINT) FINDOFFSET(MD5_CTX, result));
+	memset(ctx, 0, (size_t) FINDOFFSET(MD5_CTX, result));
 }
 
 
