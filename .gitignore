@@ -5,3 +5,5 @@
 /Bin
 /Obj
 /installer/*.exe
+/*.VC.db
+/*.VC.VC.opendb
