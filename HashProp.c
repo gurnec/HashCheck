@@ -36,6 +36,7 @@ VOID WINAPI HashPropForceLTR( HWND hWndEdit );
 
 // Dialog status
 LRESULT CALLBACK HashPropEditProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+LRESULT CALLBACK HashPropResultsProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 VOID WINAPI HashPropUpdateResults( PHASHPROPCONTEXT phpctx, PHASHPROPITEM pItem );
 VOID WINAPI HashPropFinalStatus( PHASHPROPCONTEXT phpctx );
 
@@ -185,6 +186,13 @@ INT_PTR CALLBACK HashPropDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 				(LONG_PTR)phpctx->wpSearchBox
 			);
 
+            // Undo the results box subclassing
+            SetWindowLongPtr(
+                GetDlgItem(hWnd, IDC_RESULTS),
+                GWLP_WNDPROC,
+                (LONG_PTR)phpctx->wpResultsBox
+            );
+
 			// Kill the worker thread
 			phpctx->dwFlags |= HCF_EXIT_PENDING;
 			WorkerThreadStop((PCOMMONCONTEXT)phpctx);
@@ -326,6 +334,30 @@ LRESULT CALLBACK HashPropEditProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 	return(CallWindowProc(phpctx->wpSearchBox, hWnd, uMsg, wParam, lParam));
 }
 
+LRESULT CALLBACK HashPropResultsProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    PHASHPROPCONTEXT phpctx = (PHASHPROPCONTEXT)GetWindowLongPtr(
+        (HWND)GetWindowLongPtr(hWnd, GWLP_HWNDPARENT),
+        DWLP_USER
+    );
+
+    if (wParam == VK_ESCAPE)
+    {
+        if (uMsg == WM_GETDLGCODE)
+        {
+            return(DLGC_WANTALLKEYS);
+        }
+        else if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
+        {
+            PostMessage(phpctx->hWnd, uMsg, wParam, lParam);
+
+            return(0);
+        }
+    }
+
+    return(CallWindowProc(phpctx->wpResultsBox, hWnd, uMsg, wParam, lParam));
+}
+
 VOID WINAPI HashPropDlgInit( PHASHPROPCONTEXT phpctx )
 {
 	HWND hWnd = phpctx->hWnd;
@@ -367,6 +399,15 @@ VOID WINAPI HashPropDlgInit( PHASHPROPCONTEXT phpctx )
 			(LONG_PTR)HashPropEditProc
 		);
 	}
+
+    // Initialize the results text box
+    {
+        phpctx->wpResultsBox = (WNDPROC)SetWindowLongPtr(
+            GetDlgItem(hWnd, IDC_RESULTS),
+            GWLP_WNDPROC,
+            (LONG_PTR)HashPropResultsProc
+        );
+    }
 
 	// Initialize miscellaneous stuff
 	{

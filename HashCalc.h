@@ -71,6 +71,7 @@ typedef struct {
 	HANDLE             hFileOut;     // handle of the output file
 	HFONT              hFont;        // fixed-width font for the results box: handle
 	WNDPROC            wpSearchBox;  // original WNDPROC for the HashProp search box
+	WNDPROC            wpResultsBox; // original WNDPROC for the HashProp results box
 	UINT               cchMax;       // max length, in characters of the longest path (stupid SFV formatting)
 	UINT               cchPrefix;    // number of characters to omit from the start of the path
 	UINT               cchAdjusted;  // cchPrefix, adjusted for the path of the output file
