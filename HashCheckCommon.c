@@ -1,11 +1,13 @@
 /**
  * HashCheck Shell Extension
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2016 Christopher Gurnee.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
  **/
 
+#include <assert.h>
 #include "globals.h"
 #include "HashCheckCommon.h"
 #include "GetHighMSB.h"
@@ -256,7 +258,11 @@ DWORD WINAPI WorkerThreadStartup( PCOMMONCONTEXT pcmnctx )
 }
 
 VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL pbSuccess,
-                                  PWHCTXEX pwhctx, PWHRESULTEX pwhres, PFILESIZE pFileSize )
+                                  PWHCTXEX pwhctx, PWHRESULTEX pwhres, PFILESIZE pFileSize
+#ifdef _TIMED
+                                , PDWORD pdwElapsed
+#endif
+                                )
 {
 	#define GETMSB(ui64) (LODWORD(ui64 >> uShiftBits))
 
@@ -313,7 +319,11 @@ VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL 
 				StrFormatKBSize(cbFileSize, pFileSize->sz, countof(pFileSize->sz));
 				PostMessage(pcmnctx->hWnd, HM_WORKERTHREAD_SETSIZE, (WPARAM)pcmnctx, (LPARAM)pFileSize);
 			}
-
+#ifdef _TIMED
+            DWORD dwStarted;
+            if (pdwElapsed)
+                dwStarted = GetTickCount();
+#endif
 			// Finally, read the file and calculate the checksum; the
 			// progress bar is updated only once every 4 buffer reads (512K)
 			WHInitEx(pwhctx);
@@ -340,7 +350,10 @@ VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL 
 			} while (cbBufferRead == READ_BUFFER_SIZE);
 
 			WHFinishEx(pwhctx, pwhres);
-
+#ifdef _TIMED
+            if (pdwElapsed)
+                *pdwElapsed = GetTickCount() - dwStarted;
+#endif
 			if (cbFileRead == cbFileSize)
 				*pbSuccess = TRUE;
 

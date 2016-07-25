@@ -1,7 +1,7 @@
 /**
  * HashCheck Shell Extension
  * Original work copyright (C) Kai Liu.  All rights reserved.
- * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2014, 2016 Christopher Gurnee.  All rights reserved.
  * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
@@ -154,7 +154,10 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 			&phsctx->whctx,
 			&pItem->results,
 			NULL
-		);
+#ifdef _TIMED
+            , NULL
+#endif
+        );
 
 		if (phsctx->status == CANCEL_REQUESTED)
 			return;

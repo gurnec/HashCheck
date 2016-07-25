@@ -1,7 +1,7 @@
 /**
  * HashCheck Shell Extension
  * Original work copyright (C) Kai Liu.  All rights reserved.
- * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2014, 2016 Christopher Gurnee.  All rights reserved.
  * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
@@ -111,7 +111,10 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
 			&phpctx->whctx,
 			&pItem->results,
 			NULL
-		);
+#ifdef _TIMED
+          , &pItem->dwElapsed
+#endif
+        );
 
 		if (phpctx->status == CANCEL_REQUESTED)
 			return;
@@ -538,6 +541,9 @@ VOID WINAPI HashPropUpdateResults( PHASHPROPCONTEXT phpctx, PHASHPROPITEM pItem 
 			pItem->results.szHexSHA1,
 			pItem->results.szHexSHA256,
 			pItem->results.szHexSHA512
+#ifdef _TIMED
+          , pItem->dwElapsed
+#endif
 			);
 
 		// Update the new buffer offset for use by the next update

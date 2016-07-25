@@ -1,7 +1,7 @@
 /**
  * HashCheck Shell Extension
  * Original work copyright (C) Kai Liu.  All rights reserved.
- * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2014, 2016 Christopher Gurnee.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -89,6 +89,9 @@ typedef struct {
 	BOOL bValid;                     // FALSE if the file could not be opened
 	UINT cchPath;                    // length of path in characters, not including NULL
 	WHRESULTEX results;              // hash results
+#ifdef _TIMED
+    DWORD dwElapsed;                 // time in ms taken to compute all hashes
+#endif
 	TCHAR szPath[];                  // unaltered path
 } HASHCALCITEM, *PHASHCALCITEM;
 

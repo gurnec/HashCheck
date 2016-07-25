@@ -1,6 +1,7 @@
 /**
  * HashCheck Shell Extension
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2016 Christopher Gurnee.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -106,7 +107,11 @@ VOID WINAPI WorkerThreadCleanup( PCOMMONCONTEXT pcmnctx );
 // Worker thread functions
 DWORD WINAPI WorkerThreadStartup( PCOMMONCONTEXT pcmnctx );
 VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL pbSuccess,
-                                  PWHCTXEX pwhctx, PWHRESULTEX pwhres, PFILESIZE pFileSize );
+                                  PWHCTXEX pwhctx, PWHRESULTEX pwhres, PFILESIZE pFileSize 
+#ifdef _TIMED
+                                , PDWORD pdwElapsed
+#endif
+                                );
 
 // Wrappers for SHGetInstanceExplorer
 ULONG_PTR __fastcall HostAddRef( );

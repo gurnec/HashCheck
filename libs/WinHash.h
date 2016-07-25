@@ -2,7 +2,7 @@
  * Windows Hashing/Checksumming Library
  * Last modified: 2016/02/21
  * Original work copyright (C) Kai Liu.  All rights reserved.
- * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2014, 2016 Christopher Gurnee.  All rights reserved.
  * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
  * This is a wrapper for the CRC32, MD5, SHA1, SHA2-256, and SHA2-512
@@ -140,16 +140,28 @@ extern LPCTSTR g_szHashExtsTab[NUM_HASHES];
 #define HASH_RESULT_op(alg)     HASH_RNAME_##alg _T(": %s") _T(CRLF)
 
 // All printf formats strings together as one big string
+#ifndef _TIMED
 #define HASH_RESULTS_FMT        _T(CRLF)                        \
                                 FOR_EACH_HASH(HASH_RESULT_op)   \
                                 _T(CRLF)
+#else
+#define HASH_RESULTS_FMT        _T(CRLF)                        \
+                                FOR_EACH_HASH(HASH_RESULT_op)   \
+                                _T("Elapsed: %d ms") _T(CRLF)   \
+                                _T(CRLF)
+#endif
 
 // Add the specified algorithm's digest string length
 #define ADD_DIGEST_STRLEN_op(alg) alg##_DIGEST_STRING_LENGTH +
 
 // printf buffer size needed to printf all hash results
+#ifndef _TIMED
 #define HASH_RESULTS_BUFSIZE    FOR_EACH_HASH(ADD_DIGEST_STRLEN_op) \
                                 sizeof(HASH_RESULTS_FMT)
+#else
+#define HASH_RESULTS_BUFSIZE    FOR_EACH_HASH(ADD_DIGEST_STRLEN_op) \
+                                sizeof(HASH_RESULTS_FMT) + 10
+#endif
 
 /**
  * Structures used by the system libraries
