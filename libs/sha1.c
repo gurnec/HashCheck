@@ -16,8 +16,9 @@
 
 #include <string.h>
 #include "WinHash.h"
+#include "BitwiseIntrinsics.h"
 
-#define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
+#define rol(value, bits) (RotLV32((value), (bits)))
 
 /*
  * blk0() and blk() perform the initial expand.

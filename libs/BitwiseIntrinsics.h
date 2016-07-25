@@ -2,7 +2,8 @@
  * Bitwise Operations Library
  * Last modified: 2016/07/25
  *
- * Provides an efficient way to reverse the endianness of words, dwords, and qwords.
+ * Provides an efficient way to reverse the endianness of words, dwords, and qwords,
+ * and to perform bitwise rotations.
  **/
 
 #ifndef __SWAPINTRINSICS_H__
@@ -15,7 +16,7 @@ extern "C" {
 
 // -----------------------------------------------------------------------------
 // SwapV16/SwapV32/SwapV64
-// These are functions for use with variable data.
+// Endian swap functions for 16, 32, and 64 bit words.
 #if _MSC_VER < 1310
 #   error bitwise intrinsics require MSVC 7.1+
 #endif
@@ -42,6 +43,21 @@ __forceinline void SwapA16I( unsigned short *data, size_t words )
 		--words;
 	}
 }
+// -----------------------------------------------------------------------------
+
+
+// -----------------------------------------------------------------------------
+// RotLV32/RotRV32/RotLV64/RotRV64
+// Rotation functions for 32 and 64 bit words.
+#pragma intrinsic(_rotl)
+#pragma intrinsic(_rotr)
+#pragma intrinsic(_rotl64)
+#pragma intrinsic(_rotr64)
+
+#define RotLV32 _rotl
+#define RotRV32 _rotr
+#define RotLV64 _rotl64
+#define RotRV64 _rotr64
 // -----------------------------------------------------------------------------
 
 

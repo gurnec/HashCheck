@@ -134,9 +134,9 @@
 /* Shift-right (used in SHA-224, SHA-256, SHA-384, and SHA-512): */
 #define R(b,x) 		((x) >> (b))
 /* 32-bit Rotate-right (used in SHA-224 and SHA-256): */
-#define S32(b,x)	(((x) >> (b)) | ((x) << (32 - (b))))
+#define S32(b,x)	(RotRV32((x), (b)))
 /* 64-bit Rotate-right (used in SHA-384 and SHA-512): */
-#define S64(b,x)	(((x) >> (b)) | ((x) << (64 - (b))))
+#define S64(b,x)	(RotRV64((x), (b)))
 
 /* Two of six logical functions used in SHA-224, SHA-256, SHA-384, and SHA-512: */
 #define Ch(x,y,z)	(((x) & (y)) ^ ((~(x)) & (z)))
