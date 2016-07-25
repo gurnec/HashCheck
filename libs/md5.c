@@ -19,7 +19,7 @@
 
 #include <string.h>
 #include "WinHash.h"
-#include "SwapIntrinsics.h"
+#include "BitwiseIntrinsics.h"
 
 #if BYTE_ORDER == LITTLE_ENDIAN
 #   define PUT_64BIT_LE(cp, value) (*(UINT64*)(cp) = (value))

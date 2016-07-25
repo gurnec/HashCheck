@@ -191,7 +191,6 @@
     <ClCompile Include="libs\sha2.c" />
     <ClCompile Include="libs\SimpleList.c" />
     <ClCompile Include="libs\SimpleString.c" />
-    <ClCompile Include="libs\SwapIntrinsics.c" />
     <ClCompile Include="libs\WinHash.c" />
     <ClCompile Include="libs\Wow64.c" />
     <ClCompile Include="RegHelpers.c" />
@@ -215,7 +214,7 @@
     <ClInclude Include="libs\IsFontAvailable.h" />
     <ClInclude Include="libs\SimpleList.h" />
     <ClInclude Include="libs\SimpleString.h" />
-    <ClInclude Include="libs\SwapIntrinsics.h" />
+    <ClInclude Include="libs\BitwiseIntrinsics.h" />
     <ClInclude Include="libs\WinHash.h" />
     <ClInclude Include="libs\WinIntrinsics.h" />
     <ClInclude Include="libs\Wow64.h" />

@@ -23,7 +23,7 @@ extern "C" {
 
 #include "libs/SimpleString.h"
 #include "libs/SimpleList.h"
-#include "libs/SwapIntrinsics.h"
+#include "libs/BitwiseIntrinsics.h"
 #include "HashCheckResources.h"
 #include "HashCheckTranslations.h"
 #include "version.h"

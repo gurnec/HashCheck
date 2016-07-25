@@ -18,7 +18,7 @@ extern "C" {
 
 #include <windows.h>
 #include <tchar.h>
-#include "SwapIntrinsics.h"
+#include "BitwiseIntrinsics.h"
 
 typedef CONST BYTE *PCBYTE;
 

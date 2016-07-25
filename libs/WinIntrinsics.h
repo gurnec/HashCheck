@@ -22,8 +22,8 @@ extern "C" {
 // winbase.h defines the Interlocked* functions as intrinsic, but only for the
 // IA-64 and x86-64 architectures; such a definition was not made for x86-32 to
 // maintain consistency and compatibility with older compilers, we will make
-// that definition for VC6+ on x86-32
-#if _MSC_VER >= 1200 && defined(_M_IX86)
+// that definition for x86-32
+#if defined(_M_IX86)
 #define InterlockedIncrement _InterlockedIncrement
 #define InterlockedDecrement _InterlockedDecrement
 #define InterlockedExchange _InterlockedExchange

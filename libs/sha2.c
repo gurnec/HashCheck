@@ -36,7 +36,7 @@
 
 #include <string.h>
 #include "WinHash.h"
-#include "SwapIntrinsics.h"
+#include "BitwiseIntrinsics.h"
 
 /*
  * UNROLLED TRANSFORM LOOP NOTE:

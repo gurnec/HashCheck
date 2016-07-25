@@ -60,9 +60,6 @@
     <ClCompile Include="libs\SimpleList.c">
       <Filter>Libraries</Filter>
     </ClCompile>
-    <ClCompile Include="libs\SwapIntrinsics.c">
-      <Filter>Libraries</Filter>
-    </ClCompile>
     <ClCompile Include="libs\IsFontAvailable.c">
       <Filter>Libraries</Filter>
     </ClCompile>
@@ -139,9 +136,6 @@
     <ClInclude Include="libs\SimpleList.h">
       <Filter>Libraries</Filter>
     </ClInclude>
-    <ClInclude Include="libs\SwapIntrinsics.h">
-      <Filter>Libraries</Filter>
-    </ClInclude>
     <ClInclude Include="libs\IsFontAvailable.h">
       <Filter>Libraries</Filter>
     </ClInclude>
@@ -153,6 +147,9 @@
     </ClInclude>
     <ClInclude Include="HashCheckTranslations.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\BitwiseIntrinsics.h">
+      <Filter>Libraries</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
