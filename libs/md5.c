@@ -22,11 +22,11 @@
 #include "SwapIntrinsics.h"
 
 #if BYTE_ORDER == LITTLE_ENDIAN
-	#define PUT_64BIT_LE(cp, value) (*(UINT64*)(cp) = (value))
-	#define PUT_32BIT_LE(cp, value) (*(UINT32*)(cp) = (value))
+#   define PUT_64BIT_LE(cp, value) (*(UINT64*)(cp) = (value))
+#   define PUT_32BIT_LE(cp, value) (*(UINT32*)(cp) = (value))
 #else
-	#define PUT_64BIT_LE(cp, value) (*(UINT64*)(cp) = SwapV64(value))
-	#define PUT_32BIT_LE(cp, value) (*(UINT32*)(cp) = SwapV32(value))
+#   define PUT_64BIT_LE(cp, value) (*(UINT64*)(cp) = SwapV64(value))
+#   define PUT_32BIT_LE(cp, value) (*(UINT32*)(cp) = SwapV32(value))
 #endif
 
 static BYTE PADDING[MD5_BLOCK_LENGTH] = {

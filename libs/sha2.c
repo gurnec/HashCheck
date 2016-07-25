@@ -99,15 +99,15 @@
 
 /*** ENDIAN SPECIFIC COPY MACROS **************************************/
 #if BYTE_ORDER == LITTLE_ENDIAN
-#define BE_8_TO_32(dst, cp) ((dst) = SwapV32(*(UINT32*)(cp)))
-#define BE_8_TO_64(dst, cp) ((dst) = SwapV64(*(UINT64*)(cp)))
-#define BE_64_TO_8(cp, src) (*(UINT64*)(cp) = SwapV64(src))
-#define BE_32_TO_8(cp, src) (*(UINT32*)(cp) = SwapV32(src))
+#   define BE_8_TO_32(dst, cp) ((dst) = SwapV32(*(UINT32*)(cp)))
+#   define BE_8_TO_64(dst, cp) ((dst) = SwapV64(*(UINT64*)(cp)))
+#   define BE_64_TO_8(cp, src) (*(UINT64*)(cp) = SwapV64(src))
+#   define BE_32_TO_8(cp, src) (*(UINT32*)(cp) = SwapV32(src))
 #else
-#define BE_8_TO_32(dst, cp) ((dst) = *(UINT32*)(cp))
-#define BE_8_TO_64(dst, cp) ((dst) = *(UINT64*)(cp))
-#define BE_64_TO_8(cp, src) (*(UINT64*)(cp) = (src))
-#define BE_32_TO_8(cp, src) (*(UINT32*)(cp) = (src))
+#   define BE_8_TO_32(dst, cp) ((dst) = *(UINT32*)(cp))
+#   define BE_8_TO_64(dst, cp) ((dst) = *(UINT64*)(cp))
+#   define BE_64_TO_8(cp, src) (*(UINT64*)(cp) = (src))
+#   define BE_32_TO_8(cp, src) (*(UINT32*)(cp) = (src))
 #endif
 
 /*
