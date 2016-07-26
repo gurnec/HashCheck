@@ -134,46 +134,52 @@ VOID WHAPI WHInitEx( PWHCTXEX pContext )
 VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn )
 {
 #if _MSC_VER >= 1600
-    auto task_WHUpdateSHA512 = concurrency::make_task([&] { WHUpdateSHA512(&pContext->ctxSHA512, pbIn, cbIn); } );
-    auto task_WHUpdateSHA256 = concurrency::make_task([&] { WHUpdateSHA256(&pContext->ctxSHA256, pbIn, cbIn); } );
-    auto task_WHUpdateSHA1   = concurrency::make_task([&] { WHUpdateSHA1  (&pContext->ctxSHA1,   pbIn, cbIn); } );
-    auto task_WHUpdateMD5    = concurrency::make_task([&] { WHUpdateMD5   (&pContext->ctxMD5,    pbIn, cbIn); } );
-    auto task_WHUpdateCRC32  = concurrency::make_task([&] { WHUpdateCRC32 (&pContext->ctxCRC32,  pbIn, cbIn); } );
+    if (cbIn > 384u) {  // determined experimentally--smaller than this and multithreading doesn't help, but ymmv
 
-    concurrency::structured_task_group hashing_task_group;
+        auto task_WHUpdateSHA512 = concurrency::make_task([&] { WHUpdateSHA512(&pContext->ctxSHA512, pbIn, cbIn); } );
+        auto task_WHUpdateSHA256 = concurrency::make_task([&] { WHUpdateSHA256(&pContext->ctxSHA256, pbIn, cbIn); } );
+        auto task_WHUpdateSHA1   = concurrency::make_task([&] { WHUpdateSHA1  (&pContext->ctxSHA1,   pbIn, cbIn); } );
+        auto task_WHUpdateMD5    = concurrency::make_task([&] { WHUpdateMD5   (&pContext->ctxMD5,    pbIn, cbIn); } );
+        auto task_WHUpdateCRC32  = concurrency::make_task([&] { WHUpdateCRC32 (&pContext->ctxCRC32,  pbIn, cbIn); } );
 
-    if (pContext->flags & WHEX_CHECKSHA512)
-        hashing_task_group.run(task_WHUpdateSHA512);
+        concurrency::structured_task_group hashing_task_group;
 
-    if (pContext->flags & WHEX_CHECKSHA256)
-        hashing_task_group.run(task_WHUpdateSHA256);
+        if (pContext->flags & WHEX_CHECKSHA512)
+            hashing_task_group.run(task_WHUpdateSHA512);
 
-    if (pContext->flags & WHEX_CHECKSHA1)
-        hashing_task_group.run(task_WHUpdateSHA1);
+        if (pContext->flags & WHEX_CHECKSHA256)
+            hashing_task_group.run(task_WHUpdateSHA256);
 
-    if (pContext->flags & WHEX_CHECKMD5)
-        hashing_task_group.run(task_WHUpdateMD5);
+        if (pContext->flags & WHEX_CHECKSHA1)
+            hashing_task_group.run(task_WHUpdateSHA1);
 
-    if (pContext->flags & WHEX_CHECKCRC32)
-        hashing_task_group.run(task_WHUpdateCRC32);
+        if (pContext->flags & WHEX_CHECKMD5)
+            hashing_task_group.run(task_WHUpdateMD5);
 
-    hashing_task_group.wait();
+        if (pContext->flags & WHEX_CHECKCRC32)
+            hashing_task_group.run(task_WHUpdateCRC32);
 
-#else
-	if (pContext->flags & WHEX_CHECKCRC32)
-		WHUpdateCRC32(&pContext->ctxCRC32, pbIn, cbIn);
+        hashing_task_group.wait();
+    }
 
-	if (pContext->flags & WHEX_CHECKMD5)
-		WHUpdateMD5(&pContext->ctxMD5, pbIn, cbIn);
+    else {
+#endif
+        if (pContext->flags & WHEX_CHECKCRC32)
+            WHUpdateCRC32(&pContext->ctxCRC32, pbIn, cbIn);
 
-	if (pContext->flags & WHEX_CHECKSHA1)
-		WHUpdateSHA1(&pContext->ctxSHA1, pbIn, cbIn);
+        if (pContext->flags & WHEX_CHECKMD5)
+            WHUpdateMD5(&pContext->ctxMD5, pbIn, cbIn);
 
-	if (pContext->flags & WHEX_CHECKSHA256)
-		WHUpdateSHA256(&pContext->ctxSHA256, pbIn, cbIn);
+        if (pContext->flags & WHEX_CHECKSHA1)
+            WHUpdateSHA1(&pContext->ctxSHA1, pbIn, cbIn);
 
-	if (pContext->flags & WHEX_CHECKSHA512)
-		WHUpdateSHA512(&pContext->ctxSHA512, pbIn, cbIn);
+        if (pContext->flags & WHEX_CHECKSHA256)
+            WHUpdateSHA256(&pContext->ctxSHA256, pbIn, cbIn);
+
+        if (pContext->flags & WHEX_CHECKSHA512)
+            WHUpdateSHA512(&pContext->ctxSHA512, pbIn, cbIn);
+#if _MSC_VER >= 1600
+    }
 #endif
 }
 
