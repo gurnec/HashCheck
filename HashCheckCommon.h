@@ -20,7 +20,7 @@ extern "C" {
 
 // Tuning constants
 #define MAX_PATH_BUFFER       0x800
-#define READ_BUFFER_SIZE      0x20000
+#define READ_BUFFER_SIZE      0x40000
 #define BASE_STACK_SIZE       0x1000
 #define MARQUEE_INTERVAL      100  // marquee progress bar animation interval
 

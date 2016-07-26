@@ -2,16 +2,19 @@
  * Windows Hashing/Checksumming Library
  * Last modified: 2016/02/21
  * Original work copyright (C) Kai Liu.  All rights reserved.
- * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2014, 2016 Christopher Gurnee.  All rights reserved.
  * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
  * This is a wrapper for the CRC32, MD5, SHA1, SHA2-256, and SHA2-512
  * algorithms.
  *
- * WinHash.c is needed only if the WH*To* or WH*Ex functions are used.
+ * WinHash.cpp is needed only if the WH*To* or WH*Ex functions are used.
  **/
 
 #include "WinHash.h"
+#if _MSC_VER >= 1600
+#include <ppl.h>
+#endif
 
 // Macro to populate the extensions table. E.g. HASH_EXT_MD5,
 #define HASH_EXT_op(alg) HASH_EXT_##alg,
@@ -130,6 +133,33 @@ VOID WHAPI WHInitEx( PWHCTXEX pContext )
 
 VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn )
 {
+#if _MSC_VER >= 1600
+    auto task_WHUpdateSHA512 = concurrency::make_task([&] { WHUpdateSHA512(&pContext->ctxSHA512, pbIn, cbIn); } );
+    auto task_WHUpdateSHA256 = concurrency::make_task([&] { WHUpdateSHA256(&pContext->ctxSHA256, pbIn, cbIn); } );
+    auto task_WHUpdateSHA1   = concurrency::make_task([&] { WHUpdateSHA1  (&pContext->ctxSHA1,   pbIn, cbIn); } );
+    auto task_WHUpdateMD5    = concurrency::make_task([&] { WHUpdateMD5   (&pContext->ctxMD5,    pbIn, cbIn); } );
+    auto task_WHUpdateCRC32  = concurrency::make_task([&] { WHUpdateCRC32 (&pContext->ctxCRC32,  pbIn, cbIn); } );
+
+    concurrency::structured_task_group hashing_task_group;
+
+    if (pContext->flags & WHEX_CHECKSHA512)
+        hashing_task_group.run(task_WHUpdateSHA512);
+
+    if (pContext->flags & WHEX_CHECKSHA256)
+        hashing_task_group.run(task_WHUpdateSHA256);
+
+    if (pContext->flags & WHEX_CHECKSHA1)
+        hashing_task_group.run(task_WHUpdateSHA1);
+
+    if (pContext->flags & WHEX_CHECKMD5)
+        hashing_task_group.run(task_WHUpdateMD5);
+
+    if (pContext->flags & WHEX_CHECKCRC32)
+        hashing_task_group.run(task_WHUpdateCRC32);
+
+    hashing_task_group.wait();
+
+#else
 	if (pContext->flags & WHEX_CHECKCRC32)
 		WHUpdateCRC32(&pContext->ctxCRC32, pbIn, cbIn);
 
@@ -144,6 +174,7 @@ VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn )
 
 	if (pContext->flags & WHEX_CHECKSHA512)
 		WHUpdateSHA512(&pContext->ctxSHA512, pbIn, cbIn);
+#endif
 }
 
 VOID WHAPI WHFinishEx( PWHCTXEX pContext, PWHRESULTEX pResults )

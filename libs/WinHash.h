@@ -269,7 +269,7 @@ __inline void WHAPI WHFinishCRC32( PWHCTXCRC32 pContext )
 #define WHFinishSHA512 SHA512Final
 
 /**
- * WH*To* hex string conversion functions: These require WinHash.c
+ * WH*To* hex string conversion functions: These require WinHash.cpp
  **/
 
 #define WHAPI __fastcall
@@ -281,7 +281,7 @@ BOOL WHAPI WHHexToByte( PTSTR pszSrc, PBYTE pbDest, UINT cchHex );
 PTSTR WHAPI WHByteToHex( PBYTE pbSrc, PTSTR pszDest, UINT cchHex, UINT8 uCaseMode );
 
 /**
- * WH*Ex functions: These require WinHash.c
+ * WH*Ex functions: These require WinHash.cpp
  **/
 
 typedef struct {
@@ -292,14 +292,15 @@ typedef struct {
     TCHAR szHexSHA512[SHA512_DIGEST_STRING_LENGTH];
 } WHRESULTEX, *PWHRESULTEX;
 
+// Align all the hash contexts to avoid false sharing (of L1/2 cache lines in multi-core systems)
 typedef struct {
 	UINT8       flags;
 	UINT8       uCaseMode;
-	WHCTXCRC32  ctxCRC32;
-	WHCTXMD5    ctxMD5;
-	WHCTXSHA1   ctxSHA1;
-	WHCTXSHA256 ctxSHA256;
-	WHCTXSHA512 ctxSHA512;
+	__declspec(align(64)) WHCTXCRC32  ctxCRC32;
+	__declspec(align(64)) WHCTXMD5    ctxMD5;
+	__declspec(align(64)) WHCTXSHA1   ctxSHA1;
+	__declspec(align(64)) WHCTXSHA256 ctxSHA256;
+	__declspec(align(64)) WHCTXSHA512 ctxSHA512;
 	WHRESULTEX  results;
 } WHCTXEX, *PWHCTXEX;
 

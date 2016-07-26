@@ -63,9 +63,6 @@
     <ClCompile Include="libs\IsFontAvailable.c">
       <Filter>Libraries</Filter>
     </ClCompile>
-    <ClCompile Include="libs\WinHash.c">
-      <Filter>Libraries</Filter>
-    </ClCompile>
     <ClCompile Include="libs\Wow64.c">
       <Filter>Libraries</Filter>
     </ClCompile>
@@ -79,6 +76,9 @@
       <Filter>Libraries</Filter>
     </ClCompile>
     <ClCompile Include="libs\sha2.c">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\WinHash.cpp">
       <Filter>Libraries</Filter>
     </ClCompile>
   </ItemGroup>

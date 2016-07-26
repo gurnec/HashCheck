@@ -279,7 +279,7 @@
     <ClCompile Include="libs\sha2.c" />
     <ClCompile Include="libs\SimpleList.c" />
     <ClCompile Include="libs\SimpleString.c" />
-    <ClCompile Include="libs\WinHash.c" />
+    <ClCompile Include="libs\WinHash.cpp" />
     <ClCompile Include="libs\Wow64.c" />
     <ClCompile Include="RegHelpers.c" />
     <ClCompile Include="SetAppID.c" />

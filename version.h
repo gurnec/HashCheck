@@ -1,7 +1,7 @@
 /**
  * HashCheck Shell Extension
  * Original work copyright (C) Kai Liu.  All rights reserved.
- * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2014, 2016 Christopher Gurnee.  All rights reserved.
  * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
@@ -12,10 +12,10 @@
 #define HASHCHECK_NAME_STR "HashCheck Shell Extension"
 
 // Full version: MUST be in the form of major,minor,revision,build
-#define HASHCHECK_VERSION_FULL 2,3,1,10
+#define HASHCHECK_VERSION_FULL 2,3,2,11
 
 // String version: May be any suitable string
-#define HASHCHECK_VERSION_STR "2.3.1.10"
+#define HASHCHECK_VERSION_STR "2.3.2.11"
 
 #ifdef _USRDLL
 // PE version: MUST be in the form of major.minor
