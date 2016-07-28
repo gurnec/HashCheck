@@ -354,6 +354,12 @@ LRESULT CALLBACK HashPropResultsProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
             return(0);
         }
     }
+    else if (uMsg == WM_CHAR && wParam == 1)  // CTRL-a
+    {
+        SendMessage(hWnd, EM_SETSEL, 0, -1);
+
+        return(1);
+    }
 
     return(CallWindowProc(phpctx->wpResultsBox, hWnd, uMsg, wParam, lParam));
 }
