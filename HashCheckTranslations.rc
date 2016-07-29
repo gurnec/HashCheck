@@ -61,7 +61,9 @@ STRINGTABLE LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 	IDS_OPT_ENCODING_UTF8    "Save using U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Save using &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Save using &ANSI"
-	IDS_OPT_FONT             "Property sheet font"
+	IDS_OPT_CHK              "File properties checksums"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
+	IDS_OPT_FONT             "File properties checksums font"
 	IDS_OPT_FONT_CHANGE      "&Change..."
 }
 
@@ -117,6 +119,8 @@ STRINGTABLE LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_TRADITIONAL
 	IDS_OPT_ENCODING_UTF8    "使用 UTF-8 儲存(&T)"
 	IDS_OPT_ENCODING_UTF16   "使用 UTF-16LE 儲存(&U)"
 	IDS_OPT_ENCODING_ANSI    "使用 ANSI 儲存(&A)"
+	IDS_OPT_CHK              "檔案檢查"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "屬性頁面字型"
 	IDS_OPT_FONT_CHANGE      "變更字型(&C)..."
 }
@@ -173,6 +177,8 @@ STRINGTABLE LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 	IDS_OPT_ENCODING_UTF8    "使用 UTF-8 保存(&T)"
 	IDS_OPT_ENCODING_UTF16   "使用 UTF-16LE 保存(&U)"
 	IDS_OPT_ENCODING_ANSI    "使用当前 ANSI 代码页保存(&A)"
+	IDS_OPT_CHK              "文件校验"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "属性页字体"
 	IDS_OPT_FONT_CHANGE      "更改字体(&C)..."
 }
@@ -229,6 +235,8 @@ STRINGTABLE LANGUAGE LANG_CZECH, SUBLANG_DEFAULT
 	IDS_OPT_ENCODING_UTF8    "Ulož v U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Ulož v &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Ulož v &ANSI"
+	IDS_OPT_CHK              "Kontrolní součty okna výstupu"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Font okna výstupu"
 	IDS_OPT_FONT_CHANGE      "&Výběr..."
 }
@@ -285,6 +293,8 @@ STRINGTABLE LANGUAGE LANG_GERMAN, SUBLANG_NEUTRAL
 	IDS_OPT_ENCODING_UTF8    "Speichere in U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Speichere in &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Speichere in &ANSI"
+	IDS_OPT_CHK              "Dialogfeld Prüfsummen"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Dialogfeld Dateieigenschaften"
 	IDS_OPT_FONT_CHANGE      "&Schriftart..."
 }
@@ -341,6 +351,8 @@ STRINGTABLE LANGUAGE LANG_GREEK, SUBLANG_DEFAULT
 	IDS_OPT_ENCODING_UTF8    "Αποθήκευση με χρήση U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Αποθήκευση με χρήση &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Αποθήκευση με χρήση &ANSI"
+	IDS_OPT_CHK              "Αρχεία Checksum"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Γραμματοσειρά Παραθύρου Ιδιοτήτων"
 	IDS_OPT_FONT_CHANGE      "&Γραμματοσειρά..."
 }
@@ -397,6 +409,8 @@ STRINGTABLE LANGUAGE LANG_SPANISH, SUBLANG_NEUTRAL
 	IDS_OPT_ENCODING_UTF8    "Guardar como U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Guardar como &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Guardar como &ANSI (idioma predeterminado)"
+	IDS_OPT_CHK              "Checksum"
+	IDS_OPT_CHK_ERROR        "Por favor seleccione al menos un checksum"
 	IDS_OPT_FONT             "Fuente"
 	IDS_OPT_FONT_CHANGE      "&Cambiar..."
 }
@@ -453,6 +467,8 @@ STRINGTABLE LANGUAGE LANG_FRENCH, SUBLANG_NEUTRAL
 	IDS_OPT_ENCODING_UTF8    "Enregistrer avec U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Enregistrer avec &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Enregistrer avec &ANSI"
+	IDS_OPT_CHK              "Hachages de l'onglet propriétés"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Police de l'onglet propriétés"
 	IDS_OPT_FONT_CHANGE      "&Modifier..."
 }
@@ -509,6 +525,8 @@ STRINGTABLE LANGUAGE LANG_ITALIAN, SUBLANG_NEUTRAL
 	IDS_OPT_ENCODING_UTF8    "Salva usando U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Salva usando &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Salva usando &ANSI"
+	IDS_OPT_CHK              "Checksum"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Tipo di carattere"
 	IDS_OPT_FONT_CHANGE      "&Cambia..."
 }
@@ -565,6 +583,8 @@ STRINGTABLE LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 	IDS_OPT_ENCODING_UTF8    "UTF-8 で保存する(&T)"
 	IDS_OPT_ENCODING_UTF16   "UTF-16LE で保存する(&U)"
 	IDS_OPT_ENCODING_ANSI    "ANSI で保存する(&A)"
+	IDS_OPT_CHK              "ハッシュ"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "プロパティシートフォント"
 	IDS_OPT_FONT_CHANGE      "ﾌｫﾝﾄの変更(&C)..."
 }
@@ -621,6 +641,8 @@ STRINGTABLE LANGUAGE LANG_KOREAN, SUBLANG_DEFAULT
 	IDS_OPT_ENCODING_UTF8    "U&TF-8로 저장"
 	IDS_OPT_ENCODING_UTF16   "&UTF-16LE로 저장"
 	IDS_OPT_ENCODING_ANSI    "&ANSI로 저장"
+	IDS_OPT_CHK              "체크섬"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "속성 시트 글꼴"
 	IDS_OPT_FONT_CHANGE      "글꼴 변경(&C)..."
 }
@@ -677,6 +699,8 @@ STRINGTABLE LANGUAGE LANG_DUTCH, SUBLANG_NEUTRAL
 	IDS_OPT_ENCODING_UTF8    "U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "&UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "&ANSI"
+	IDS_OPT_CHK              "Controlegetallen eigenschappenblad"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Lettertype eigenschappenblad"
 	IDS_OPT_FONT_CHANGE      "&Wijzig..."
 }
@@ -733,6 +757,8 @@ STRINGTABLE LANGUAGE LANG_POLISH, SUBLANG_DEFAULT
 	IDS_OPT_ENCODING_UTF8    "Zapisz jako U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Zapisz jako &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Zapisz jako &ANSI"
+	IDS_OPT_CHK              "Sumy kontrolne"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Styl czcionki karty"
 	IDS_OPT_FONT_CHANGE      "Zmień &czcionkę..."
 }
@@ -789,6 +815,8 @@ STRINGTABLE LANGUAGE LANG_PORTUGUESE, SUBLANG_PORTUGUESE_BRAZILIAN
 	IDS_OPT_ENCODING_UTF8    "Salvar - padrão U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Salvar - padrão &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Salvar - código de página padrão &ANSI"
+	IDS_OPT_CHK              "Identificação digital"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Propriedades da Fonte"
 	IDS_OPT_FONT_CHANGE      "&Mudar..."
 }
@@ -845,6 +873,8 @@ STRINGTABLE LANGUAGE LANG_PORTUGUESE, SUBLANG_PORTUGUESE
 	IDS_OPT_ENCODING_UTF8    "Guardar usando U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Guardar usando &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Guardar usando &ANSI"
+	IDS_OPT_CHK              "Checksums da folha de propriedades"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Tipo de letra da folha de propriedades"
 	IDS_OPT_FONT_CHANGE      "&Mudar..."
 }
@@ -901,6 +931,8 @@ STRINGTABLE LANGUAGE LANG_ROMANIAN, SUBLANG_DEFAULT
 	IDS_OPT_ENCODING_UTF8    "Salvează folosind U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Salvează folosind &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Salvează folosind &ANSI"
+	IDS_OPT_CHK              "Proprietăţi sume de control"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Proprietăţi font"
 	IDS_OPT_FONT_CHANGE      "Schimbă &Font..."
 }
@@ -957,6 +989,8 @@ STRINGTABLE LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 	IDS_OPT_ENCODING_UTF8    "&Сохранить как UTF-8"
 	IDS_OPT_ENCODING_UTF16   "Сохрани&ть как UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Сохр&анить как ANSI"
+	IDS_OPT_CHK              "Контрольные суммы в окне свойств"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Шрифт в окне свойств"
 	IDS_OPT_FONT_CHANGE      "&Изменить..."
 }
@@ -1013,6 +1047,8 @@ STRINGTABLE LANGUAGE LANG_SWEDISH, SUBLANG_NEUTRAL
 	IDS_OPT_ENCODING_UTF8    "Spara med U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Spara med &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Spara med &ANSI"
+	IDS_OPT_CHK              "Egenskapsidans checksums"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Egenskapsidans typsnitt"
 	IDS_OPT_FONT_CHANGE      "&Ändra..."
 }
@@ -1069,6 +1105,8 @@ STRINGTABLE LANGUAGE LANG_TURKISH, SUBLANG_DEFAULT
 	IDS_OPT_ENCODING_UTF8    "U&TF-8 kullanarak kaydet"
 	IDS_OPT_ENCODING_UTF16   "&UTF-16LE kullanarak kaydet"
 	IDS_OPT_ENCODING_ANSI    "Varsayılan &ANSI kod sayfasını kullanarak kaydet"
+	IDS_OPT_CHK              "Dosya Hash'leri"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Özellik sayfası yazıtipi"
 	IDS_OPT_FONT_CHANGE      "&Yazıtipi'ni değiştir"
 }
@@ -1125,6 +1163,8 @@ STRINGTABLE LANGUAGE LANG_UKRAINIAN, SUBLANG_DEFAULT
 	IDS_OPT_ENCODING_UTF8    "Зберег&ти як UTF-8"
 	IDS_OPT_ENCODING_UTF16   "Зберегти &як UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "&Зберегти як ANSI"
+	IDS_OPT_CHK              "Контрольні суми"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Шрифт у вікні властивостей"
 	IDS_OPT_FONT_CHANGE      "З&мінити..."
 }
@@ -1181,6 +1221,8 @@ STRINGTABLE LANGUAGE LANG_CATALAN, SUBLANG_CATALAN_CATALAN
 	IDS_OPT_ENCODING_UTF8    "Desa utilitzant U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Desa utilitzant &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Desa utilitzant &ANSI"
+	IDS_OPT_CHK              "Checksum"
+	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
 	IDS_OPT_FONT             "Tipus de lletra"
 	IDS_OPT_FONT_CHANGE      "&Canvia..."
 }

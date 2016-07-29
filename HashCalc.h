@@ -50,7 +50,7 @@ typedef struct {
 		#endif
 		CHAR szA[SCRATCH_BUFFER_SIZE * 3];
 	};
-	BYTE ext[0x8000];  // extra padding for batching large sets of small files
+	BYTE ext[0x10000];  // extra padding for batching large sets of small files
 } HASHCALCSCRATCH, *PHASHCALCSCRATCH;
 
 // Hash creation context

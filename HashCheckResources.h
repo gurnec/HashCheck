@@ -50,6 +50,12 @@
 #define IDC_OPT_ENCODING_UTF16          507
 #define IDC_OPT_ENCODING_ANSI           508
 #define IDC_OPT_ENCODING_FIRSTID        IDC_OPT_ENCODING_UTF8
-#define IDC_OPT_FONT                    509
-#define IDC_OPT_FONT_CHANGE             510
-#define IDC_OPT_FONT_PREVIEW            511
+#define IDC_OPT_CHK                     509
+#define IDC_OPT_CHK_CRC32               510
+#define IDC_OPT_CHK_MD5                 511
+#define IDC_OPT_CHK_SHA1                512
+#define IDC_OPT_CHK_SHA256              513
+#define IDC_OPT_CHK_SHA512              514
+#define IDC_OPT_FONT                    515
+#define IDC_OPT_FONT_CHANGE             516
+#define IDC_OPT_FONT_PREVIEW            517

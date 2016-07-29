@@ -1,7 +1,7 @@
 /**
  * HashCheck Shell Extension
  * Original work copyright (C) Kai Liu.  All rights reserved.
- * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2014, 2016 Christopher Gurnee.  All rights reserved.
  * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
@@ -11,6 +11,7 @@
 #include "globals.h"
 #include "HashCheckCommon.h"
 #include "HashCheckOptions.h"
+#include "libs/WinHash.h"
 #include "RegHelpers.h"
 #include "libs/IsFontAvailable.h"
 
@@ -52,7 +53,7 @@ VOID WINAPI OptionsDlgInit( HWND hWnd, POPTIONSCONTEXT poptctx );
 
 // Dialog commands
 VOID WINAPI ChangeFont( HWND hWnd, POPTIONSCONTEXT poptctx );
-VOID WINAPI SaveSettings( HWND hWnd, POPTIONSCONTEXT poptctx );
+BOOL WINAPI SaveSettings( HWND hWnd, POPTIONSCONTEXT poptctx );
 
 
 
@@ -132,6 +133,17 @@ VOID __fastcall OptionsLoad( PHASHCHECKOPTIONS popt )
 		}
 	}
 
+    if (popt->dwFlags & HCOF_CHECKSUMS)
+    {
+        if (!(hKey &&
+            RegGetDW(hKey, TEXT("Checksums"), &popt->dwChecksums) &&
+            popt->dwChecksums > 0 && popt->dwChecksums <= WHEX_ALL))
+        {
+            // Fall back to default (CRC-32, SHA-1, both SHA-2's)
+            popt->dwChecksums = DEFAULT_HASH_ALGORITHMS;
+        }
+    }
+
 	if (popt->dwFlags & HCOF_FONT)
 	{
 		DWORD dwType;
@@ -184,6 +196,9 @@ VOID __fastcall OptionsSave( PHASHCHECKOPTIONS popt )
 		if (popt->dwFlags & HCOF_SAVEENCODING)
 			RegSetDW(hKey, TEXT("SaveEncoding"), popt->dwSaveEncoding);
 
+        if (popt->dwFlags & HCOF_CHECKSUMS)
+            RegSetDW(hKey, TEXT("Checksums"), popt->dwChecksums);
+
 		if (popt->dwFlags & HCOF_FONT)
 			RegSetValueEx(hKey, TEXT("Font"), 0, REG_BINARY, (PBYTE)&popt->lfFont, sizeof(LOGFONT));
 
@@ -225,7 +240,8 @@ INT_PTR CALLBACK OptionsDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 					return(TRUE);
 
 				case IDC_OK:
-					SaveSettings(hWnd, poptctx);
+                    if (SaveSettings(hWnd, poptctx) == FALSE)
+                        return(TRUE);  // don't close on save errors
 				case IDC_CANCEL:
 					end_dialog: EndDialog(hWnd, 0);
 					return(TRUE);
@@ -252,6 +268,7 @@ VOID WINAPI OptionsDlgInit( HWND hWnd, POPTIONSCONTEXT poptctx )
 			{ IDC_OPT_ENCODING_UTF8,  IDS_OPT_ENCODING_UTF8  },
 			{ IDC_OPT_ENCODING_UTF16, IDS_OPT_ENCODING_UTF16 },
 			{ IDC_OPT_ENCODING_ANSI,  IDS_OPT_ENCODING_ANSI  },
+			{ IDC_OPT_CHK,            IDS_OPT_CHK            },
 			{ IDC_OPT_FONT,           IDS_OPT_FONT           },
 			{ IDC_OPT_FONT_CHANGE,    IDS_OPT_FONT_CHANGE    },
 			{ IDC_OK,                 IDS_OPT_OK             },
@@ -282,6 +299,11 @@ VOID WINAPI OptionsDlgInit( HWND hWnd, POPTIONSCONTEXT poptctx )
 
 		SendDlgItemMessage(hWnd, IDC_OPT_ENCODING_FIRSTID + poptctx->popt->dwSaveEncoding,
 		                   BM_SETCHECK, BST_CHECKED, 0);
+
+#define HASH_OPT_SET_CHECKS_op(alg)                        \
+        if (poptctx->popt->dwChecksums & WHEX_CHECK##alg)  \
+            SendDlgItemMessage(hWnd, IDC_OPT_CHK_##alg, BM_SETCHECK, BST_CHECKED, 0);
+        FOR_EACH_HASH(HASH_OPT_SET_CHECKS_op)
 
 		if (poptctx->hFont = CreateFontIndirect(&poptctx->popt->lfFont))
 			SendDlgItemMessage(hWnd, IDC_OPT_FONT_PREVIEW, WM_SETFONT, (WPARAM)poptctx->hFont, FALSE);
@@ -321,9 +343,33 @@ VOID WINAPI ChangeFont( HWND hWnd, POPTIONSCONTEXT poptctx )
 	}
 }
 
-VOID WINAPI SaveSettings( HWND hWnd, POPTIONSCONTEXT poptctx )
+BOOL WINAPI SaveSettings( HWND hWnd, POPTIONSCONTEXT poptctx )
 {
 	DWORD i;
+
+    // Get the user-selected value for dwChecksums
+    i = 0;
+#define HASH_OPT_GET_CHECKS_op(alg)                                                     \
+    if (SendDlgItemMessage(hWnd, IDC_OPT_CHK_##alg, BM_GETCHECK, 0, 0) == BST_CHECKED)  \
+        i |= WHEX_CHECK##alg;
+    FOR_EACH_HASH(HASH_OPT_GET_CHECKS_op)
+
+    // Ensure at least one is checked
+    if (i == 0)
+    {
+        TCHAR szError[MAX_STRINGMSG];
+        // "Please select at least one checksum"
+        LoadString(g_hModThisDll, IDS_OPT_CHK_ERROR, szError, countof(szError));
+        MessageBox(hWnd, szError, NULL, MB_ICONWARNING);
+        return(FALSE);
+    }
+
+    // If the value has changed, flag it for saving
+    if (i <= WHEX_ALL && poptctx->popt->dwChecksums != i)
+    {
+        poptctx->popt->dwFlags |= HCOF_CHECKSUMS;
+        poptctx->popt->dwChecksums = i;
+    }
 
 	// Get the user-selected value for dwMenuDisplay
 	for (i = 0; i < 3; ++i)
@@ -358,4 +404,6 @@ VOID WINAPI SaveSettings( HWND hWnd, POPTIONSCONTEXT poptctx )
 		poptctx->popt->dwFlags |= HCOF_FONT;
 
 	OptionsSave(poptctx->popt);
+
+    return(TRUE);
 }

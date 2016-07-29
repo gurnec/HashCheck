@@ -12,6 +12,9 @@
 #include "HashCheckCommon.h"
 #include "HashCalc.h"
 #include "libs/WinHash.h"
+#ifdef _TIMED
+#include <Strsafe.h>
+#endif
 
 // Control structures, from HashCalc.h
 #define  HASHPROPSCRATCH  HASHCALCSCRATCH
@@ -99,8 +102,9 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
 	HashCalcPrepare(phpctx);
 	PostMessage(phpctx->hWnd, HM_WORKERTHREAD_TOGGLEPREP, (WPARAM)phpctx, FALSE);
 
-	// Indicate that we want to calculate all hash types
-	phpctx->whctx.flags = WHEX_ALL;
+	// Indicate which hash types we want to calculate
+    // (this is loaded earlier in HashPropDlgInit())
+    phpctx->whctx.flags = (UINT8)phpctx->opt.dwChecksums;
 
 	while (pItem = SLGetDataAndStep(phpctx->hList))
 	{
@@ -385,35 +389,36 @@ VOID WINAPI HashPropDlgInit( PHASHPROPCONTEXT phpctx )
 			SetControlText(hWnd, arStrMap[i][0], arStrMap[i][1]);
 	}
 
+    // Load the two configuration items we need
+    phpctx->opt.dwFlags = HCOF_FONT | HCOF_CHECKSUMS;
+    OptionsLoad(&phpctx->opt);
+
 	// Initialize the results text box
 	{
 		// Set the font
-		phpctx->opt.dwFlags = HCOF_FONT;
-		OptionsLoad(&phpctx->opt);
 		if (phpctx->hFont = CreateFontIndirect(&phpctx->opt.lfFont))
 			SendDlgItemMessage(hWnd, IDC_RESULTS, WM_SETFONT, (WPARAM)phpctx->hFont, FALSE);
 
 		// Eliminate the text limit
 		SendDlgItemMessage(hWnd, IDC_RESULTS, EM_SETLIMITTEXT, 0, 0);
+
+        // Subclass it to handle CTRL-a
+        phpctx->wpResultsBox = (WNDPROC)SetWindowLongPtr(
+            GetDlgItem(hWnd, IDC_RESULTS),
+            GWLP_WNDPROC,
+            (LONG_PTR)HashPropResultsProc
+        );
 	}
 
 	// Initialize the search text box
 	{
+		// Subclass it to handle pressing the return key
 		phpctx->wpSearchBox = (WNDPROC)SetWindowLongPtr(
 			GetDlgItem(hWnd, IDC_SEARCHBOX),
 			GWLP_WNDPROC,
 			(LONG_PTR)HashPropEditProc
 		);
 	}
-
-    // Initialize the results text box
-    {
-        phpctx->wpResultsBox = (WNDPROC)SetWindowLongPtr(
-            GetDlgItem(hWnd, IDC_RESULTS),
-            GWLP_WNDPROC,
-            (LONG_PTR)HashPropResultsProc
-        );
-    }
 
 	// Initialize miscellaneous stuff
 	{
@@ -556,49 +561,66 @@ VOID WINAPI HashPropUpdateResults( PHASHPROPCONTEXT phpctx, PHASHPROPITEM pItem 
 		 *    will throttle back enough to keep the backlog <= 50.
 		 * 3) If there is any backlog at all, results will be coalesced into
 		 *    batches to reduce the number of costly EM_REPLACESEL calls.
+		 * INVARIANT: the scratch buffer into which the results are coalesced
+		 *    has at least enough remaining space for adding the text results
+		 *    of a single file (it is cleared before returning if necessary)
 		 **/
 
-		PTSTR pszScratch;
 		PTSTR pszScratchAppend;
+        size_t cchMaxBufferRequired = 0;  // max tchar count for text results of one file
 
 		// First, we can increment the success count
 		++phpctx->cSuccess;
 
 		// Get the scratch buffer; we will be using the entire scratch struct
 		// as a single monolithic buffer
-		pszScratch = BYTEADD(&phpctx->scratch, phpctx->obScratch);
+        pszScratchAppend = BYTEADD(&phpctx->scratch, phpctx->obScratch);
 
 		// Copy the file label
-		pszScratchAppend = pszScratch + LoadString(g_hModThisDll, IDS_HP_FILELABEL,
-		                                           pszScratch, MAX_STRINGRES);
+		pszScratchAppend += LoadString(g_hModThisDll, IDS_HP_FILELABEL,
+		                               pszScratchAppend, MAX_STRINGRES);
+        cchMaxBufferRequired += MAX_STRINGRES;
 
-		// Copy the path
-		pszScratchAppend = SSChainNCpy(
-			pszScratchAppend,
-			pItem->szPath + phpctx->cchPrefix,
-			pItem->cchPath - phpctx->cchPrefix
-		);
+		// Copy the path, appending CRLF
+        pszScratchAppend = SSChainNCpy2(
+            pszScratchAppend,
+            pItem->szPath + phpctx->cchPrefix, pItem->cchPath - phpctx->cchPrefix,
+            CRLF, CCH_CRLF
+        );
+        cchMaxBufferRequired += MAX_PATH_BUFFER - phpctx->cchPrefix + CCH_CRLF;
 
-		// Copy the results
-		pszScratchAppend += wnsprintf(
-			pszScratchAppend,
-			HASH_RESULTS_BUFSIZE, HASH_RESULTS_FMT,
-			pItem->results.szHexCRC32,
-			pItem->results.szHexMD5,
-			pItem->results.szHexSHA1,
-			pItem->results.szHexSHA256,
-			pItem->results.szHexSHA512
-#ifdef _TIMED
-          , pItem->dwElapsed
+        // Copy the results
+        PTSTR pszScratchBeforeResults = pszScratchAppend;
+#define HASH_RESULT_APPEND_op(alg)                                                  \
+        if (phpctx->whctx.flags & WHEX_CHECK##alg)                                  \
+            pszScratchAppend = SSChainNCpy3(                                        \
+                pszScratchAppend,                                                   \
+                HASH_RESULT_op(alg), sizeof(HASH_RESULT_op(alg))/sizeof(TCHAR) - 1, /* the "- 1" excludes the terminating NUL */ \
+                pItem->results.szHex##alg, alg##_DIGEST_LENGTH * 2,                 \
+                CRLF, CCH_CRLF                                                      \
+            );
+        FOR_EACH_HASH(HASH_RESULT_APPEND_op)
+        cchMaxBufferRequired += pszScratchAppend - pszScratchBeforeResults;  // always the same length
+
+#ifndef _TIMED
+        // Append CRLF and a terminating NUL
+        pszScratchAppend = SSChainNCpy(
+            pszScratchAppend,
+            CRLF _T("\0"), CCH_CRLF + 1
+        );
+        cchMaxBufferRequired += CCH_CRLF + 1;
+        pszScratchAppend--;  // it now points to the terminating NUL
+#else
+        StringCchPrintfEx(pszScratchAppend, 30, &pszScratchAppend, NULL, 0, _T("Elapsed: %d ms") CRLF CRLF, pItem->dwElapsed);
+        cchMaxBufferRequired += 30;
 #endif
-			);
 
 		// Update the new buffer offset for use by the next update
 		phpctx->obScratch = (UINT)BYTEDIFF(pszScratchAppend, &phpctx->scratch);
 
-		// Determine if we should flush the buffer
+		// Determine if we can skip flushing the buffer
 		if ( phpctx->cSentMsgs > phpctx->cHandledMsgs &&
-		     phpctx->obScratch + (SCRATCH_BUFFER_SIZE * sizeof(TCHAR)) <= sizeof(HASHPROPSCRATCH) )
+		     phpctx->obScratch + (cchMaxBufferRequired * sizeof(TCHAR)) <= sizeof(HASHPROPSCRATCH) )
 		{
 			return;
 		}

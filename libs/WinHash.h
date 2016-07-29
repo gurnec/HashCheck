@@ -22,7 +22,8 @@ extern "C" {
 
 typedef CONST BYTE *PCBYTE;
 
-#define CRLF "\r\n"
+#define CRLF _T("\r\n")
+#define CCH_CRLF 2
 
 /**
  * Returns the offset of a member in a struct such that:
@@ -56,14 +57,20 @@ enum hash_algorithm {
 
 // The default hash algorithm to use when creating a checksum file
 #define DEFAULT_HASH_ALGORITHM SHA256
+// and when viewing checksums in the explorer file propery sheet
+#define DEFAULT_HASH_ALGORITHMS (WHEX_CHECKCRC32 | WHEX_CHECKSHA1 | WHEX_CHECKSHA256 | WHEX_CHECKSHA512)
 
 // Bitwise representation of the hash algorithms
+// (up to 8 hashes is OK before WHCTXEX.flags needs a wider type)
 #define WHEX_CHECKCRC32     (1UL << (CRC32  - 1))
 #define WHEX_CHECKMD5       (1UL << (MD5    - 1))
 #define WHEX_CHECKSHA1      (1UL << (SHA1   - 1))
 #define WHEX_CHECKSHA256    (1UL << (SHA256 - 1))
 #define WHEX_CHECKSHA512    (1UL << (SHA512 - 1))
 #define WHEX_CHECKLAST      WHEX_CHECKSHA512
+#if WHEX_CHECKLAST > 128UL
+#error type of WHCTXEX.flags must be widened (and also check typecasts in HashCheckOptions.c)
+#endif
 
 // Bitwise representation of the hash algorithms, by digest length (in bits)
 #define WHEX_ALL            ((1UL << NUM_HASHES) - 1)
@@ -135,33 +142,9 @@ extern LPCTSTR g_szHashExtsTab[NUM_HASHES];
 // All OPENFILENAME filters together as one big string
 #define HASH_FILE_FILTERS       FOR_EACH_HASH(HASH_FILTER_op)
 
-// Hash results printf format strings (colon aligned).
-// E.g. "   MD5: %s\r\n"
-#define HASH_RESULT_op(alg)     HASH_RNAME_##alg _T(": %s") _T(CRLF)
-
-// All printf formats strings together as one big string
-#ifndef _TIMED
-#define HASH_RESULTS_FMT        _T(CRLF)                        \
-                                FOR_EACH_HASH(HASH_RESULT_op)   \
-                                _T(CRLF)
-#else
-#define HASH_RESULTS_FMT        _T(CRLF)                        \
-                                FOR_EACH_HASH(HASH_RESULT_op)   \
-                                _T("Elapsed: %d ms") _T(CRLF)   \
-                                _T(CRLF)
-#endif
-
-// Add the specified algorithm's digest string length
-#define ADD_DIGEST_STRLEN_op(alg) alg##_DIGEST_STRING_LENGTH +
-
-// printf buffer size needed to printf all hash results
-#ifndef _TIMED
-#define HASH_RESULTS_BUFSIZE    FOR_EACH_HASH(ADD_DIGEST_STRLEN_op) \
-                                sizeof(HASH_RESULTS_FMT)
-#else
-#define HASH_RESULTS_BUFSIZE    FOR_EACH_HASH(ADD_DIGEST_STRLEN_op) \
-                                sizeof(HASH_RESULTS_FMT) + 10
-#endif
+// Hash results strings (colon aligned).
+// E.g. "    MD5: "
+#define HASH_RESULT_op(alg)     HASH_RNAME_##alg _T(": ")
 
 /**
  * Structures used by the system libraries

@@ -1,6 +1,7 @@
 /**
  * HashCheck Shell Extension
  * Copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2014, 2016 Christopher Gurnee.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
  * Please refer to license.txt for details about distribution and modification.
@@ -21,6 +22,7 @@ typedef struct {
 	DWORD dwFilterIndex;
 	DWORD dwMenuDisplay;
 	DWORD dwSaveEncoding;
+	DWORD dwChecksums;
 	LOGFONT lfFont;
 } HASHCHECKOPTIONS, *PHASHCHECKOPTIONS;
 
@@ -29,7 +31,8 @@ typedef struct {
 #define HCOF_MENUDISPLAY  0x00000002  // The dwMenuDisplay member is valid
 #define HCOF_SAVEENCODING 0x00000004  // The dwSaveEncoding member is valid
 #define HCOF_FONT         0x00000008  // The lfFont member is valid
-#define HCOF_ALL          0x0000000F
+#define HCOF_CHECKSUMS    0x00000010  // The dwChecksums member is valid
+#define HCOF_ALL          0x0000001F
 
 // Public functions
 VOID __fastcall OptionsDialog( HWND hWndOwner, PHASHCHECKOPTIONS popt );

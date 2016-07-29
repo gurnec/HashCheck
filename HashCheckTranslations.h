@@ -60,7 +60,9 @@
 #define IDS_OPT_ENCODING_UTF8           0x4506
 #define IDS_OPT_ENCODING_UTF16          0x4507
 #define IDS_OPT_ENCODING_ANSI           0x4508
-#define IDS_OPT_FONT                    0x4509
-#define IDS_OPT_FONT_CHANGE             0x450A
+#define IDS_OPT_CHK                     0x4509
+#define IDS_OPT_CHK_ERROR               0x450A
+#define IDS_OPT_FONT                    0x450B
+#define IDS_OPT_FONT_CHANGE             0x450C
 #define IDS_OPT_OK                      IDS_HC_OK
 #define IDS_OPT_CANCEL                  IDS_HC_CANCEL
