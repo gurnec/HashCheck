@@ -40,6 +40,12 @@ typedef CONST BYTE *PCBYTE;
                             op(SHA1)    \
                             op(SHA256)  \
                             op(SHA512)
+// In approximate order from longest to shortest compute time
+#define FOR_EACH_HASH_R(op) op(SHA512)  \
+                            op(SHA256)  \
+                            op(SHA1)    \
+                            op(CRC32)   \
+                            op(MD5)
 
 /**
  * Some constants related to the hash algorithms

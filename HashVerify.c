@@ -273,32 +273,21 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 
 		if (pszExt)
 		{
-			if (StrCmpI(pszExt, HASH_EXT_CRC32) == 0)
-			{
-				phvctx->whctx.flags = WHEX_CHECKCRC32;
-				cchChecksum = CRC32_DIGEST_LENGTH * 2;
+            do  // loops once; only here so there's something to break out of
+            {
+#define HASH_VERIFY_EXT_TYPE(alg)                           \
+                if (StrCmpI(pszExt, HASH_EXT_##alg) == 0)   \
+                {                                           \
+                    phvctx->whctx.flags = WHEX_CHECK##alg;  \
+                    cchChecksum = alg##_DIGEST_LENGTH * 2;  \
+                    break;                                  \
+                }
+                FOR_EACH_HASH(HASH_VERIFY_EXT_TYPE)
+            } while (FALSE);
+
+            // Special case for CRC-32
+            if (phvctx->whctx.flags == WHEX_CHECKCRC32)
 				bReverseFormat = TRUE;
-			}
-			else if (StrCmpI(pszExt, HASH_EXT_MD5) == 0)
-			{
-				phvctx->whctx.flags = WHEX_CHECKMD5;
-				cchChecksum = MD5_DIGEST_LENGTH * 2;
-			}
-			else if (StrCmpI(pszExt, HASH_EXT_SHA1) == 0)
-			{
-				phvctx->whctx.flags = WHEX_CHECKSHA1;
-				cchChecksum = SHA1_DIGEST_LENGTH * 2;
-			}
-			else if (StrCmpI(pszExt, HASH_EXT_SHA256) == 0)
-			{
-				phvctx->whctx.flags = WHEX_CHECKSHA256;
-				cchChecksum = SHA256_DIGEST_LENGTH * 2;
-			}
-			else if (StrCmpI(pszExt, HASH_EXT_SHA512) == 0)
-			{
-				phvctx->whctx.flags = WHEX_CHECKSHA512;
-				cchChecksum = SHA512_DIGEST_LENGTH * 2;
-			}
 		}
 	}
 
@@ -552,21 +541,11 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 		{
 			switch (phvctx->whctx.flags)
 			{
-				case WHEX_CHECKCRC32:
-					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHexCRC32);
+#define HASH_VERIFY_COPY_RESULTS_op(alg)                                             \
+                case WHEX_CHECK##alg:                                                \
+					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHex##alg);  \
 					break;
-				case WHEX_CHECKMD5:
-					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHexMD5);
-					break;
-				case WHEX_CHECKSHA1:
-					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHexSHA1);
-					break;
-				case WHEX_CHECKSHA256:
-					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHexSHA256);
-					break;
-				case WHEX_CHECKSHA512:
-					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHexSHA512);
-					break;
+                FOR_EACH_HASH(HASH_VERIFY_COPY_RESULTS_op)
 			}
 
 			if (StrCmpI(pItem->pszExpected, pItem->szActual) == 0)
@@ -980,11 +959,9 @@ VOID WINAPI HashVerifyUpdateSummary( PHASHVERIFYCONTEXT phvctx, PHASHVERIFYITEM 
 
 		switch (phvctx->whctx.flags)
 		{
-			case WHEX_CHECKCRC32:   pszSubtitle = HASH_NAME_CRC32;  break;
-			case WHEX_CHECKMD5:     pszSubtitle = HASH_NAME_MD5;    break;
-			case WHEX_CHECKSHA1:    pszSubtitle = HASH_NAME_SHA1;   break;
-			case WHEX_CHECKSHA256:  pszSubtitle = HASH_NAME_SHA256; break;
-			case WHEX_CHECKSHA512:  pszSubtitle = HASH_NAME_SHA512; break;
+#define HASH_VERIFY_TITLE_op(alg)  \
+			case WHEX_CHECK##alg:  pszSubtitle = HASH_NAME_##alg;  break;
+            FOR_EACH_HASH(HASH_VERIFY_TITLE_op)
 		}
 
 		if (pszSubtitle)

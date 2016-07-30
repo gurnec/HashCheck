@@ -311,11 +311,8 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 		{
 			PTSTR pszExt = pszFile + phcctx->ofn.nFileExtension - 1;
 
-			if (StrCmpI(pszExt, HASH_EXT_CRC32) == 0 ||
-				StrCmpI(pszExt, HASH_EXT_MD5) == 0 ||
-				StrCmpI(pszExt, HASH_EXT_SHA1) == 0 ||
-				StrCmpI(pszExt, HASH_EXT_SHA256) == 0 ||
-				StrCmpI(pszExt, HASH_EXT_SHA512) == 0)
+#define HASH_EXT_CMP_OR_op(alg) StrCmpI(pszExt, HASH_EXT_##alg) == 0 ||
+			if (FOR_EACH_HASH(HASH_EXT_CMP_OR_op) FALSE)  // the FALSE is to ignore the last trailing ||
 			{
 				if (StrCmpI(pszExt, g_szHashExtsTab[phcctx->ofn.nFilterIndex - 1]))
 					SSCpy(pszExt, g_szHashExtsTab[phcctx->ofn.nFilterIndex - 1]);
@@ -390,11 +387,9 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 	// Translate the filter index to a hash
 	switch (phcctx->ofn.nFilterIndex)
 	{
-		case CRC32:  pszHash = pItem->results.szHexCRC32;  break;
-		case MD5:    pszHash = pItem->results.szHexMD5;    break;
-		case SHA1:   pszHash = pItem->results.szHexSHA1;   break;
-		case SHA256: pszHash = pItem->results.szHexSHA256; break;
-		case SHA512: pszHash = pItem->results.szHexSHA512; break;
+#define HASH_INDEX_TO_RESULTS_op(alg) \
+        case alg:  pszHash = pItem->results.szHex##alg;  break;
+        FOR_EACH_HASH(HASH_INDEX_TO_RESULTS_op)
 		default: return(FALSE);
 	}
 

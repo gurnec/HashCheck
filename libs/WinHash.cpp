@@ -115,20 +115,10 @@ PTSTR WHAPI WHByteToHex( PBYTE pbSrc, PTSTR pszDest, UINT cchHex, UINT8 uCaseMod
 
 VOID WHAPI WHInitEx( PWHCTXEX pContext )
 {
-	if (pContext->flags & WHEX_CHECKCRC32)
-		WHInitCRC32(&pContext->ctxCRC32);
-
-	if (pContext->flags & WHEX_CHECKMD5)
-		WHInitMD5(&pContext->ctxMD5);
-
-	if (pContext->flags & WHEX_CHECKSHA1)
-		WHInitSHA1(&pContext->ctxSHA1);
-
-	if (pContext->flags & WHEX_CHECKSHA256)
-		WHInitSHA256(&pContext->ctxSHA256);
-
-	if (pContext->flags & WHEX_CHECKSHA512)
-		WHInitSHA512(&pContext->ctxSHA512);
+#define WIN_HASH_INIT_op(alg)               \
+    if (pContext->flags & WHEX_CHECK##alg)  \
+        WHInit##alg(&pContext->ctx##alg);
+    FOR_EACH_HASH(WIN_HASH_INIT_op)
 }
 
 VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn )
@@ -136,48 +126,27 @@ VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn )
 #if _MSC_VER >= 1600
     if (cbIn > 384u) {  // determined experimentally--smaller than this and multithreading doesn't help, but ymmv
 
-        auto task_WHUpdateSHA512 = concurrency::make_task([&] { WHUpdateSHA512(&pContext->ctxSHA512, pbIn, cbIn); } );
-        auto task_WHUpdateSHA256 = concurrency::make_task([&] { WHUpdateSHA256(&pContext->ctxSHA256, pbIn, cbIn); } );
-        auto task_WHUpdateSHA1   = concurrency::make_task([&] { WHUpdateSHA1  (&pContext->ctxSHA1,   pbIn, cbIn); } );
-        auto task_WHUpdateMD5    = concurrency::make_task([&] { WHUpdateMD5   (&pContext->ctxMD5,    pbIn, cbIn); } );
-        auto task_WHUpdateCRC32  = concurrency::make_task([&] { WHUpdateCRC32 (&pContext->ctxCRC32,  pbIn, cbIn); } );
+#define WIN_HASH_UPDATE_TASK_op(alg)  \
+        auto task_WHUpdate##alg = concurrency::make_task([&] { WHUpdate##alg(&pContext->ctx##alg, pbIn, cbIn); } );
+        FOR_EACH_HASH_R(WIN_HASH_UPDATE_TASK_op)
 
         concurrency::structured_task_group hashing_task_group;
 
-        if (pContext->flags & WHEX_CHECKSHA512)
-            hashing_task_group.run(task_WHUpdateSHA512);
-
-        if (pContext->flags & WHEX_CHECKSHA256)
-            hashing_task_group.run(task_WHUpdateSHA256);
-
-        if (pContext->flags & WHEX_CHECKSHA1)
-            hashing_task_group.run(task_WHUpdateSHA1);
-
-        if (pContext->flags & WHEX_CHECKMD5)
-            hashing_task_group.run(task_WHUpdateMD5);
-
-        if (pContext->flags & WHEX_CHECKCRC32)
-            hashing_task_group.run(task_WHUpdateCRC32);
+#define WIN_HASH_UPDATE_RUN_TASK_op(alg)             \
+        if (pContext->flags & WHEX_CHECK##alg)  \
+            hashing_task_group.run(task_WHUpdate##alg);
+        FOR_EACH_HASH_R(WIN_HASH_UPDATE_RUN_TASK_op)
 
         hashing_task_group.wait();
     }
 
     else {
 #endif
-        if (pContext->flags & WHEX_CHECKCRC32)
-            WHUpdateCRC32(&pContext->ctxCRC32, pbIn, cbIn);
+#define WIN_HASH_UPDATE_RUN_op(alg)             \
+        if (pContext->flags & WHEX_CHECK##alg)  \
+            WHUpdate##alg(&pContext->ctx##alg, pbIn, cbIn);
+        FOR_EACH_HASH(WIN_HASH_UPDATE_RUN_op)
 
-        if (pContext->flags & WHEX_CHECKMD5)
-            WHUpdateMD5(&pContext->ctxMD5, pbIn, cbIn);
-
-        if (pContext->flags & WHEX_CHECKSHA1)
-            WHUpdateSHA1(&pContext->ctxSHA1, pbIn, cbIn);
-
-        if (pContext->flags & WHEX_CHECKSHA256)
-            WHUpdateSHA256(&pContext->ctxSHA256, pbIn, cbIn);
-
-        if (pContext->flags & WHEX_CHECKSHA512)
-            WHUpdateSHA512(&pContext->ctxSHA512, pbIn, cbIn);
 #if _MSC_VER >= 1600
     }
 #endif
@@ -188,33 +157,11 @@ VOID WHAPI WHFinishEx( PWHCTXEX pContext, PWHRESULTEX pResults )
 	if (pResults == NULL)
 		pResults = &pContext->results;
 
-	if (pContext->flags & WHEX_CHECKCRC32)
-	{
-		WHFinishCRC32(&pContext->ctxCRC32);
-		WHByteToHex(pContext->ctxCRC32.result, pResults->szHexCRC32, CRC32_DIGEST_LENGTH * 2, pContext->uCaseMode);
-	}
-
-	if (pContext->flags & WHEX_CHECKMD5)
-	{
-		WHFinishMD5(&pContext->ctxMD5);
-		WHByteToHex(pContext->ctxMD5.result, pResults->szHexMD5, MD5_DIGEST_LENGTH * 2, pContext->uCaseMode);
-	}
-
-	if (pContext->flags & WHEX_CHECKSHA1)
-	{
-		WHFinishSHA1(&pContext->ctxSHA1);
-		WHByteToHex(pContext->ctxSHA1.result, pResults->szHexSHA1, SHA1_DIGEST_LENGTH * 2, pContext->uCaseMode);
-	}
-
-	if (pContext->flags & WHEX_CHECKSHA256)
-	{
-		WHFinishSHA256(&pContext->ctxSHA256);
-		WHByteToHex(pContext->ctxSHA256.result, pResults->szHexSHA256, SHA256_DIGEST_LENGTH * 2, pContext->uCaseMode);
-	}
-
-	if (pContext->flags & WHEX_CHECKSHA512)
-	{
-		WHFinishSHA512(&pContext->ctxSHA512);
-		WHByteToHex(pContext->ctxSHA512.result, pResults->szHexSHA512, SHA512_DIGEST_LENGTH * 2, pContext->uCaseMode);
-	}
+#define WIN_HASH_FINISH_op(alg)              \
+    if (pContext->flags & WHEX_CHECK##alg)   \
+    {                                        \
+        WHFinish##alg(&pContext->ctx##alg);  \
+        WHByteToHex(pContext->ctx##alg.result, pResults->szHex##alg, alg##_DIGEST_LENGTH * 2, pContext->uCaseMode);  \
+    }
+    FOR_EACH_HASH(WIN_HASH_FINISH_op)
 }
