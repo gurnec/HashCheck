@@ -14,6 +14,7 @@
 #include "libs/WinHash.h"
 #include "RegHelpers.h"
 #include "libs/IsFontAvailable.h"
+#include <Strsafe.h>
 
 #define OPTIONS_KEYNAME TEXT("Software\\HashCheck")
 
@@ -284,7 +285,7 @@ VOID WINAPI OptionsDlgInit( HWND hWnd, POPTIONSCONTEXT poptctx )
 			SetControlText(hWnd, arStrMap[i][0], arStrMap[i][1]);
 
 		LoadString(g_hModThisDll, IDS_OPT_TITLE, szBuffer, countof(szBuffer));
-		wnsprintf(szTitle, countof(szTitle), szFormat, szBuffer);
+		StringCchPrintf(szTitle, countof(szTitle), szFormat, szBuffer);
 		SendMessage(hWnd, WM_SETTEXT, 0, (LPARAM)szTitle);
 	}
 

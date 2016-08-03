@@ -209,7 +209,7 @@ DWORD WINAPI HashVerifyThread( PTSTR pszPath )
 		// doing separate messages for what are supposed to be rare edge cases.
 		TCHAR szFormat[MAX_STRINGRES], szMessage[0x100];
 		LoadString(g_hModThisDll, IDS_HV_LOADERROR_FMT, szFormat, countof(szFormat));
-		wnsprintf(szMessage, countof(szMessage), szFormat, pszPath);
+		StringCchPrintf(szMessage, countof(szMessage), szFormat, pszPath);
 		MessageBox(NULL, szMessage, NULL, MB_OK | MB_ICONERROR);
 	}
 
@@ -971,7 +971,7 @@ VOID WINAPI HashVerifyUpdateSummary( PHASHVERIFYCONTEXT phvctx, PHASHVERIFYITEM 
 		{
 			LoadString(g_hModThisDll, IDS_HV_SUMMARY, szFormat, countof(szFormat));
 #ifndef _TIMED
-			wnsprintf(szBuffer, countof(szBuffer), TEXT("%s (%s)"), szFormat, pszSubtitle);
+			StringCchPrintf(szBuffer, countof(szBuffer), TEXT("%s (%s)"), szFormat, pszSubtitle);
 			phvctx->dwFlags |= HVF_HAS_SET_TYPE;
 #else
             StringCchPrintf(szBuffer, countof(szBuffer), TEXT("%s (%s) - %d ms"), szFormat, pszSubtitle,

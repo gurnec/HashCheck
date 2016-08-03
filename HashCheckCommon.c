@@ -11,6 +11,7 @@
 #include "globals.h"
 #include "HashCheckCommon.h"
 #include "GetHighMSB.h"
+#include <Strsafe.h>
 
 HANDLE __fastcall CreateThreadCRT( PVOID pThreadProc, PVOID pvParam )
 {
@@ -109,9 +110,9 @@ VOID WINAPI FormatFractionalResults( PTSTR pszFormat, PTSTR pszBuffer, UINT uPar
 	}
 
 	if (*pszFormat != TEXT('!'))
-		wnsprintf(pszBuffer, MAX_STRINGMSG, pszFormat, uPart, uTotal);
+		StringCchPrintf(pszBuffer, MAX_STRINGMSG, pszFormat, uPart, uTotal);
 	else
-		wnsprintf(pszBuffer, MAX_STRINGMSG, pszFormat + 1, uTotal, uPart);
+		StringCchPrintf(pszBuffer, MAX_STRINGMSG, pszFormat + 1, uTotal, uPart);
 }
 
 VOID WINAPI SetProgressBarPause( PCOMMONCONTEXT pcmnctx, WPARAM iState )

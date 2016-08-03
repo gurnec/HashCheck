@@ -13,6 +13,7 @@
 #include "HashCalc.h"
 #include "UnicodeHelpers.h"
 #include "libs/WinHash.h"
+#include <Strsafe.h>
 
 static const TCHAR SAVE_DEFAULT_NAME[] = TEXT("checksums");
 
@@ -359,7 +360,7 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 {
 	PCTSTR pszHash;
 	PVOID pvLine;
-	INT cchLine, cbLine;  // Length of line, in TCHARs or BYTEs, EXCLUDING the terminator
+	size_t cchLine, cbLine;  // Length of line, in TCHARs or BYTEs, EXCLUDING the terminator
 
 	if (!pItem->bValid)
 		return(FALSE);
@@ -371,7 +372,7 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 		// The reason we tracked cchMax was because of this idiotic format
 		if (phcctx->ofn.nFilterIndex == 1)
 		{
-			wnsprintf(
+			StringCchPrintf(
 				phcctx->szFormat,
 				countof(phcctx->szFormat),
 				TEXT("%%-%ds %%s\r\n"),
@@ -394,11 +395,12 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 	}
 
 	// Format the line
-	#define HashCalcFormat(a, b) wnsprintf(phcctx->scratch.sz, MAX_PATH_BUFFER, phcctx->szFormat, a, b)
-	cchLine = (phcctx->ofn.nFilterIndex == 1) ?
+	#define HashCalcFormat(a, b) StringCchPrintfEx(phcctx->scratch.sz, MAX_PATH_BUFFER, NULL, &cchLine, 0, phcctx->szFormat, a, b)
+	(phcctx->ofn.nFilterIndex == 1) ?
 		HashCalcFormat(pItem->szPath + phcctx->cchAdjusted, pszHash) : // SFV
 		HashCalcFormat(pszHash, pItem->szPath + phcctx->cchAdjusted);  // everything else
 	#undef HashCalcFormat
+	cchLine = MAX_PATH_BUFFER - cchLine;
 
 	if (cchLine > 0)
 	{

@@ -14,6 +14,7 @@
 #include "RegHelpers.h"
 #include "libs/WinHash.h"
 #include "libs/Wow64.h"
+#include <Strsafe.h>
 
 // Bookkeeping globals (declared as extern in globals.h)
 HMODULE g_hModThisDll;
@@ -142,7 +143,7 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 		LoadString(g_hModThisDll, IDS_FILETYPE_DESC, szBuffer, countof(szBuffer));
 		RegSetSZ(hKey, NULL, szBuffer);
 
-		wnsprintf(szBuffer, countof(szBuffer), TEXT("@\"%s\",-%u"), lpszModuleName, IDS_FILETYPE_DESC);
+		StringCchPrintf(szBuffer, countof(szBuffer), TEXT("@\"%s\",-%u"), lpszModuleName, IDS_FILETYPE_DESC);
 		RegSetSZ(hKey, TEXT("FriendlyTypeName"), szBuffer);
 
 		RegSetSZ(hKey, TEXT("AlwaysShowExt"), TEXT(""));
@@ -153,7 +154,7 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 
 	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("%s\\DefaultIcon"), PROGID_STR_HashCheck))
 	{
-		wnsprintf(szBuffer, countof(szBuffer), TEXT("%s,-%u"), lpszModuleName, IDI_FILETYPE);
+		StringCchPrintf(szBuffer, countof(szBuffer), TEXT("%s,-%u"), lpszModuleName, IDI_FILETYPE);
 		RegSetSZ(hKey, NULL, szBuffer);
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
@@ -168,7 +169,7 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("%s\\shell\\open\\command"), PROGID_STR_HashCheck))
 	{
 		// This is a legacy fallback used only when DropTarget is unsupported
-		wnsprintf(szBuffer, countof(szBuffer), TEXT("rundll32.exe \"%s\",HashVerify_RunDLL %%1"), lpszModuleName, IDS_FILETYPE_DESC);
+		StringCchPrintf(szBuffer, countof(szBuffer), TEXT("rundll32.exe \"%s\",HashVerify_RunDLL %%1"), lpszModuleName, IDS_FILETYPE_DESC);
 		RegSetSZ(hKey, NULL, szBuffer);
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
@@ -321,7 +322,7 @@ HRESULT Install( BOOL bCopyFile )
 			if (hKey = RegOpen(HKEY_LOCAL_MACHINE, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%s"), CLSNAME_STR_HashCheck))
 			{
 				TCHAR szUninstall[MAX_PATH << 1];
-				wnsprintf(szUninstall, countof(szUninstall), TEXT("regsvr32.exe /u /i /n \"%s\""), lpszTargetPath);
+				StringCchPrintf(szUninstall, countof(szUninstall), TEXT("regsvr32.exe /u /i /n \"%s\""), lpszTargetPath);
 
 				static const TCHAR szURLFull[] = TEXT("http://code.kliu.org/hashcheck/");
 				TCHAR szURLBase[countof(szURLFull)];

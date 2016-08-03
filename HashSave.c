@@ -12,6 +12,7 @@
 #include "HashCheckCommon.h"
 #include "HashCalc.h"
 #include "SetAppID.h"
+#include <Strsafe.h>
 
 // Control structures, from HashCalc.h
 #define  HASHSAVESCRATCH  HASHCALCSCRATCH
@@ -297,7 +298,7 @@ VOID WINAPI HashSaveDlgInit( PHASHSAVECONTEXT phsctx )
 		PTSTR pszFileName = phsctx->ofn.lpstrFile + phsctx->ofn.nFileOffset;
 		TCHAR szFormat[MAX_STRINGRES];
 		LoadString(g_hModThisDll, IDS_HS_TITLE_FMT, szFormat, countof(szFormat));
-		wnsprintf(phsctx->scratch.sz, countof(phsctx->scratch.sz), szFormat, pszFileName);
+		StringCchPrintf(phsctx->scratch.sz, countof(phsctx->scratch.sz), szFormat, pszFileName);
 
 		SendMessage(
 			hWnd,

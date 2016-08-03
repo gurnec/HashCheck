@@ -12,9 +12,7 @@
 #include "HashCheckCommon.h"
 #include "HashCalc.h"
 #include "libs/WinHash.h"
-#ifdef _TIMED
 #include <Strsafe.h>
-#endif
 
 // Control structures, from HashCalc.h
 #define  HASHPROPSCRATCH  HASHCALCSCRATCH
@@ -667,7 +665,7 @@ VOID WINAPI HashPropFinalStatus( PHASHPROPCONTEXT phpctx )
 		countof(szBuffer1)
 	);
 
-	wnsprintf(szBuffer3, countof(szBuffer3), szBuffer1, szBuffer2);
+	StringCchPrintf(szBuffer3, countof(szBuffer3), szBuffer1, szBuffer2);
 
 #ifndef _TIMED
 	SetDlgItemText(phpctx->hWnd, IDC_STATUSBOX, szBuffer3);
