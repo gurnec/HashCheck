@@ -106,6 +106,11 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
     // (this is loaded earlier in HashPropDlgInit())
     phpctx->whctx.flags = (UINT8)phpctx->opt.dwChecksums;
 
+#ifdef _TIMED
+    DWORD dwStarted;
+    dwStarted = GetTickCount();
+#endif
+
 	while (pItem = SLGetDataAndStep(phpctx->hList))
 	{
 		// Get the hash
@@ -128,6 +133,9 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
 		++phpctx->cSentMsgs;
 		PostMessage(phpctx->hWnd, HM_WORKERTHREAD_UPDATE, (WPARAM)phpctx, (LPARAM)pItem);
 	}
+#ifdef _TIMED
+    phpctx->dwElapsed = GetTickCount() - dwStarted;
+#endif
 }
 
 
@@ -661,7 +669,12 @@ VOID WINAPI HashPropFinalStatus( PHASHPROPCONTEXT phpctx )
 
 	wnsprintf(szBuffer3, countof(szBuffer3), szBuffer1, szBuffer2);
 
+#ifndef _TIMED
 	SetDlgItemText(phpctx->hWnd, IDC_STATUSBOX, szBuffer3);
+#else
+    StringCchPrintf(szBuffer2, countof(szBuffer2), _T("%s in %d ms"), szBuffer3, phpctx->dwElapsed);
+    SetDlgItemText(phpctx->hWnd, IDC_STATUSBOX, szBuffer2);
+#endif
 
 	// Enable search controls
 	EnableControl(phpctx->hWnd, IDC_SEARCHBOX, TRUE);

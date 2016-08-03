@@ -77,6 +77,9 @@ typedef struct {
 	UINT               cchAdjusted;  // cchPrefix, adjusted for the path of the output file
 	UINT               cTotal;       // total number of files
 	UINT               cSuccess;     // total number of successfully hashed
+#ifdef _TIMED
+	DWORD              dwElapsed;    // time in ms taken to compute hashes of all files
+#endif
 	HASHCHECKOPTIONS   opt;          // HashCheck settings
 	OPENFILENAME       ofn;          // struct used for the save dialog; this needs to persist
 	TCHAR              szFormat[20]; // output format for wnsprintf
@@ -91,7 +94,7 @@ typedef struct {
 	UINT cchPath;                    // length of path in characters, not including NULL
 	WHRESULTEX results;              // hash results
 #ifdef _TIMED
-    DWORD dwElapsed;                 // time in ms taken to compute all hashes
+	DWORD dwElapsed;                 // time in ms taken to compute all hashes of one file
 #endif
 	TCHAR szPath[];                  // unaltered path
 } HASHCALCITEM, *PHASHCALCITEM;

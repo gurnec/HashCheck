@@ -13,6 +13,7 @@
 #include "SetAppID.h"
 #include "UnicodeHelpers.h"
 #include <uxtheme.h>
+#include <Strsafe.h>
 
 #define HV_COL_FILENAME 0
 #define HV_COL_SIZE     1
@@ -95,6 +96,7 @@ typedef struct {
 	UINT               cMatch;       // number of matches
 	UINT               cMismatch;    // number of mismatches
 	UINT               cUnreadable;  // number of unreadable files
+	DWORD              dwStarted;    // GetTickCount() start time
 	HASHVERIFYPREV     prev;         // previous update data, used for update coalescing
 	UINT               uMaxBatch;    // maximum number of updates to coalesce
 	WHCTXEX            whctx;        // context for the WinHash library
@@ -492,7 +494,7 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 
 	// We need to keep track of the thread's execution time so that we can do a
 	// sound notification of completion when appropriate
-	DWORD dwTickStart = GetTickCount();
+	phvctx->dwStarted = GetTickCount();
 
 	// Initialize the path prefix length; used for building the full path
 	PTSTR pszPathTail = StrRChr(phvctx->pszPath, NULL, TEXT('\\'));
@@ -565,7 +567,7 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 
 	// Play a sound to signal the normal, successful termination of operations,
 	// but exempt operations that were nearly instantaneous
-	if (phvctx->cTotal && GetTickCount() - dwTickStart >= 2000)
+	if (phvctx->cTotal && GetTickCount() - phvctx->dwStarted >= 2000)
 		MessageBeep(MB_ICONASTERISK);
 }
 
@@ -872,6 +874,7 @@ VOID WINAPI HashVerifyDlgInit( PHASHVERIFYCONTEXT phvctx )
 	// Initialize miscellaneous stuff
 	{
 		phvctx->uMaxBatch = (phvctx->cTotal < (0x20 << 8)) ? 0x20 : phvctx->cTotal >> 8;
+		phvctx->dwStarted = 0;
 	}
 }
 
@@ -967,9 +970,14 @@ VOID WINAPI HashVerifyUpdateSummary( PHASHVERIFYCONTEXT phvctx, PHASHVERIFYITEM 
 		if (pszSubtitle)
 		{
 			LoadString(g_hModThisDll, IDS_HV_SUMMARY, szFormat, countof(szFormat));
+#ifndef _TIMED
 			wnsprintf(szBuffer, countof(szBuffer), TEXT("%s (%s)"), szFormat, pszSubtitle);
-			SetDlgItemText(hWnd, IDC_SUMMARY, szBuffer);
 			phvctx->dwFlags |= HVF_HAS_SET_TYPE;
+#else
+            StringCchPrintf(szBuffer, countof(szBuffer), TEXT("%s (%s) - %d ms"), szFormat, pszSubtitle,
+                            phvctx->dwStarted ? GetTickCount() - phvctx->dwStarted : 0);
+#endif
+			SetDlgItemText(hWnd, IDC_SUMMARY, szBuffer);
 		}
 	}
 }
