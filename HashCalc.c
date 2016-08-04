@@ -326,11 +326,11 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 		// Open the file for output
 		phcctx->hFileOut = CreateFile(
 			pszFile,
-			GENERIC_WRITE,
+			FILE_APPEND_DATA,
 			FILE_SHARE_READ,
 			NULL,
 			CREATE_ALWAYS,
-			FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN,
+			FILE_ATTRIBUTE_NORMAL,
 			NULL
 		);
 
@@ -400,8 +400,14 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 		HashCalcFormat(pItem->szPath + phcctx->cchAdjusted, pszHash) : // SFV
 		HashCalcFormat(pszHash, pItem->szPath + phcctx->cchAdjusted);  // everything else
 	#undef HashCalcFormat
-	cchLine = MAX_PATH_BUFFER - cchLine;
+	// cchLine is temporarily the count of characters left in the buffer instead of the line length
 
+#ifdef _TIMED
+    StringCchPrintfEx(phcctx->scratch.sz + (MAX_PATH_BUFFER-cchLine), cchLine, NULL, &cchLine, 0,
+                      _T("; Elapsed: %d ms\r\n"), pItem->dwElapsed);
+#endif
+
+	cchLine = MAX_PATH_BUFFER - cchLine;  // now it's back to being the line length
 	if (cchLine > 0)
 	{
 		// Convert to the correct encoding

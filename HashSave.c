@@ -145,6 +145,11 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 	// Indicate which hash type we are after, see WHEX... values in WinHash.h
 	phsctx->whctx.flags = 1 << (phsctx->ofn.nFilterIndex - 1);
 
+#ifdef _TIMED
+    DWORD dwStarted;
+    dwStarted = GetTickCount();
+#endif
+
 	while (pItem = SLGetDataAndStep(phsctx->hList))
 	{
 		// Get the hash
@@ -156,7 +161,7 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 			&pItem->results,
 			NULL
 #ifdef _TIMED
-            , NULL
+          , &pItem->dwElapsed
 #endif
         );
 
@@ -170,6 +175,26 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 		++phsctx->cSentMsgs;
 		PostMessage(phsctx->hWnd, HM_WORKERTHREAD_UPDATE, (WPARAM)phsctx, (LPARAM)pItem);
 	}
+#ifdef _TIMED
+    if (phsctx->cTotal > 1)
+    {
+        union {
+            CHAR  szA[MAX_STRINGMSG];
+            WCHAR szW[MAX_STRINGMSG];
+        } buffer;
+        size_t cbBufferLeft;
+        if (phsctx->opt.dwSaveEncoding == 1)  // UTF-16
+        {
+            StringCbPrintfExW(buffer.szW, sizeof(buffer), NULL, &cbBufferLeft, 0, L"; Total elapsed: %d ms\r\n", GetTickCount() - dwStarted);
+        }
+        else                                  // UTF-8 or ANSI
+        {
+            StringCbPrintfExA(buffer.szA, sizeof(buffer), NULL, &cbBufferLeft, 0,  "; Total elapsed: %d ms\r\n", GetTickCount() - dwStarted);
+        }
+        DWORD dwUnused;
+        WriteFile(phsctx->hFileOut, buffer.szA, sizeof(buffer) - cbBufferLeft, &dwUnused, NULL);
+    }
+#endif
 }
 
 
