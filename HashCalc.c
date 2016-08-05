@@ -1,7 +1,7 @@
 /**
  * HashCheck Shell Extension
  * Original work copyright (C) Kai Liu.  All rights reserved.
- * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2014, 2016 Christopher Gurnee.  All rights reserved.
  * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
@@ -140,7 +140,9 @@ VOID WINAPI HashCalcPrepare( PHASHCALCCONTEXT phcctx )
 			}
 		}
 
-		if (phcctx->status == CANCEL_REQUESTED)
+        if (phcctx->status == PAUSED)
+            WaitForSingleObject(phcctx->hUnpauseEvent, INFINITE);
+        if (phcctx->status == CANCEL_REQUESTED)
 			return;
 
 		pszPrev = pszCurrent;
@@ -166,6 +168,8 @@ VOID WINAPI HashCalcWalkDirectory( PHASHCALCCONTEXT phcctx, PTSTR pszPath, UINT 
 		UINT cchLeaf = (UINT)SSLen(finddata.cFileName) + 1;
 		UINT cchNew = cchPath + cchLeaf;
 
+        if (phcctx->status == PAUSED)
+            WaitForSingleObject(phcctx->hUnpauseEvent, INFINITE);
 		if (phcctx->status == CANCEL_REQUESTED)
 			break;
 
@@ -356,16 +360,9 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 	}
 }
 
-BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
+VOID WINAPI HashCalcSetSaveFormat( PHASHCALCCONTEXT phcctx )
 {
-	PCTSTR pszHash;
-	PVOID pvLine;
-	size_t cchLine, cbLine;  // Length of line, in TCHARs or BYTEs, EXCLUDING the terminator
-
-	if (!pItem->bValid)
-		return(FALSE);
-
-	// Set szFormat is necessary
+	// Set szFormat if necessary
 	if (phcctx->szFormat[0] == 0)
 	{
 		// Did I ever mention that I hate SFV?
@@ -384,6 +381,23 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 			SSStaticCpy(phcctx->szFormat, TEXT("%s *%s\r\n"));
 		}
 	}
+}
+
+BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
+{
+	PCTSTR pszHash;
+    WCHAR szWbuffer[MAX_PATH_BUFFER];
+    CHAR  szAbuffer[MAX_PATH_BUFFER];
+#ifdef UNICODE
+#   define szTbuffer szWbuffer
+#else
+#   define szTbuffer szAbuffer
+#endif
+	PVOID pvLine;            // Will be pointed to the buffer to write out
+	size_t cchLine, cbLine;  // Length of line, in TCHARs or BYTEs, EXCLUDING the terminator
+
+	if (!pItem->bValid)
+		return(FALSE);
 
 	// Translate the filter index to a hash
 	switch (phcctx->ofn.nFilterIndex)
@@ -395,7 +409,7 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 	}
 
 	// Format the line
-	#define HashCalcFormat(a, b) StringCchPrintfEx(phcctx->scratch.sz, MAX_PATH_BUFFER, NULL, &cchLine, 0, phcctx->szFormat, a, b)
+	#define HashCalcFormat(a, b) StringCchPrintfEx(szTbuffer, MAX_PATH_BUFFER, NULL, &cchLine, 0, phcctx->szFormat, a, b)
 	(phcctx->ofn.nFilterIndex == 1) ?
 		HashCalcFormat(pItem->szPath + phcctx->cchAdjusted, pszHash) : // SFV
 		HashCalcFormat(pszHash, pItem->szPath + phcctx->cchAdjusted);  // everything else
@@ -403,7 +417,7 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 	// cchLine is temporarily the count of characters left in the buffer instead of the line length
 
 #ifdef _TIMED
-    StringCchPrintfEx(phcctx->scratch.sz + (MAX_PATH_BUFFER-cchLine), cchLine, NULL, &cchLine, 0,
+    StringCchPrintfEx(szTbuffer + (MAX_PATH_BUFFER-cchLine), cchLine, NULL, &cchLine, 0,
                       _T("; Elapsed: %d ms\r\n"), pItem->dwElapsed);
 #endif
 
@@ -417,13 +431,13 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 			{
 				// UTF-8
 				#ifdef UNICODE
-				cbLine = WStrToUTF8(phcctx->scratch.szW, phcctx->scratch.szA, countof(phcctx->scratch.szA)) - 1;
+				cbLine = WStrToUTF8(szWbuffer, szAbuffer, MAX_PATH_BUFFER) - 1;
 				#else
-				         AStrToWStr(phcctx->scratch.szA, phcctx->scratch.szW, countof(phcctx->scratch.szW));
-				cbLine = WStrToUTF8(phcctx->scratch.szW, phcctx->scratch.szA, countof(phcctx->scratch.szA)) - 1;
+				         AStrToWStr(szAbuffer, szWbuffer, MAX_PATH_BUFFER));
+				cbLine = WStrToUTF8(szWbuffer, szAbuffer, MAX_PATH_BUFFER)) - 1;
 				#endif
 
-				pvLine = phcctx->scratch.szA;
+				pvLine = szAbuffer;
 				break;
 			}
 
@@ -431,11 +445,11 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 			{
 				// UTF-16
 				#ifndef UNICODE
-				cchLine = AStrToWStr(phcctx->scratch.szA, phcctx->scratch.szW, countof(phcctx->scratch.szW)) - 1;
+				cchLine = AStrToWStr(szAbuffer, szWbuffer, MAX_PATH_BUFFER) - 1;
 				#endif
 
 				cbLine = cchLine * sizeof(WCHAR);
-				pvLine = phcctx->scratch.szW;
+				pvLine = szWbuffer;
 				break;
 			}
 
@@ -443,12 +457,12 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 			{
 				// ANSI
 				#ifdef UNICODE
-				cbLine = WStrToAStr(phcctx->scratch.szW, phcctx->scratch.szA, countof(phcctx->scratch.szA)) - 1;
+				cbLine = WStrToAStr(szWbuffer, szAbuffer, MAX_PATH_BUFFER) - 1;
 				#else
 				cbLine = cchLine;
 				#endif
 
-				pvLine = phcctx->scratch.szA;
+				pvLine = szAbuffer;
 				break;
 			}
 
@@ -458,7 +472,7 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 		if (cbLine > 0)
 		{
 			INT cbWritten;
-			WriteFile(phcctx->hFileOut, pvLine, cbLine, &cbWritten, NULL);
+			WriteFile(phcctx->hFileOut, pvLine, (DWORD)cbLine, &cbWritten, NULL);
 			if (cbLine != cbWritten) return(FALSE);
 		}
 		else return(FALSE);

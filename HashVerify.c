@@ -83,6 +83,7 @@ typedef struct {
 	HWND               hWndPBTotal;  // cache of the IDC_PROG_TOTAL progress bar handle
 	HWND               hWndPBFile;   // cache of the IDC_PROG_FILE progress bar handle
 	HANDLE             hThread;      // handle of the worker thread
+	HANDLE             hUnpauseEvent;// handle of the event which signals when unpaused
 	WORKERTHREADEXTRA  ex;           // extra parameter with varying uses
 	// Members specific to HashVerify
 	HWND               hWndList;     // handle of the list
@@ -529,12 +530,16 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 			&bSuccess,
 			&phvctx->whctx,
 			NULL,
-			&pItem->filesize
+			phvctx->ex.pvBuffer,
+			&pItem->filesize,
+            NULL, NULL
 #ifdef _TIMED
           , NULL
 #endif
         );
 
+        if (phvctx->status == PAUSED)
+            WaitForSingleObject(phvctx->hUnpauseEvent, INFINITE);
 		if (phvctx->status == CANCEL_REQUESTED)
 			return;
 

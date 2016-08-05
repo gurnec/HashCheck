@@ -64,6 +64,7 @@ typedef struct {
 	HWND               hWndPBTotal;  // cache of the IDC_PROG_TOTAL progress bar handle
 	HWND               hWndPBFile;   // cache of the IDC_PROG_FILE progress bar handle
 	HANDLE             hThread;      // handle of the worker thread
+	HANDLE             hUnpauseEvent;// handle of the event which signals when unpaused
 	WORKERTHREADEXTRA  ex;           // extra parameter with varying uses
 	// Members specific to HashCalc
 	HSIMPLELIST        hListRaw;     // data from IShellExtInit
@@ -96,12 +97,15 @@ typedef struct {
 #ifdef _TIMED
 	DWORD dwElapsed;                 // time in ms taken to compute all hashes of one file
 #endif
+#pragma warning(disable: 4200)      // nonstandard zero-sized array when compiling as C++
 	TCHAR szPath[];                  // unaltered path
+#pragma warning(default: 4200)
 } HASHCALCITEM, *PHASHCALCITEM;
 
 // Public functions
 VOID WINAPI HashCalcPrepare( PHASHCALCCONTEXT phcctx );
 VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx );
+VOID WINAPI HashCalcSetSaveFormat( PHASHCALCCONTEXT phcctx );
 BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem );
 VOID WINAPI HashCalcTogglePrep( PHASHCALCCONTEXT phcctx, BOOL bState );
 

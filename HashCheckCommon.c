@@ -13,6 +13,8 @@
 #include "GetHighMSB.h"
 #include <Strsafe.h>
 
+#define PROGRESS_BAR_STEPS 300
+
 HANDLE __fastcall CreateThreadCRT( PVOID pThreadProc, PVOID pvParam )
 {
 	if (!pThreadProc)
@@ -26,6 +28,7 @@ HANDLE __fastcall CreateThreadCRT( PVOID pThreadProc, PVOID pvParam )
 		pcmnctx->cHandledMsgs = 0;
 		pcmnctx->hWndPBTotal = GetDlgItem(pcmnctx->hWnd, IDC_PROG_TOTAL);
 		pcmnctx->hWndPBFile = GetDlgItem(pcmnctx->hWnd, IDC_PROG_FILE);
+		SendMessage(pcmnctx->hWndPBFile, PBM_SETRANGE, 0, MAKELPARAM(0, PROGRESS_BAR_STEPS));
 
 		pThreadProc = WorkerThreadStartup;
 	}
@@ -143,27 +146,17 @@ VOID WINAPI WorkerThreadTogglePause( PCOMMONCONTEXT pcmnctx )
 {
 	if (pcmnctx->status == ACTIVE)
 	{
-		if (SuspendThread(pcmnctx->hThread) != THREAD_SUSPEND_ERROR)
-		{
-			pcmnctx->status = PAUSED;
+        ResetEvent(pcmnctx->hUnpauseEvent);
+		pcmnctx->status = PAUSED;
 
-			if (!(pcmnctx->dwFlags & HCF_EXIT_PENDING))
-			{
-				SetControlText(pcmnctx->hWnd, IDC_PAUSE, IDS_HC_RESUME);
-				SetProgressBarPause(pcmnctx, PBST_PAUSED);
-			}
+		if (!(pcmnctx->dwFlags & HCF_EXIT_PENDING))
+		{
+			SetControlText(pcmnctx->hWnd, IDC_PAUSE, IDS_HC_RESUME);
+			SetProgressBarPause(pcmnctx, PBST_PAUSED);
 		}
 	}
 	else if (pcmnctx->status == PAUSED)
 	{
-		DWORD dwResult;
-
-		do
-		{
-			dwResult = ResumeThread(pcmnctx->hThread);
-
-		} while (dwResult != THREAD_SUSPEND_ERROR && dwResult > 1);
-
 		pcmnctx->status = ACTIVE;
 
 		if (!(pcmnctx->dwFlags & HCF_EXIT_PENDING))
@@ -171,6 +164,8 @@ VOID WINAPI WorkerThreadTogglePause( PCOMMONCONTEXT pcmnctx )
 			SetControlText(pcmnctx->hWnd, IDC_PAUSE, IDS_HC_PAUSE);
 			SetProgressBarPause(pcmnctx, PBST_NORMAL);
 		}
+
+        SetEvent(pcmnctx->hUnpauseEvent);
 	}
 }
 
@@ -180,11 +175,17 @@ VOID WINAPI WorkerThreadStop( PCOMMONCONTEXT pcmnctx )
 		return;
 
 	// If the thread is paused, unpause it
-	if (pcmnctx->status == PAUSED)
-		WorkerThreadTogglePause(pcmnctx);
-
-	// Signal cancellation
-	pcmnctx->status = CANCEL_REQUESTED;
+    if (pcmnctx->status == PAUSED)
+    {
+        // Signal cancellation first, so that unpaused threads immediately exit
+        pcmnctx->status = CANCEL_REQUESTED;
+        SetEvent(pcmnctx->hUnpauseEvent);
+    }
+    else
+    {
+        // Signal cancellation
+        pcmnctx->status = CANCEL_REQUESTED;
+    }
 
 	// Disable the control buttons
 	if (!(pcmnctx->dwFlags & HCF_EXIT_PENDING))
@@ -211,12 +212,15 @@ VOID WINAPI WorkerThreadCleanup( PCOMMONCONTEXT pcmnctx )
 		if (pcmnctx->status != INACTIVE)
 		{
 			// Forced abort, where the thread has been told to stop but has not yet
-			// stopped: wait for the thread, but nuke it if it appears to be hanged.
+			// stopped. With the MS Concurrency runtime, there's no simple way to
+			// terminate errant threads; it's better to abort the process than to
+			// allow them to continue (maybe maxing out the CPU) in the background.
 			if (WaitForSingleObject(pcmnctx->hThread, 10000) == WAIT_TIMEOUT)
-				TerminateThread(pcmnctx->hThread, 0);
+				abort();
 		}
 
 		CloseHandle(pcmnctx->hThread);
+        CloseHandle(pcmnctx->hUnpauseEvent);
 	}
 
 	pcmnctx->status = CLEANUP_COMPLETED;
@@ -244,6 +248,8 @@ DWORD WINAPI WorkerThreadStartup( PCOMMONCONTEXT pcmnctx )
 	PFNWORKERMAIN pfnWorkerMain = pcmnctx->ex.pfnWorkerMain;
 	pcmnctx->ex.pvBuffer = VirtualAlloc(NULL, READ_BUFFER_SIZE, MEM_COMMIT, PAGE_READWRITE);
 
+    pcmnctx->hUnpauseEvent = CreateEvent(NULL, TRUE, TRUE, NULL);
+
 	if (pcmnctx->ex.pvBuffer)
 	{
 		pfnWorkerMain(pcmnctx);
@@ -258,15 +264,81 @@ DWORD WINAPI WorkerThreadStartup( PCOMMONCONTEXT pcmnctx )
 	return(0);
 }
 
+// Post messages to update the progress bar. If there are multiple file-hashing threads,
+// then only the thread currently operating on the largest file updates the progress bar.
+__inline VOID UpdateProgressBar( HWND hWndPBFile, PCRITICAL_SECTION pCritSec,
+                                 PBOOL pbCurrentlyUpdating, volatile ULONGLONG* pcbCurrentMaxSize,
+                                 ULONGLONG cbFileSize, ULONGLONG cbFileRead, PUINT pLastProgress )
+{
+    if (pCritSec)  // if we're one among many file-hashing threads
+    {
+        // All the checks below outside of critical sections are innacurate; they're meant
+        // to quickly check if entering the critical section can be avoided, but they must
+        // be repeated inside the critical sections to avoid potential race conditions
+
+        if (*pbCurrentlyUpdating)
+        {
+            if (cbFileSize != *pcbCurrentMaxSize)
+            {
+                // Some other thread is now updating the progress bar
+                *pbCurrentlyUpdating = FALSE;
+                return;
+            }
+            UINT newProgress = (UINT) (PROGRESS_BAR_STEPS * cbFileRead / cbFileSize);
+            if (newProgress == *pLastProgress)
+                return;
+
+            EnterCriticalSection(pCritSec);
+            if (cbFileSize != *pcbCurrentMaxSize)
+            {
+                LeaveCriticalSection(pCritSec);
+                // Some other thread is now updating the progress bar
+                *pbCurrentlyUpdating = FALSE;
+                return;
+            }
+            // Special case for when this file has been completed:
+            if (cbFileRead == 0)
+                *pcbCurrentMaxSize = 0;  // relinquish progress bar control to the next largest file
+            PostMessage(hWndPBFile, PBM_SETPOS, newProgress, 0);
+            LeaveCriticalSection(pCritSec);
+            *pLastProgress = newProgress;
+        }
+        else  // if not *pbCurrentlyUpdating
+        {
+            if (cbFileSize > *pcbCurrentMaxSize)  // if we should take over updating the progress bar
+            {
+                UINT newProgress = (UINT)(PROGRESS_BAR_STEPS * cbFileRead / cbFileSize);
+                EnterCriticalSection(pCritSec);
+                if (cbFileSize > *pcbCurrentMaxSize)  // if we should definitely take over updating the progress bar
+                {
+                    *pcbCurrentMaxSize = cbFileSize;
+                    PostMessage(hWndPBFile, PBM_SETPOS, newProgress, 0);
+                }
+                LeaveCriticalSection(pCritSec);
+                *pbCurrentlyUpdating = TRUE;
+                *pLastProgress = newProgress;
+            }
+        }
+    }
+    else  // if we're the only file-hashing thread
+    {
+        UINT newProgress = (UINT)(PROGRESS_BAR_STEPS * cbFileRead / cbFileSize);
+        if (newProgress != *pLastProgress)
+        {
+            PostMessage(hWndPBFile, PBM_SETPOS, newProgress, 0);
+            *pLastProgress = newProgress;
+        }
+    }
+}
+
 VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL pbSuccess,
-                                  PWHCTXEX pwhctx, PWHRESULTEX pwhres, PFILESIZE pFileSize
+                                  PWHCTXEX pwhctx, PWHRESULTEX pwhres, PBYTE pbuffer, PFILESIZE pFileSize,
+                                  PCRITICAL_SECTION pUpdateCritSec, volatile ULONGLONG* pcbCurrentMaxSize
 #ifdef _TIMED
                                 , PDWORD pdwElapsed
 #endif
                                 )
 {
-	#define GETMSB(ui64) (LODWORD(ui64 >> uShiftBits))
-
 	HANDLE hFile;
 
 	*pbSuccess = FALSE;
@@ -276,6 +348,8 @@ VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL 
 	while (pcmnctx->cSentMsgs > pcmnctx->cHandledMsgs + 50)
 	{
 		Sleep(50);
+        if (pcmnctx->status == PAUSED)
+            WaitForSingleObject(pcmnctx->hUnpauseEvent, INFINITE);
 		if (pcmnctx->status == CANCEL_REQUESTED)
 			return;
 	}
@@ -287,7 +361,7 @@ VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL 
 	{
 		ULONGLONG cbFileSize, cbFileRead = 0;
 		DWORD cbBufferRead;
-		UINT uShiftBits;
+		UINT lastProgress = 0;
 		UINT8 cInner = 0;
 
 		if (GetFileSizeEx(hFile, (PLARGE_INTEGER)&cbFileSize))
@@ -296,21 +370,8 @@ VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL 
 			// the file is small enough that it requires only one such cycle,
 			// then do not bother with updating the progress bar; this improves
 			// performance when working with large numbers of small files
-			BOOL bUpdateProgress = cbFileSize >= READ_BUFFER_SIZE * 4;
-
-			// Get the shift factor for the file size; unless the file is 2GiB
-			// or larger in size, this will always be zero
-			if ( (uShiftBits = GetHighMSB((PULARGE_INTEGER)&cbFileSize)) ||
-			     ((INT)LODWORD(cbFileSize) < 0) )
-			{
-				// The progress bar expects a signed integer, so we need to
-				// ensure that the highest bit is never set
-				++uShiftBits;
-			}
-
-			// Initialize the file progress bar
-			if (bUpdateProgress)
-				PostMessage(pcmnctx->hWndPBFile, PBM_SETRANGE32, 0, GETMSB(cbFileSize));
+			BOOL bUpdateProgress = cbFileSize >= READ_BUFFER_SIZE * 4,
+			     bCurrentlyUpdating = FALSE;
 
 			// If the caller provides a way to return the file size, then set
 			// the file size and send a SETSIZE notification
@@ -333,20 +394,23 @@ VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL 
 			{
 				do // Inner loop: break every 4 cycles or if the end is reached
 				{
+                    if (pcmnctx->status == PAUSED)
+                        WaitForSingleObject(pcmnctx->hUnpauseEvent, INFINITE);
 					if (pcmnctx->status == CANCEL_REQUESTED)
 					{
 						CloseHandle(hFile);
 						return;
 					}
 
-					ReadFile(hFile, pcmnctx->ex.pvBuffer, READ_BUFFER_SIZE, &cbBufferRead, NULL);
-					WHUpdateEx(pwhctx, pcmnctx->ex.pvBuffer, cbBufferRead);
+					ReadFile(hFile, pbuffer, READ_BUFFER_SIZE, &cbBufferRead, NULL);
+					WHUpdateEx(pwhctx, pbuffer, cbBufferRead);
 					cbFileRead += cbBufferRead;
 
 				} while (cbBufferRead == READ_BUFFER_SIZE && (++cInner & 0x03));
 
 				if (bUpdateProgress)
-					PostMessage(pcmnctx->hWndPBFile, PBM_SETPOS, GETMSB(cbFileRead), 0);
+					UpdateProgressBar(pcmnctx->hWndPBFile, pUpdateCritSec, &bCurrentlyUpdating,
+					                  pcbCurrentMaxSize, cbFileSize, cbFileRead, &lastProgress);
 
 			} while (cbBufferRead == READ_BUFFER_SIZE);
 
@@ -359,7 +423,8 @@ VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL 
 				*pbSuccess = TRUE;
 
 			if (bUpdateProgress)
-				PostMessage(pcmnctx->hWndPBFile, PBM_SETPOS, 0, 0);
+				UpdateProgressBar(pcmnctx->hWndPBFile, pUpdateCritSec, &bCurrentlyUpdating,
+				                  pcbCurrentMaxSize, cbFileSize, 0, &lastProgress);
 		}
 
 		CloseHandle(hFile);

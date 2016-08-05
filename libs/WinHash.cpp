@@ -126,30 +126,36 @@ VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn )
 #if _MSC_VER >= 1600
     if (cbIn > 384u) {  // determined experimentally--smaller than this and multithreading doesn't help, but ymmv
 
+        int cTasks = 0;
+#define WIN_HASH_UPDATE_COUNT_op(alg)           \
+        if (pContext->flags & WHEX_CHECK##alg)  \
+            cTasks++;
+        FOR_EACH_HASH(WIN_HASH_UPDATE_COUNT_op)
+
+        if (cTasks > 1)
+        {
+
 #define WIN_HASH_UPDATE_TASK_op(alg)  \
-        auto task_WHUpdate##alg = concurrency::make_task([&] { WHUpdate##alg(&pContext->ctx##alg, pbIn, cbIn); } );
-        FOR_EACH_HASH_R(WIN_HASH_UPDATE_TASK_op)
+            auto task_WHUpdate##alg = concurrency::make_task([&] { WHUpdate##alg(&pContext->ctx##alg, pbIn, cbIn); } );
+            FOR_EACH_HASH_R(WIN_HASH_UPDATE_TASK_op)
 
-        concurrency::structured_task_group hashing_task_group;
+            concurrency::structured_task_group hashing_task_group;
 
-#define WIN_HASH_UPDATE_RUN_TASK_op(alg)             \
-        if (pContext->flags & WHEX_CHECK##alg)  \
-            hashing_task_group.run(task_WHUpdate##alg);
-        FOR_EACH_HASH_R(WIN_HASH_UPDATE_RUN_TASK_op)
+#define WIN_HASH_UPDATE_RUN_TASK_op(alg)            \
+            if (pContext->flags & WHEX_CHECK##alg)  \
+                hashing_task_group.run(task_WHUpdate##alg);
+            FOR_EACH_HASH_R(WIN_HASH_UPDATE_RUN_TASK_op)
 
-        hashing_task_group.wait();
-    }
-
-    else {
-#endif
-#define WIN_HASH_UPDATE_RUN_op(alg)             \
-        if (pContext->flags & WHEX_CHECK##alg)  \
-            WHUpdate##alg(&pContext->ctx##alg, pbIn, cbIn);
-        FOR_EACH_HASH(WIN_HASH_UPDATE_RUN_op)
-
-#if _MSC_VER >= 1600
+            hashing_task_group.wait();
+            return;
+        }
     }
 #endif
+
+#define WIN_HASH_UPDATE_RUN_op(alg)         \
+    if (pContext->flags & WHEX_CHECK##alg)  \
+        WHUpdate##alg(&pContext->ctx##alg, pbIn, cbIn);
+    FOR_EACH_HASH(WIN_HASH_UPDATE_RUN_op)
 }
 
 VOID WHAPI WHFinishEx( PWHCTXEX pContext, PWHRESULTEX pResults )

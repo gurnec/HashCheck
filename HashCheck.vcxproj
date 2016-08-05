@@ -270,7 +270,7 @@
     <ClCompile Include="HashCheckCommon.c" />
     <ClCompile Include="HashCheckOptions.c" />
     <ClCompile Include="HashProp.c" />
-    <ClCompile Include="HashSave.c" />
+    <ClCompile Include="HashSave.cpp" />
     <ClCompile Include="HashVerify.c" />
     <ClCompile Include="libs\crc32.c" />
     <ClCompile Include="libs\IsFontAvailable.c" />

@@ -78,6 +78,7 @@ typedef struct {
 	HWND               hWndPBTotal;  // cache of the IDC_PROG_TOTAL progress bar handle
 	HWND               hWndPBFile;   // cache of the IDC_PROG_FILE progress bar handle
 	HANDLE             hThread;      // handle of the worker thread
+	HANDLE             hUnpauseEvent;// handle of the event which signals when unpaused
 	WORKERTHREADEXTRA  ex;           // extra parameter with varying uses
 } COMMONCONTEXT, *PCOMMONCONTEXT;
 
@@ -107,7 +108,8 @@ VOID WINAPI WorkerThreadCleanup( PCOMMONCONTEXT pcmnctx );
 // Worker thread functions
 DWORD WINAPI WorkerThreadStartup( PCOMMONCONTEXT pcmnctx );
 VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL pbSuccess,
-                                  PWHCTXEX pwhctx, PWHRESULTEX pwhres, PFILESIZE pFileSize 
+                                  PWHCTXEX pwhctx, PWHRESULTEX pwhres, PBYTE pbuffer, PFILESIZE pFileSize,
+                                  PCRITICAL_SECTION pUpdateCritSec, volatile ULONGLONG* pcbCurrentMaxSize
 #ifdef _TIMED
                                 , PDWORD pdwElapsed
 #endif

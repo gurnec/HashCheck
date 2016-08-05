@@ -13,6 +13,9 @@
 #include "HashCalc.h"
 #include "SetAppID.h"
 #include <Strsafe.h>
+#include <vector>
+#include <cassert>
+#include <ppl.h>
 
 // Control structures, from HashCalc.h
 #define  HASHSAVESCRATCH  HASHCALCSCRATCH
@@ -50,7 +53,7 @@ VOID WINAPI HashSaveStart( HWND hWndOwner, HSIMPLELIST hListRaw )
 	// want to return as quickly as possible and leave the work up to the
 	// thread that we are going to spawn
 
-	PHASHSAVECONTEXT phsctx = SLSetContextSize(hListRaw, sizeof(HASHSAVECONTEXT));
+	PHASHSAVECONTEXT phsctx = (PHASHSAVECONTEXT)SLSetContextSize(hListRaw, sizeof(HASHSAVECONTEXT));
 
 	if (phsctx)
 	{
@@ -135,36 +138,58 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 	// Note that ALL message communication to and from the main window MUST
 	// be asynchronous, or else there may be a deadlock.
 
-	PHASHSAVEITEM pItem;
-
 	// Prep: expand directories, max path, etc. (prefix was set by earlier call)
 	PostMessage(phsctx->hWnd, HM_WORKERTHREAD_TOGGLEPREP, (WPARAM)phsctx, TRUE);
 	HashCalcPrepare(phsctx);
+    HashCalcSetSaveFormat(phsctx);
 	PostMessage(phsctx->hWnd, HM_WORKERTHREAD_TOGGLEPREP, (WPARAM)phsctx, FALSE);
 
-	// Indicate which hash type we are after, see WHEX... values in WinHash.h
-	phsctx->whctx.flags = 1 << (phsctx->ofn.nFilterIndex - 1);
+    // Initialize the progress bar update synchronization vars
+    CRITICAL_SECTION updateCritSec;
+    volatile ULONGLONG cbCurrentMaxSize = 0;
+    InitializeCriticalSection(&updateCritSec);
+
+    std::vector<PHASHSAVEITEM> vecpItems;
+    vecpItems.resize(phsctx->cTotal + 1);
+    SLBuildIndex(phsctx->hList, (PVOID*)vecpItems.data());
+    assert(vecpItems.back() == nullptr);
+    vecpItems.pop_back();
+    assert(vecpItems.back() != nullptr);
 
 #ifdef _TIMED
     DWORD dwStarted;
     dwStarted = GetTickCount();
 #endif
 
-	while (pItem = SLGetDataAndStep(phsctx->hList))
+    concurrency::parallel_for_each(vecpItems.cbegin(), vecpItems.cend(), [&](PHASHSAVEITEM pItem)
 	{
+        WHCTXEX whctx;
+
+        // Indicate which hash type we are after, see WHEX... values in WinHash.h
+        whctx.flags = 1 << (phsctx->ofn.nFilterIndex - 1);
+
+        // Allocate a read buffer (one buffer is cached per worker thread by Alloc/Free)
+        PBYTE pbBuffer = (PBYTE)concurrency::Alloc(READ_BUFFER_SIZE);
+
 		// Get the hash
 		WorkerThreadHashFile(
 			(PCOMMONCONTEXT)phsctx,
 			pItem->szPath,
 			&pItem->bValid,
-			&phsctx->whctx,
+			&whctx,
 			&pItem->results,
-			NULL
+            pbBuffer,
+			NULL,
+			&updateCritSec, &cbCurrentMaxSize
 #ifdef _TIMED
           , &pItem->dwElapsed
 #endif
         );
 
+        concurrency::Free(pbBuffer);
+
+        if (phsctx->status == PAUSED)
+            WaitForSingleObject(phsctx->hUnpauseEvent, INFINITE);
 		if (phsctx->status == CANCEL_REQUESTED)
 			return;
 
@@ -172,11 +197,14 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 		HashCalcWriteResult(phsctx, pItem);
 
 		// Update the UI
-		++phsctx->cSentMsgs;
+		InterlockedIncrement(&phsctx->cSentMsgs);
 		PostMessage(phsctx->hWnd, HM_WORKERTHREAD_UPDATE, (WPARAM)phsctx, (LPARAM)pItem);
-	}
+    });
+
+    DeleteCriticalSection(&updateCritSec);
+
 #ifdef _TIMED
-    if (phsctx->cTotal > 1)
+    if (phsctx->cTotal > 1 && phsctx->status != CANCEL_REQUESTED)
     {
         union {
             CHAR  szA[MAX_STRINGMSG];
@@ -192,7 +220,7 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
             StringCbPrintfExA(buffer.szA, sizeof(buffer), NULL, &cbBufferLeft, 0,  "; Total elapsed: %d ms\r\n", GetTickCount() - dwStarted);
         }
         DWORD dwUnused;
-        WriteFile(phsctx->hFileOut, buffer.szA, sizeof(buffer) - cbBufferLeft, &dwUnused, NULL);
+        WriteFile(phsctx->hFileOut, buffer.szA, (DWORD) (sizeof(buffer) - cbBufferLeft), &dwUnused, NULL);
     }
 #endif
 }
@@ -221,7 +249,7 @@ INT_PTR CALLBACK HashSaveDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 			HashSaveDlgInit(phsctx);
 
-			phsctx->ex.pfnWorkerMain = HashSaveWorkerMain;
+			phsctx->ex.pfnWorkerMain = (PFNWORKERMAIN)HashSaveWorkerMain;
 			phsctx->hThread = CreateThreadCRT(NULL, phsctx);
 
 			if (!phsctx->hThread || WaitForSingleObject(phsctx->hThread, 1000) != WAIT_TIMEOUT)

@@ -118,12 +118,15 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
 			&pItem->bValid,
 			&phpctx->whctx,
 			&pItem->results,
-			NULL
+			phpctx->ex.pvBuffer,
+			NULL, NULL, NULL
 #ifdef _TIMED
           , &pItem->dwElapsed
 #endif
         );
 
+        if (phpctx->status == PAUSED)
+            WaitForSingleObject(phpctx->hUnpauseEvent, INFINITE);
 		if (phpctx->status == CANCEL_REQUESTED)
 			return;
 
@@ -763,6 +766,7 @@ VOID WINAPI HashPropSaveResults( PHASHPROPCONTEXT phpctx )
 {
 	// HashCalcInitSave will set the file handle and output format
 	HashCalcInitSave(phpctx);
+    HashCalcSetSaveFormat(phpctx);
 
 	if (phpctx->hFileOut != INVALID_HANDLE_VALUE)
 	{
