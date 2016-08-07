@@ -53,15 +53,15 @@ FunctionEnd
 !insertmacro MUI_LANGUAGE "Ukrainian"
 !insertmacro MUI_LANGUAGE "Catalan"
 
-VIProductVersion "2.3.4.18"
+VIProductVersion "2.3.4.19"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "HashCheck Shell Extension"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductVersion" "2.3.4.18"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductVersion" "2.3.4.19"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" "Installer distributed from https://github.com/gurnec/HashCheck/releases"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" ""
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalTrademarks" ""
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "Copyright © Kai Liu, Christopher Gurnee, Tim Schlueter. All rights reserved."
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "Installer (x86/x64) from https://github.com/gurnec/HashCheck/releases"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "2.3.4.18"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "2.3.4.19"
 
 ; With solid compression, files that are required before the
 ; actual installation should be stored first in the data block,
@@ -74,34 +74,18 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "2.3.4.18"
 Section
 
     GetTempFileName $0
-    File /oname=$0 ..\Bin\Win32\Release\HashCheck.dll
-    ExecWait 'regsvr32 /i /n /s "$0"'
-    IfErrors abort_on_error
-    Delete $0
-
-    ; One of these exists and is undeletable if and only if
-    ; it was in use and therefore a reboot is now required
-    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.0
-    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.1
-    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.2
-    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.3
-    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.4
-    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.5
-    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.6
-    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.7
-    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.8
-    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.9
 
     ${If} ${RunningX64}
         ${DisableX64FSRedirection}
 
+        ; Install the 64-bit dll
         File /oname=$0 ..\Bin\x64\Release\HashCheck.dll
         ExecWait 'regsvr32 /i /n /s "$0"'
         IfErrors abort_on_error
         Delete $0
 
-        ; One of these exists and is undeletable if and only if
-        ; it was in use and therefore a reboot is now required
+        ; One of these 64-bit dlls exists and is undeletable if and
+        ; only if it was in use and therefore a reboot is now required
         Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.0
         Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.1
         Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.2
@@ -114,11 +98,37 @@ Section
         Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.9
 
         ${EnableX64FSRedirection}
+
+        ; Install the 32-bit dll (the 64-bit dll handles uninstallation for both)
+        File /oname=$0 ..\Bin\Win32\Release\HashCheck.dll
+        ExecWait 'regsvr32 /i:"NoUninstall" /n /s "$0"'
+        IfErrors abort_on_error
+    ${Else}
+        ; Install the 32-bit dll
+        File /oname=$0 ..\Bin\Win32\Release\HashCheck.dll
+        ExecWait 'regsvr32 /i /n /s "$0"'
+        IfErrors abort_on_error	
     ${EndIf}
+
+    Delete $0
+
+    ; One of these 32-bit dlls exists and is undeletable if and
+    ; only if it was in use and therefore a reboot is now required
+    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.0
+    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.1
+    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.2
+    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.3
+    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.4
+    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.5
+    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.6
+    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.7
+    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.8
+    Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.9
 
     Return
 
     abort_on_error:
+        Delete $0
         MessageBox MB_ICONSTOP|MB_OK "An unexpected error occurred during installation"
 
 SectionEnd

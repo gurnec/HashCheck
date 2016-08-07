@@ -1,7 +1,7 @@
 /**
  * HashCheck Shell Extension
  * Original work copyright (C) Kai Liu.  All rights reserved.
- * Modified work copyright (C) 2014 Christopher Gurnee.  All rights reserved.
+ * Modified work copyright (C) 2014, 2016 Christopher Gurnee.  All rights reserved.
  * Modified work copyright (C) 2016 Tim Schlueter.  All rights reserved.
  *
  * Please refer to readme.txt for information about this source code.
@@ -41,7 +41,7 @@ static const LPCTSTR ASSOCIATIONS[] =
 
 // Prototypes for the self-registration/install/uninstall helper functions
 STDAPI DllRegisterServerEx( LPCTSTR );
-HRESULT Install( BOOL );
+HRESULT Install( BOOL, BOOL );
 HRESULT Uninstall( );
 BOOL WINAPI InstallFile( LPCTSTR, LPTSTR, LPTSTR );
 
@@ -256,26 +256,36 @@ STDAPI DllUnregisterServer( )
 
 STDAPI DllInstall( BOOL bInstall, LPCWSTR pszCmdLine )
 {
-	// To install with bCopyFile=true
+	// To install into System32\ShellExt
 	// regsvr32.exe /i /n HashCheck.dll
 	//
-	// To install with bCopyFile=false
+	// To install without registering an uninstaller
+	// regsvr32.exe /i:"NoUninstall" /n HashCheck.dll
+	//
+	// To install in-place (without copying the .dll anywhere)
 	// regsvr32.exe /i:"NoCopy" /n HashCheck.dll
+	//
+	// To install with both options above
+	// regsvr32.exe /i:"NoUninstall NoCopy" /n HashCheck.dll
 	//
 	// To uninstall
 	// regsvr32.exe /u /i /n HashCheck.dll
+	//
+	// To install/uninstall silently
+	// regsvr32.exe /s ...
 	//
 	// DllInstall can also be invoked from a RegisterDlls INF section or from
 	// a UnregisterDlls INF section, if the registration flags are set to 2.
 	// Consult the documentation for RegisterDlls/UnregisterDlls for details.
 
 	return( (bInstall) ?
-		Install(pszCmdLine == NULL || StrCmpIW(pszCmdLine, L"NoCopy")) :
+		Install(pszCmdLine == NULL || StrStrIW(pszCmdLine, L"NoUninstall") == NULL,
+                pszCmdLine == NULL || StrStrIW(pszCmdLine, L"NoCopy")      == NULL) :
 		Uninstall()
 	);
 }
 
-HRESULT Install( BOOL bCopyFile )
+HRESULT Install( BOOL bRegisterUninstaller, BOOL bCopyFile )
 {
 	TCHAR szCurrentDllPath[MAX_PATH << 1];
 	GetModuleFileName(g_hModThisDll, szCurrentDllPath, countof(szCurrentDllPath));
@@ -319,25 +329,26 @@ HRESULT Install( BOOL bCopyFile )
 			// Uninstaller entries
 			RegDelete(HKEY_LOCAL_MACHINE, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%s"), CLSNAME_STR_HashCheck);
 
-			if (hKey = RegOpen(HKEY_LOCAL_MACHINE, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%s"), CLSNAME_STR_HashCheck))
+			if (bRegisterUninstaller && (hKey = RegOpen(HKEY_LOCAL_MACHINE, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%s"), CLSNAME_STR_HashCheck)))
 			{
 				TCHAR szUninstall[MAX_PATH << 1];
 				StringCchPrintf(szUninstall, countof(szUninstall), TEXT("regsvr32.exe /u /i /n \"%s\""), lpszTargetPath);
 
-				static const TCHAR szURLFull[] = TEXT("http://code.kliu.org/hashcheck/");
+				static const TCHAR szURLFull[] = TEXT("https://github.com/gurnec/HashCheck/issues");
 				TCHAR szURLBase[countof(szURLFull)];
 				SSStaticCpy(szURLBase, szURLFull);
-				szURLBase[21] = 0; // strlen("http://code.kliu.org/")
+				szURLBase[35] = 0; // strlen("https://github.com/gurnec/HashCheck")
 
 				RegSetSZ(hKey, TEXT("DisplayIcon"), lpszTargetPath);
-				RegSetSZ(hKey, TEXT("DisplayName"), TEXT(HASHCHECK_NAME_STR) TEXT(ARCH_NAME_TAIL));
+				RegSetSZ(hKey, TEXT("DisplayName"), TEXT(HASHCHECK_NAME_STR));
 				RegSetSZ(hKey, TEXT("DisplayVersion"), TEXT(HASHCHECK_VERSION_STR));
+				RegSetDW(hKey, TEXT("EstimatedSize"), 896);
 				RegSetSZ(hKey, TEXT("HelpLink"), szURLFull);
 				RegSetDW(hKey, TEXT("NoModify"), 1);
 				RegSetDW(hKey, TEXT("NoRepair"), 1);
-				RegSetSZ(hKey, TEXT("Publisher"), TEXT("Kai Liu"));
 				RegSetSZ(hKey, TEXT("UninstallString"), szUninstall);
 				RegSetSZ(hKey, TEXT("URLInfoAbout"), szURLBase);
+				RegSetSZ(hKey, TEXT("URLUpdateInfo"), TEXT("https://github.com/gurnec/HashCheck/releases/latest"));
 				RegCloseKey(hKey);
 			}
 
@@ -354,15 +365,88 @@ HRESULT Uninstall( )
 {
 	HRESULT hr = S_OK;
 
-	// Rename the DLL prior to scheduling it for deletion
 	TCHAR szCurrentDllPath[MAX_PATH << 1];
 	TCHAR szTemp[MAX_PATH << 1];
 
 	LPTSTR lpszFileToDelete = szCurrentDllPath;
 	LPTSTR lpszTempAppend = szTemp + GetModuleFileName(g_hModThisDll, szTemp, countof(szTemp));
 
-	memcpy(szCurrentDllPath, szTemp, sizeof(szTemp));
+    StringCbCopy(szCurrentDllPath, sizeof(szCurrentDllPath), szTemp);
 
+#ifdef _WIN64
+    // If this 64-bit dll was installed to the default location,
+    // uninstall the 32-bit dll if it exists in its default location
+
+    TCHAR lpszDefInstallPath[MAX_PATH + 0x20];
+    UINT uSize = GetSystemDirectory(lpszDefInstallPath, MAX_PATH);
+
+    if (uSize && uSize < MAX_PATH)
+    {
+        LPTSTR lpszPathAppend = lpszDefInstallPath + uSize;
+
+        if (*(lpszPathAppend - 1) != TEXT('\\'))
+            *lpszPathAppend++ = TEXT('\\');
+
+        static const TCHAR szFolderAndFilename[] = TEXT("ShellExt") TEXT("\\") TEXT(HASHCHECK_FILENAME_STR);
+        SSStaticCpy(lpszPathAppend, szFolderAndFilename);
+
+        // If this 64-bit dll was installed to the default location
+        if (StrCmpI(szCurrentDllPath, lpszDefInstallPath) == 0)
+        {
+            TCHAR lpszSystemWow64[MAX_PATH + 0x20];
+            uSize = GetSystemWow64Directory(lpszSystemWow64, MAX_PATH);
+
+            if (uSize && uSize < MAX_PATH)
+            {
+                LPTSTR lpszSystemWow64Append = lpszSystemWow64 + uSize;
+
+                if (*(lpszSystemWow64Append - 1) != TEXT('\\'))
+                    SSCpy2Ch(lpszSystemWow64Append++, TEXT('\\'), 0);
+
+                StringCbCopyEx(lpszDefInstallPath, sizeof(lpszDefInstallPath), lpszSystemWow64, &lpszPathAppend, NULL, 0);
+
+                SSStaticCpy(lpszPathAppend, szFolderAndFilename);
+
+                // If the 32-bit dll exists in its default location
+                if (PathFileExists(lpszDefInstallPath))
+                {
+                    static const TCHAR szRegsvr32[] = TEXT("regsvr32.exe");
+                    SSStaticCpy(lpszSystemWow64Append, szRegsvr32);
+                    // the lpszSystemWow64 buffer now contains the full regsvr32.exe path
+
+                    TCHAR lpszCommandLine[MAX_PATH + 0x20];
+                    LPTSTR lpszCommandLineAppend;
+                    
+                    static const TCHAR szCommandOpts[] = TEXT("regsvr32.exe /u /i /n /s ");
+                    lpszCommandLineAppend = SSStaticCpy(lpszCommandLine, szCommandOpts) - 1;
+
+                    StringCbCopy(lpszCommandLineAppend, sizeof(lpszCommandLine)-sizeof(szCommandOpts), lpszDefInstallPath);
+
+                    STARTUPINFO si;
+                    memset(&si, 0, sizeof(si));
+                    si.cb = sizeof(si);
+
+                    PROCESS_INFORMATION pi;
+                    memset(&pi, 0, sizeof(pi));
+
+                    if (!CreateProcess(lpszSystemWow64, lpszCommandLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+                        return E_FAIL;
+
+                    DWORD dwExit;
+                    WaitForSingleObject(pi.hProcess, INFINITE);
+                    GetExitCodeProcess(pi.hProcess, &dwExit);
+                    CloseHandle(pi.hThread);
+                    CloseHandle(pi.hProcess);
+
+                    if (dwExit != 0)
+                        return E_FAIL;
+                }
+            }
+        }
+    }
+#endif
+
+	// Rename the DLL prior to scheduling it for deletion
 	*lpszTempAppend++ = TEXT('.');
 	SSCpy2Ch(lpszTempAppend, 0, 0);
 
@@ -414,7 +498,7 @@ BOOL WINAPI InstallFile( LPCTSTR lpszSource, LPTSTR lpszDest, LPTSTR lpszDestApp
 	lpszDestAppend += countof(szShellExt) - 1;
 
 	// Create directory if necessary
-	if (GetFileAttributes(lpszDest) == INVALID_FILE_ATTRIBUTES)
+	if (! PathFileExists(lpszDest))
 		CreateDirectory(lpszDest, NULL);
 
 	SSStaticCpy(lpszDestAppend, szDestFile);
@@ -425,7 +509,7 @@ BOOL WINAPI InstallFile( LPCTSTR lpszSource, LPTSTR lpszDest, LPTSTR lpszDestApp
 		return(TRUE);
 
 	// If the destination file does not already exist, just copy
-	if (GetFileAttributes(lpszDest) == INVALID_FILE_ATTRIBUTES)
+	if (! PathFileExists(lpszDest))
 		return(CopyFile(lpszSource, lpszDest, FALSE));
 
 	// If destination file exists and cannot be overwritten
@@ -433,7 +517,7 @@ BOOL WINAPI InstallFile( LPCTSTR lpszSource, LPTSTR lpszDest, LPTSTR lpszDestApp
 	SIZE_T cbDest = BYTEDIFF(lpszDestAppend, lpszDest);
 	LPTSTR lpszTempAppend = (LPTSTR)BYTEADD(szTemp, cbDest);
 
-	memcpy(szTemp, lpszDest, cbDest);
+	StringCbCopy(szTemp, sizeof(szTemp), lpszDest);
 	*lpszTempAppend++ = TEXT('.');
 	SSCpy2Ch(lpszTempAppend, 0, 0);
 
