@@ -526,7 +526,7 @@ STRINGTABLE LANGUAGE LANG_ITALIAN, SUBLANG_NEUTRAL
 	IDS_OPT_ENCODING_UTF16   "Salva usando &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Salva usando &ANSI"
 	IDS_OPT_CHK              "Checksum"
-	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
+	IDS_OPT_CHK_ERROR        "Seleziona almeno un checksum"
 	IDS_OPT_FONT             "Tipo di carattere"
 	IDS_OPT_FONT_CHANGE      "&Cambia..."
 }
