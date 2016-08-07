@@ -1186,7 +1186,7 @@ STRINGTABLE LANGUAGE LANG_CATALAN, SUBLANG_CATALAN_CATALAN
 	IDS_HS_MENUTEXT          "Crea fitxer de verificació..."
 	IDS_HS_TITLE_FMT         "Creant ""%s""..."
 
-	IDS_HP_TITLE             "Checksum"
+	IDS_HP_TITLE             "Checksums"
 	IDS_HP_STATUSBOX         "Progrés"
 	IDS_HP_STATUSTEXT_FMT    "%s processats correctament"
 	IDS_HP_FIND              "&Cerca"
@@ -1221,8 +1221,8 @@ STRINGTABLE LANGUAGE LANG_CATALAN, SUBLANG_CATALAN_CATALAN
 	IDS_OPT_ENCODING_UTF8    "Desa utilitzant U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Desa utilitzant &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Desa utilitzant &ANSI"
-	IDS_OPT_CHK              "Checksum"
-	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
+	IDS_OPT_CHK              "Checksums"
+	IDS_OPT_CHK_ERROR        "Seleccioneu com a mínim un checksum, si us plau."
 	IDS_OPT_FONT             "Tipus de lletra"
 	IDS_OPT_FONT_CHANGE      "&Canvia..."
 }
