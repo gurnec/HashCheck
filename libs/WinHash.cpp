@@ -12,7 +12,7 @@
  **/
 
 #include "WinHash.h"
-#if _MSC_VER >= 1600
+#ifdef USE_PPL
 #include <ppl.h>
 #endif
 
@@ -123,7 +123,7 @@ VOID WHAPI WHInitEx( PWHCTXEX pContext )
 
 VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn )
 {
-#if _MSC_VER >= 1600
+#ifdef USE_PPL
     if (cbIn > 384u) {  // determined experimentally--smaller than this and multithreading doesn't help, but ymmv
 
         int cTasks = 0;

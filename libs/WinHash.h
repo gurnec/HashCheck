@@ -20,6 +20,10 @@ extern "C" {
 #include <tchar.h>
 #include "BitwiseIntrinsics.h"
 
+#if _MSC_VER >= 1600 && !defined(NO_PPL)
+#define USE_PPL
+#endif
+
 typedef CONST BYTE *PCBYTE;
 
 #define CRLF _T("\r\n")

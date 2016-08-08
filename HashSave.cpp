@@ -12,10 +12,15 @@
 #include "HashCheckCommon.h"
 #include "HashCalc.h"
 #include "SetAppID.h"
+#include "IsSSD.h"
 #include <Strsafe.h>
 #include <vector>
 #include <cassert>
+#ifdef USE_PPL
 #include <ppl.h>
+#else
+#include <algorithm>
+#endif
 
 // Control structures, from HashCalc.h
 #define  HASHSAVESCRATCH  HASHCALCSCRATCH
@@ -144,11 +149,7 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
     HashCalcSetSaveFormat(phsctx);
 	PostMessage(phsctx->hWnd, HM_WORKERTHREAD_TOGGLEPREP, (WPARAM)phsctx, FALSE);
 
-    // Initialize the progress bar update synchronization vars
-    CRITICAL_SECTION updateCritSec;
-    volatile ULONGLONG cbCurrentMaxSize = 0;
-    InitializeCriticalSection(&updateCritSec);
-
+    // Extract the slist into a vector for parallel_for_each
     std::vector<PHASHSAVEITEM> vecpItems;
     vecpItems.resize(phsctx->cTotal + 1);
     SLBuildIndex(phsctx->hList, (PVOID*)vecpItems.data());
@@ -156,20 +157,38 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
     vecpItems.pop_back();
     assert(vecpItems.back() != nullptr);
 
+    bool bMultithreaded = vecpItems.size() > 1 && IsSSD(vecpItems[0]->szPath);
+    PBYTE pbTheBuffer;  // file read buffer, used iff not multithreaded
+
+    // Initialize the progress bar update synchronization vars
+    CRITICAL_SECTION updateCritSec;
+    volatile ULONGLONG cbCurrentMaxSize = 0;
+#ifdef USE_PPL
+    if (bMultithreaded)
+        InitializeCriticalSection(&updateCritSec);
+    else
+#endif
+        pbTheBuffer = (PBYTE)VirtualAlloc(NULL, READ_BUFFER_SIZE, MEM_COMMIT, PAGE_READWRITE);
+
 #ifdef _TIMED
     DWORD dwStarted;
     dwStarted = GetTickCount();
 #endif
 
-    concurrency::parallel_for_each(vecpItems.cbegin(), vecpItems.cend(), [&](PHASHSAVEITEM pItem)
+    // concurrency::parallel_for_each(vecpItems.cbegin(), vecpItems.cend(), ...
+    auto per_file_worker = [&](PHASHSAVEITEM pItem)
 	{
         WHCTXEX whctx;
 
         // Indicate which hash type we are after, see WHEX... values in WinHash.h
         whctx.flags = 1 << (phsctx->ofn.nFilterIndex - 1);
 
+#ifdef USE_PPL
         // Allocate a read buffer (one buffer is cached per worker thread by Alloc/Free)
-        PBYTE pbBuffer = (PBYTE)concurrency::Alloc(READ_BUFFER_SIZE);
+        PBYTE pbBuffer = bMultithreaded ? (PBYTE)concurrency::Alloc(READ_BUFFER_SIZE) : pbTheBuffer;
+#else
+        PBYTE pbBuffer = pbTheBuffer;
+#endif
 
 		// Get the hash
 		WorkerThreadHashFile(
@@ -180,13 +199,16 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 			&pItem->results,
             pbBuffer,
 			NULL,
-			&updateCritSec, &cbCurrentMaxSize
+            bMultithreaded ? &updateCritSec : NULL, &cbCurrentMaxSize
 #ifdef _TIMED
           , &pItem->dwElapsed
 #endif
         );
 
-        concurrency::Free(pbBuffer);
+#ifdef USE_PPL
+        if (bMultithreaded)
+            concurrency::Free(pbBuffer);
+#endif
 
         if (phsctx->status == PAUSED)
             WaitForSingleObject(phsctx->hUnpauseEvent, INFINITE);
@@ -199,9 +221,14 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 		// Update the UI
 		InterlockedIncrement(&phsctx->cSentMsgs);
 		PostMessage(phsctx->hWnd, HM_WORKERTHREAD_UPDATE, (WPARAM)phsctx, (LPARAM)pItem);
-    });
+    };
 
-    DeleteCriticalSection(&updateCritSec);
+#ifdef USE_PPL
+    if (bMultithreaded)
+        concurrency::parallel_for_each(vecpItems.cbegin(), vecpItems.cend(), per_file_worker);
+    else
+#endif
+        for_each(vecpItems.cbegin(), vecpItems.cend(), per_file_worker);
 
 #ifdef _TIMED
     if (phsctx->cTotal > 1 && phsctx->status != CANCEL_REQUESTED)
@@ -223,6 +250,13 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
         WriteFile(phsctx->hFileOut, buffer.szA, (DWORD) (sizeof(buffer) - cbBufferLeft), &dwUnused, NULL);
     }
 #endif
+
+#ifdef USE_PPL
+    if (bMultithreaded)
+        DeleteCriticalSection(&updateCritSec);
+    else
+#endif
+        VirtualFree(pbTheBuffer, 0, MEM_RELEASE);
 }
 
 

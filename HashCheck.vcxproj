@@ -283,6 +283,7 @@
     <ClCompile Include="libs\Wow64.c" />
     <ClCompile Include="RegHelpers.c" />
     <ClCompile Include="SetAppID.c" />
+    <ClCompile Include="IsSSD.c" />
     <ClCompile Include="UnicodeHelpers.c" />
   </ItemGroup>
   <ItemGroup>
@@ -299,6 +300,7 @@
     <ClInclude Include="HashCheckResources.h" />
     <ClInclude Include="HashCheckTranslations.h" />
     <ClInclude Include="HashCheckUI.h" />
+    <ClInclude Include="IsSSD.h" />
     <ClInclude Include="libs\IsFontAvailable.h" />
     <ClInclude Include="libs\SimpleList.h" />
     <ClInclude Include="libs\SimpleString.h" />

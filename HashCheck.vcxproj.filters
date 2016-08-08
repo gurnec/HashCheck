@@ -81,6 +81,9 @@
     <ClCompile Include="HashSave.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IsSSD.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="HashCheck.def">
@@ -150,6 +153,9 @@
     </ClInclude>
     <ClInclude Include="libs\BitwiseIntrinsics.h">
       <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="IsSSD.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
