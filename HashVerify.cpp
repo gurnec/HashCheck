@@ -12,8 +12,14 @@
 #include "HashCheckCommon.h"
 #include "SetAppID.h"
 #include "UnicodeHelpers.h"
+#include "IsSSD.h"
 #include <uxtheme.h>
 #include <Strsafe.h>
+#include <cassert>
+#include <algorithm>
+#ifdef USE_PPL
+#include <ppl.h>
+#endif
 
 #define HV_COL_FILENAME 0
 #define HV_COL_SIZE     1
@@ -50,7 +56,6 @@
 #endif
 
 typedef struct {
-	UINT               idStartOfDirtyRange;
 	UINT               cMatch;       // number of matches
 	UINT               cMismatch;    // number of mismatches
 	UINT               cUnreadable;  // number of unreadable files
@@ -66,6 +71,8 @@ typedef struct {
 	PTSTR              pszDisplayName;
 	PTSTR              pszExpected;
 	INT16              cchDisplayName;
+	INT                nListviewIndex;
+	BOOL               bBeenSeen;    // has the listview control asked for this item's info yet?
 	UINT8              uState;
 	UINT8              uStatusID;
 	TCHAR              szActual[MAX_DIGEST_STRING_LENGTH];
@@ -100,7 +107,7 @@ typedef struct {
 	DWORD              dwStarted;    // GetTickCount() start time
 	HASHVERIFYPREV     prev;         // previous update data, used for update coalescing
 	UINT               uMaxBatch;    // maximum number of updates to coalesce
-	WHCTXEX            whctx;        // context for the WinHash library
+    UINT8              whctxFlags;   // WinHash library flags (which checksums to use)
 	TCHAR              szStatus[4][MAX_STRINGRES];
 } HASHVERIFYCONTEXT, *PHASHVERIFYCONTEXT;
 
@@ -132,7 +139,6 @@ __forceinline LONG_PTR WINAPI HashVerifyFindItem( PHASHVERIFYCONTEXT phvctx, LPN
 __forceinline VOID WINAPI HashVerifySortColumn( PHASHVERIFYCONTEXT phvctx, LPNMLISTVIEW plv );
 __forceinline VOID WINAPI HashVerifyReadStates( PHASHVERIFYCONTEXT phvctx );
 __forceinline VOID WINAPI HashVerifySetStates( PHASHVERIFYCONTEXT phvctx );
-__forceinline INT WINAPI Compare64( PLONGLONG p64A, PLONGLONG p64B );
 INT __cdecl HashVerifySortCompare( PHASHVERIFYCONTEXT phvctx, PPCHVITEM ppItemA, PPCHVITEM ppItemB );
 
 
@@ -151,7 +157,7 @@ VOID CALLBACK HashVerify_RunDLLW( HWND hWnd, HINSTANCE hInstance,
 	// it to be allocated by malloc; it also expects g_cRefThisDll to be
 	// incremented by the caller.
 
-	if (pszPath = malloc(cchPath * sizeof(TCHAR)))
+	if (pszPath = (PTSTR)malloc(cchPath * sizeof(TCHAR)))
 	{
 		if (WStrToTStr(pszCmdLine, pszPath, (UINT)cchPath))
 		{
@@ -242,7 +248,7 @@ PBYTE WINAPI HashVerifyLoadData( PHASHVERIFYCONTEXT phvctx )
 		DWORD cbBytesRead;
 
 		if ( (GetFileSizeEx(hFile, &cbRawData)) &&
-		     (pbRawData = malloc(cbRawData.LowPart + sizeof(DWORD))) &&
+		     (pbRawData = (PBYTE)malloc(cbRawData.LowPart + sizeof(DWORD))) &&
 		     (ReadFile(hFile, pbRawData, cbRawData.LowPart, &cbBytesRead, NULL)) &&
 		     (cbRawData.LowPart == cbBytesRead) )
 		{
@@ -281,7 +287,7 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 #define HASH_VERIFY_EXT_TYPE(alg)                           \
                 if (StrCmpI(pszExt, HASH_EXT_##alg) == 0)   \
                 {                                           \
-                    phvctx->whctx.flags = WHEX_CHECK##alg;  \
+                    phvctx->whctxFlags = WHEX_CHECK##alg;   \
                     cchChecksum = alg##_DIGEST_LENGTH * 2;  \
                     break;                                  \
                 }
@@ -289,7 +295,7 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
             } while (FALSE);
 
             // Special case for CRC-32
-            if (phvctx->whctx.flags == WHEX_CHECKCRC32)
+            if (phvctx->whctxFlags == WHEX_CHECKCRC32)
 				bReverseFormat = TRUE;
 		}
 	}
@@ -352,42 +358,42 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 		else
 		{
 			// If we do not know the type yet, make a stab at detecting it
-			if (phvctx->whctx.flags == 0)
+			if (phvctx->whctxFlags == 0)
 			{
 				// 32-bit algorithms (8-byte)
 				if (ValidateHexSequence(pszStartOfLine, 8))
 				{
 					cchChecksum = 8;
-					phvctx->whctx.flags = WHEX_ALL32;  // WHEX_CHECKCRC32
+					phvctx->whctxFlags = WHEX_ALL32;  // WHEX_CHECKCRC32
 				}
 				// 128-bit algorithms (32-byte)
 				else if (ValidateHexSequence(pszStartOfLine, 32))
 				{
 					cchChecksum = 32;
-					phvctx->whctx.flags = WHEX_ALL128;  // WHEX_CHECKMD5
+					phvctx->whctxFlags = WHEX_ALL128;  // WHEX_CHECKMD5
 				}
 				// 160-bit algorithms (40-byte)
 				else if (ValidateHexSequence(pszStartOfLine, 40))
 				{
 					cchChecksum = 40;
-					phvctx->whctx.flags = WHEX_ALL160;  // WHEX_CHECKSHA1
+					phvctx->whctxFlags = WHEX_ALL160;  // WHEX_CHECKSHA1
 				}
 				// 256-bit algorithms (64-byte)
 				else if (ValidateHexSequence(pszStartOfLine, 64))
 				{
 					cchChecksum = 64;
-					phvctx->whctx.flags = WHEX_ALL256;  // WHEX_CHECKSHA256
+					phvctx->whctxFlags = WHEX_ALL256;  // WHEX_CHECKSHA256
 				}
 				// 512-bit algorithms (128-byte)
 				else if (ValidateHexSequence(pszStartOfLine, 128))
 				{
 					cchChecksum = 128;
-					phvctx->whctx.flags = WHEX_ALL512;  // WHEX_CHECKSHA512
+					phvctx->whctxFlags = WHEX_ALL512;  // WHEX_CHECKSHA512
 				}
 			}
 
 			// Parse the line
-			if ( phvctx->whctx.flags && pszEndOfLine > pszStartOfLine + cchChecksum &&
+			if ( phvctx->whctxFlags && pszEndOfLine > pszStartOfLine + cchChecksum &&
 			     ValidateHexSequence(pszStartOfLine, cchChecksum) )
 			{
 				pszChecksum = pszStartOfLine;
@@ -413,7 +419,7 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 			// that the path does not exceed 32K.
 
 			// Create the new data block
-			PHASHVERIFYITEM pItem = SLAddItem(phvctx->hList, NULL, sizeof(HASHVERIFYITEM));
+			PHASHVERIFYITEM pItem = (PHASHVERIFYITEM)SLAddItem(phvctx->hList, NULL, sizeof(HASHVERIFYITEM));
 
 			// Abort if we are out of memory
 			if (!pItem) break;
@@ -423,6 +429,8 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 			pItem->pszDisplayName = pszFileName;
 			pItem->pszExpected = pszChecksum;
 			pItem->cchDisplayName = cchPath;
+			pItem->nListviewIndex = phvctx->cTotal;
+			pItem->bBeenSeen = FALSE;
 			pItem->uStatusID = HV_STATUS_NULL;
 			pItem->szActual[0] = 0;
 
@@ -434,9 +442,9 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 
 	// Build the index
 	if ( phvctx->cTotal && (phvctx->index =
-	     SLSetContextSize(phvctx->hList, phvctx->cTotal * sizeof(PHVITEM))) )
+	     (PPHVITEM)SLSetContextSize(phvctx->hList, phvctx->cTotal * sizeof(PHVITEM))) )
 	{
-		SLBuildIndex(phvctx->hList, phvctx->index);
+		SLBuildIndex(phvctx->hList, (PVOID*)phvctx->index);
 	}
 	else
 	{
@@ -491,20 +499,47 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 	// Note that ALL message communication to and from the main window MUST
 	// be asynchronous, or else there may be a deadlock
 
-	PHASHVERIFYITEM pItem;
+	// Initialize the path prefix length; used for building the full path
+	PTSTR pszPathTail = StrRChr(phvctx->pszPath, NULL, TEXT('\\'));
+	SIZE_T cchPathPrefix = (pszPathTail) ? pszPathTail + 1 - phvctx->pszPath : 0;
+
+#ifdef USE_PPL
+    // If the first file has an absolute path, use it for IsSSD(),
+    // otherwise use the checksum file itself
+    bool bMultithreaded = phvctx->cTotal > 1 && IsSSD(
+        phvctx->index[0]->pszDisplayName[0] == TEXT('\\') ||
+        phvctx->index[0]->pszDisplayName[1] == TEXT(':') ?
+        phvctx->index[0]->pszDisplayName :
+        phvctx->pszPath);
+#else
+    bool bMultithreaded = false;
+#endif
+
+    PBYTE pbTheBuffer;  // filename/read buffer, used iff not multithreaded
+    if (!bMultithreaded)
+        pbTheBuffer = (PBYTE)VirtualAlloc(NULL, READ_BUFFER_SIZE, MEM_COMMIT, PAGE_READWRITE);
+
+    // Initialize the progress bar update synchronization vars
+    CRITICAL_SECTION updateCritSec;
+    volatile ULONGLONG cbCurrentMaxSize = 0;
+    if (bMultithreaded)
+        InitializeCriticalSection(&updateCritSec);
 
 	// We need to keep track of the thread's execution time so that we can do a
 	// sound notification of completion when appropriate
 	phvctx->dwStarted = GetTickCount();
 
-	// Initialize the path prefix length; used for building the full path
-	PTSTR pszPathTail = StrRChr(phvctx->pszPath, NULL, TEXT('\\'));
-	SIZE_T cchPathPrefix = (pszPathTail) ? pszPathTail + 1 - phvctx->pszPath : 0;
-
-	while (pItem = SLGetDataAndStep(phvctx->hList))
+    // concurrency::parallel_for_each(phvctx->index, phvctx->index + phvctx->cTotal, ...
+    auto per_file_worker = [&](PHASHVERIFYITEM pItem)
 	{
 		BOOL bSuccess;
 
+#ifdef USE_PPL
+        // Allocate a filename/read buffer (one buffer is cached per worker thread by Alloc/Free)
+        PBYTE pbBuffer = bMultithreaded ? (PBYTE)concurrency::Alloc(READ_BUFFER_SIZE) : pbTheBuffer;
+#else
+        PBYTE pbBuffer = pbTheBuffer;
+#endif
 		// Part 1: Build the path
 		{
 			SIZE_T cchPrefix = cchPathPrefix;
@@ -517,26 +552,34 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 			}
 
 			SSChainNCpy2(
-				phvctx->ex.pszPath,
+                (PTSTR)pbBuffer,
 				phvctx->pszPath, cchPrefix,
 				pItem->pszDisplayName, pItem->cchDisplayName
 			);
 		}
 
 		// Part 2: Calculate the checksum
+        WHCTXEX whctx;
+        whctx.flags = phvctx->whctxFlags;
 		WorkerThreadHashFile(
 			(PCOMMONCONTEXT)phvctx,
-			phvctx->ex.pszPath,
+            (PTSTR)pbBuffer,
 			&bSuccess,
-			&phvctx->whctx,
+			&whctx,
 			NULL,
-			phvctx->ex.pvBuffer,
+            pbBuffer,
 			&pItem->filesize,
-            NULL, NULL
+            pItem->nListviewIndex,
+            bMultithreaded ? &updateCritSec : NULL, &cbCurrentMaxSize
 #ifdef _TIMED
           , NULL
 #endif
         );
+
+#ifdef USE_PPL
+        if (bMultithreaded)
+            concurrency::Free(pbBuffer);
+#endif
 
         if (phvctx->status == PAUSED)
             WaitForSingleObject(phvctx->hUnpauseEvent, INFINITE);
@@ -546,11 +589,11 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 		// Part 3: Do something with the results
 		if (bSuccess)
 		{
-			switch (phvctx->whctx.flags)
+			switch (whctx.flags)
 			{
 #define HASH_VERIFY_COPY_RESULTS_op(alg)                                             \
                 case WHEX_CHECK##alg:                                                \
-					SSStaticCpy(pItem->szActual, phvctx->whctx.results.szHex##alg);  \
+					SSStaticCpy(pItem->szActual, whctx.results.szHex##alg);  \
 					break;
                 FOR_EACH_HASH(HASH_VERIFY_COPY_RESULTS_op)
 			}
@@ -568,7 +611,20 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 		// Part 4: Update the UI
 		++phvctx->cSentMsgs;
 		PostMessage(phvctx->hWnd, HM_WORKERTHREAD_UPDATE, (WPARAM)phvctx, (LPARAM)pItem);
-	}
+    };
+
+#ifdef USE_PPL
+    if (bMultithreaded)
+    {
+        concurrency::parallel_for_each(phvctx->index, phvctx->index + phvctx->cTotal, per_file_worker);
+        DeleteCriticalSection(&updateCritSec);
+    }
+    else
+#endif
+    {
+        std::for_each(phvctx->index, phvctx->index + phvctx->cTotal, per_file_worker);
+        VirtualFree(pbTheBuffer, 0, MEM_RELEASE);
+    }
 
 	// Play a sound to signal the normal, successful termination of operations,
 	// but exempt operations that were nearly instantaneous
@@ -600,7 +656,7 @@ INT_PTR CALLBACK HashVerifyDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 			HashVerifyDlgInit(phvctx);
 
-			phvctx->ex.pfnWorkerMain = HashVerifyWorkerMain;
+			phvctx->ex.pfnWorkerMain = (PFNWORKERMAIN)HashVerifyWorkerMain;
 			phvctx->hThread = CreateThreadCRT(NULL, phvctx);
 
 			if (!phvctx->hThread)
@@ -733,17 +789,9 @@ INT_PTR CALLBACK HashVerifyDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 		case HM_WORKERTHREAD_SETSIZE:
 		{
 			phvctx = (PHASHVERIFYCONTEXT)wParam;
-
-			// At the time we receive this message, cSentMsgs will be the ID of
-			// the item the worker thread is currently working on, and
-			// cHandledMsgs will be the ID of the item for which the SETSIZE
-			// message was intended for; we need to update the UI only if
-			// the worker thread is still working on this item when we process
-			// this message; otherwise, we can just wait for the UPDATE message.
-
-			if (phvctx->cSentMsgs == phvctx->cHandledMsgs)
-				ListView_RedrawItems(phvctx->hWndList, phvctx->cHandledMsgs, phvctx->cHandledMsgs);
-
+			assert(lParam < phvctx->cTotal && lParam >= 0);
+			if (phvctx->index[lParam]->bBeenSeen)
+				ListView_RedrawItems(phvctx->hWndList, lParam, lParam);
 			return(TRUE);
 		}
 	}
@@ -829,15 +877,15 @@ VOID WINAPI HashVerifyDlgInit( PHASHVERIFYCONTEXT phvctx )
 
 			if (rc.left == 0)
 			{
-                if (phvctx->whctx.flags & WHEX_ALL512)
+                if (phvctx->whctxFlags & WHEX_ALL512)
                     rc.left = 512 + 20;
-                else if (phvctx->whctx.flags & WHEX_ALL256)
+                else if (phvctx->whctxFlags & WHEX_ALL256)
                     rc.left = 256 + 20;
-                else if (phvctx->whctx.flags & WHEX_ALL160)
+                else if (phvctx->whctxFlags & WHEX_ALL160)
                     rc.left = 160 + 20;
-                else if (phvctx->whctx.flags & WHEX_ALL128)
+                else if (phvctx->whctxFlags & WHEX_ALL128)
                     rc.left = 128 + 20;
-                else if (phvctx->whctx.flags & WHEX_ALL32)
+                else if (phvctx->whctxFlags & WHEX_ALL32)
                     rc.left =  32 + 20 + 40;  // extra size to accommodate the header labels
 			}
 
@@ -896,8 +944,8 @@ VOID WINAPI HashVerifyUpdateSummary( PHASHVERIFYCONTEXT phvctx, PHASHVERIFYITEM 
 
 	// If this is not the initial update and we are lagging, and our update
 	// drought is not TOO long, then we should skip the update...
-	BOOL bUpdateUI = !(pItem && phvctx->cSentMsgs > phvctx->cHandledMsgs &&
-	                   phvctx->cHandledMsgs < phvctx->prev.idStartOfDirtyRange + phvctx->uMaxBatch);
+    UINT cUnhandledMsgs = phvctx->cSentMsgs - phvctx->cHandledMsgs;
+    BOOL bUpdateUI = pItem == NULL || cUnhandledMsgs == 0 || cUnhandledMsgs > phvctx->uMaxBatch;
 
 	// Update the list
 	if (pItem)
@@ -914,12 +962,12 @@ VOID WINAPI HashVerifyUpdateSummary( PHASHVERIFYCONTEXT phvctx, PHASHVERIFYITEM 
 				++phvctx->cUnreadable;
 		}
 
-		if (bUpdateUI)
+		if (pItem->bBeenSeen)
 		{
 			ListView_RedrawItems(
 				phvctx->hWndList,
-				phvctx->prev.idStartOfDirtyRange,
-				phvctx->cHandledMsgs - 1
+				pItem->nListviewIndex,
+				pItem->nListviewIndex
 			);
 		}
 	}
@@ -954,7 +1002,6 @@ VOID WINAPI HashVerifyUpdateSummary( PHASHVERIFYCONTEXT phvctx, PHASHVERIFYITEM 
 		SendMessage(phvctx->hWndPBTotal, PBM_SETPOS, phvctx->cHandledMsgs, 0);
 
 		// Now that we've updated the UI, update the prev structure
-		phvctx->prev.idStartOfDirtyRange = phvctx->cHandledMsgs;
 		phvctx->prev.cMatch = phvctx->cMatch;
 		phvctx->prev.cMismatch = phvctx->cMismatch;
 		phvctx->prev.cUnreadable = phvctx->cUnreadable;
@@ -965,7 +1012,7 @@ VOID WINAPI HashVerifyUpdateSummary( PHASHVERIFYCONTEXT phvctx, PHASHVERIFYITEM 
 	{
 		PCTSTR pszSubtitle = NULL;
 
-		switch (phvctx->whctx.flags)
+		switch (phvctx->whctxFlags)
 		{
 #define HASH_VERIFY_TITLE_op(alg)  \
 			case WHEX_CHECK##alg:  pszSubtitle = HASH_NAME_##alg;  break;
@@ -1011,6 +1058,8 @@ VOID WINAPI HashVerifyListInfo( PHASHVERIFYCONTEXT phvctx, LPNMLVDISPINFO pdi )
 			case HV_COL_ACTUAL:   pdi->item.pszText = pItem->szActual;                    break;
 			default:              pdi->item.pszText = TEXT("");                           break;
 		}
+        if (! pItem->bBeenSeen)
+            pItem->bBeenSeen = TRUE;
 	}
 
 	if (pdi->item.mask & LVIF_IMAGE)
@@ -1176,7 +1225,7 @@ VOID WINAPI HashVerifySortColumn( PHASHVERIFYCONTEXT phvctx, LPNMLISTVIEW plv )
 		// Change to a new column
 		phvctx->sort.iColumn = plv->iSubItem;
 		phvctx->sort.bReverse = FALSE;
-		qsort_s(phvctx->index, phvctx->cTotal, sizeof(PHVITEM), HashVerifySortCompare, phvctx);
+		qsort_s(phvctx->index, phvctx->cTotal, sizeof(PHVITEM), (int(__cdecl*)(void*, const void*, const void*))HashVerifySortCompare, phvctx);
 	}
 	else if (phvctx->sort.bReverse)
 	{
@@ -1191,7 +1240,7 @@ VOID WINAPI HashVerifySortColumn( PHASHVERIFYCONTEXT phvctx, LPNMLISTVIEW plv )
 		// extreme edge case, as it crops up only in an OOM situation where the
 		// user tries to click-sort an empty list view!
 		if (phvctx->index)
-			SLBuildIndex(phvctx->hList, phvctx->index);
+			SLBuildIndex(phvctx->hList, (PVOID*)phvctx->index);
 	}
 	else
 	{
@@ -1294,16 +1343,6 @@ VOID WINAPI HashVerifySetStates( PHASHVERIFYCONTEXT phvctx )
 	phvctx->bFreshStates = TRUE;
 }
 
-INT WINAPI Compare64( PLONGLONG p64A, PLONGLONG p64B )
-{
-	LARGE_INTEGER diff;
-	diff.QuadPart = *p64A - *p64B;
-	if (diff.HighPart)
-		return(diff.HighPart);
-	else
-		return(diff.LowPart > 0);
-}
-
 INT __cdecl HashVerifySortCompare( PHASHVERIFYCONTEXT phvctx, PPCHVITEM ppItemA, PPCHVITEM ppItemB )
 {
 	PHASHVERIFYITEM pItemA = *(PPHVITEM)ppItemA;
@@ -1315,7 +1354,7 @@ INT __cdecl HashVerifySortCompare( PHASHVERIFYCONTEXT phvctx, PPCHVITEM ppItemA,
 			return(StrCmpLogical(pItemA->pszDisplayName, pItemB->pszDisplayName));
 
 		case HV_COL_SIZE:
-			return(Compare64(&pItemA->filesize.ui64, &pItemB->filesize.ui64));
+			return(pItemA->filesize.ui64 < pItemB->filesize.ui64 ? -1 : (pItemA->filesize.ui64 == pItemB->filesize.ui64 ? 0 : 1));
 
 		case HV_COL_STATUS:
 			return((INT8)pItemA->uStatusID - (INT8)pItemB->uStatusID);

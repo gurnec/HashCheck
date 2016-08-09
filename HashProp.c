@@ -119,7 +119,7 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
 			&phpctx->whctx,
 			&pItem->results,
 			phpctx->ex.pvBuffer,
-			NULL, NULL, NULL
+			NULL, 0, NULL, NULL
 #ifdef _TIMED
           , &pItem->dwElapsed
 #endif

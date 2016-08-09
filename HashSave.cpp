@@ -16,10 +16,9 @@
 #include <Strsafe.h>
 #include <vector>
 #include <cassert>
+#include <algorithm>
 #ifdef USE_PPL
 #include <ppl.h>
-#else
-#include <algorithm>
 #endif
 
 // Control structures, from HashCalc.h
@@ -157,18 +156,21 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
     vecpItems.pop_back();
     assert(vecpItems.back() != nullptr);
 
+#ifdef USE_PPL
     bool bMultithreaded = vecpItems.size() > 1 && IsSSD(vecpItems[0]->szPath);
+#else
+    bool bMultithreaded = false;
+#endif
+
     PBYTE pbTheBuffer;  // file read buffer, used iff not multithreaded
+    if (!bMultithreaded)
+        pbTheBuffer = (PBYTE)VirtualAlloc(NULL, READ_BUFFER_SIZE, MEM_COMMIT, PAGE_READWRITE);
 
     // Initialize the progress bar update synchronization vars
     CRITICAL_SECTION updateCritSec;
     volatile ULONGLONG cbCurrentMaxSize = 0;
-#ifdef USE_PPL
     if (bMultithreaded)
         InitializeCriticalSection(&updateCritSec);
-    else
-#endif
-        pbTheBuffer = (PBYTE)VirtualAlloc(NULL, READ_BUFFER_SIZE, MEM_COMMIT, PAGE_READWRITE);
 
 #ifdef _TIMED
     DWORD dwStarted;
@@ -198,7 +200,7 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 			&whctx,
 			&pItem->results,
             pbBuffer,
-			NULL,
+			NULL, 0,
             bMultithreaded ? &updateCritSec : NULL, &cbCurrentMaxSize
 #ifdef _TIMED
           , &pItem->dwElapsed
@@ -228,7 +230,7 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
         concurrency::parallel_for_each(vecpItems.cbegin(), vecpItems.cend(), per_file_worker);
     else
 #endif
-        for_each(vecpItems.cbegin(), vecpItems.cend(), per_file_worker);
+        std::for_each(vecpItems.cbegin(), vecpItems.cend(), per_file_worker);
 
 #ifdef _TIMED
     if (phsctx->cTotal > 1 && phsctx->status != CANCEL_REQUESTED)
@@ -251,11 +253,9 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
     }
 #endif
 
-#ifdef USE_PPL
     if (bMultithreaded)
         DeleteCriticalSection(&updateCritSec);
     else
-#endif
         VirtualFree(pbTheBuffer, 0, MEM_RELEASE);
 }
 

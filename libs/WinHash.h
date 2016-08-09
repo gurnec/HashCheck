@@ -71,16 +71,13 @@ enum hash_algorithm {
 #define DEFAULT_HASH_ALGORITHMS (WHEX_CHECKCRC32 | WHEX_CHECKSHA1 | WHEX_CHECKSHA256 | WHEX_CHECKSHA512)
 
 // Bitwise representation of the hash algorithms
-// (up to 8 hashes is OK before WHCTXEX.flags needs a wider type)
+// (up to 8 hashes is OK before WHCTXEX.flags and HASHVERIFYCONTEXT.whctxFlags need a wider types)
 #define WHEX_CHECKCRC32     (1UL << (CRC32  - 1))
 #define WHEX_CHECKMD5       (1UL << (MD5    - 1))
 #define WHEX_CHECKSHA1      (1UL << (SHA1   - 1))
 #define WHEX_CHECKSHA256    (1UL << (SHA256 - 1))
 #define WHEX_CHECKSHA512    (1UL << (SHA512 - 1))
 #define WHEX_CHECKLAST      WHEX_CHECKSHA512
-#if WHEX_CHECKLAST > 128UL
-#error type of WHCTXEX.flags must be widened (and also check typecasts in HashCheckOptions.c)
-#endif
 
 // Bitwise representation of the hash algorithms, by digest length (in bits)
 #define WHEX_ALL            ((1UL << NUM_HASHES) - 1)

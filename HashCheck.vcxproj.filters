@@ -36,9 +36,6 @@
     <ClCompile Include="HashProp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HashVerify.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="HashCheckOptions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -82,6 +79,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="IsSSD.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HashVerify.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -271,7 +271,7 @@
     <ClCompile Include="HashCheckOptions.c" />
     <ClCompile Include="HashProp.c" />
     <ClCompile Include="HashSave.cpp" />
-    <ClCompile Include="HashVerify.c" />
+    <ClCompile Include="HashVerify.cpp" />
     <ClCompile Include="libs\crc32.c" />
     <ClCompile Include="libs\IsFontAvailable.c" />
     <ClCompile Include="libs\md5.c" />

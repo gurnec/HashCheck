@@ -332,7 +332,8 @@ __inline VOID UpdateProgressBar( HWND hWndPBFile, PCRITICAL_SECTION pCritSec,
 }
 
 VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL pbSuccess,
-                                  PWHCTXEX pwhctx, PWHRESULTEX pwhres, PBYTE pbuffer, PFILESIZE pFileSize,
+                                  PWHCTXEX pwhctx, PWHRESULTEX pwhres, PBYTE pbuffer,
+                                  PFILESIZE pFileSize, LPARAM lParam,
                                   PCRITICAL_SECTION pUpdateCritSec, volatile ULONGLONG* pcbCurrentMaxSize
 #ifdef _TIMED
                                 , PDWORD pdwElapsed
@@ -374,12 +375,13 @@ VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL 
 			     bCurrentlyUpdating = FALSE;
 
 			// If the caller provides a way to return the file size, then set
-			// the file size and send a SETSIZE notification
+			// the file size; send a SETSIZE notification only if it was "big"
 			if (pFileSize)
 			{
 				pFileSize->ui64 = cbFileSize;
 				StrFormatKBSize(cbFileSize, pFileSize->sz, countof(pFileSize->sz));
-				PostMessage(pcmnctx->hWnd, HM_WORKERTHREAD_SETSIZE, (WPARAM)pcmnctx, (LPARAM)pFileSize);
+				if (cbFileSize > READ_BUFFER_SIZE)
+				    PostMessage(pcmnctx->hWnd, HM_WORKERTHREAD_SETSIZE, (WPARAM)pcmnctx, lParam != -1 ? lParam : (LPARAM)pFileSize);
 			}
 #ifdef _TIMED
             DWORD dwStarted;

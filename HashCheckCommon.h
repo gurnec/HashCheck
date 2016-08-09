@@ -108,7 +108,8 @@ VOID WINAPI WorkerThreadCleanup( PCOMMONCONTEXT pcmnctx );
 // Worker thread functions
 DWORD WINAPI WorkerThreadStartup( PCOMMONCONTEXT pcmnctx );
 VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL pbSuccess,
-                                  PWHCTXEX pwhctx, PWHRESULTEX pwhres, PBYTE pbuffer, PFILESIZE pFileSize,
+                                  PWHCTXEX pwhctx, PWHRESULTEX pwhres, PBYTE pbuffer,
+                                  PFILESIZE pFileSize, LPARAM lParam,
                                   PCRITICAL_SECTION pUpdateCritSec, volatile ULONGLONG* pcbCurrentMaxSize
 #ifdef _TIMED
                                 , PDWORD pdwElapsed
