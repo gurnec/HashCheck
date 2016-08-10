@@ -18,6 +18,9 @@
 // device with a fast seek time; errs on the side of not-on-an-SSD
 BOOL IsSSD(LPCWCH lpszPath)
 {
+#ifdef FORCE_PPL
+    return(TRUE);
+#endif
     TCHAR szMountPoint[MAX_PATH];
     if (! GetVolumePathName(lpszPath, szMountPoint, MAX_PATH))
         return(FALSE);

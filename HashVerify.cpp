@@ -91,7 +91,7 @@ typedef struct {
 	HWND               hWndPBFile;   // cache of the IDC_PROG_FILE progress bar handle
 	HANDLE             hThread;      // handle of the worker thread
 	HANDLE             hUnpauseEvent;// handle of the event which signals when unpaused
-	WORKERTHREADEXTRA  ex;           // extra parameter with varying uses
+	PFNWORKERMAIN      pfnWorkerMain;// worker function executed by the (non-GUI) thread
 	// Members specific to HashVerify
 	HWND               hWndList;     // handle of the list
 	HSIMPLELIST        hList;        // where we store all the data
@@ -506,18 +506,22 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 #ifdef USE_PPL
     // If the first file has an absolute path, use it for IsSSD(),
     // otherwise use the checksum file itself
-    bool bMultithreaded = phvctx->cTotal > 1 && IsSSD(
+    const bool bMultithreaded = phvctx->cTotal > 1 && IsSSD(
         phvctx->index[0]->pszDisplayName[0] == TEXT('\\') ||
         phvctx->index[0]->pszDisplayName[1] == TEXT(':') ?
         phvctx->index[0]->pszDisplayName :
         phvctx->pszPath);
 #else
-    bool bMultithreaded = false;
+    constexpr bool bMultithreaded = false;
 #endif
 
     PBYTE pbTheBuffer;  // filename/read buffer, used iff not multithreaded
-    if (!bMultithreaded)
+    if (! bMultithreaded)
+    {
         pbTheBuffer = (PBYTE)VirtualAlloc(NULL, READ_BUFFER_SIZE, MEM_COMMIT, PAGE_READWRITE);
+        if (pbTheBuffer == NULL)
+            return;
+    }
 
     // Initialize the progress bar update synchronization vars
     CRITICAL_SECTION updateCritSec;
@@ -534,12 +538,19 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 	{
 		BOOL bSuccess;
 
+        PBYTE pbBuffer;
 #ifdef USE_PPL
-        // Allocate a filename/read buffer (one buffer is cached per worker thread by Alloc/Free)
-        PBYTE pbBuffer = bMultithreaded ? (PBYTE)concurrency::Alloc(READ_BUFFER_SIZE) : pbTheBuffer;
-#else
-        PBYTE pbBuffer = pbTheBuffer;
+        if (bMultithreaded)
+        {
+            // Allocate a read buffer (one buffer is cached per worker thread by Alloc/Free)
+            pbBuffer = (PBYTE)concurrency::Alloc(READ_BUFFER_SIZE);
+            if (pbBuffer == NULL)
+                return;
+        }
+        else
 #endif
+            pbBuffer = pbTheBuffer;
+
 		// Part 1: Build the path
 		{
 			SIZE_T cchPrefix = cchPathPrefix;
@@ -656,7 +667,7 @@ INT_PTR CALLBACK HashVerifyDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 			HashVerifyDlgInit(phvctx);
 
-			phvctx->ex.pfnWorkerMain = (PFNWORKERMAIN)HashVerifyWorkerMain;
+			phvctx->pfnWorkerMain = (PFNWORKERMAIN)HashVerifyWorkerMain;
 			phvctx->hThread = CreateThreadCRT(NULL, phvctx);
 
 			if (!phvctx->hThread)

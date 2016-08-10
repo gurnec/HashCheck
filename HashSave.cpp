@@ -157,14 +157,18 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
     assert(vecpItems.back() != nullptr);
 
 #ifdef USE_PPL
-    bool bMultithreaded = vecpItems.size() > 1 && IsSSD(vecpItems[0]->szPath);
+    const bool bMultithreaded = vecpItems.size() > 1 && IsSSD(vecpItems[0]->szPath);
 #else
-    bool bMultithreaded = false;
+    constexpr bool bMultithreaded = false;
 #endif
 
     PBYTE pbTheBuffer;  // file read buffer, used iff not multithreaded
-    if (!bMultithreaded)
+    if (! bMultithreaded)
+    {
         pbTheBuffer = (PBYTE)VirtualAlloc(NULL, READ_BUFFER_SIZE, MEM_COMMIT, PAGE_READWRITE);
+        if (pbTheBuffer == NULL)
+            return;
+    }
 
     // Initialize the progress bar update synchronization vars
     CRITICAL_SECTION updateCritSec;
@@ -185,13 +189,19 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
         // Indicate which hash type we are after, see WHEX... values in WinHash.h
         whctx.flags = 1 << (phsctx->ofn.nFilterIndex - 1);
 
+        PBYTE pbBuffer;
 #ifdef USE_PPL
-        // Allocate a read buffer (one buffer is cached per worker thread by Alloc/Free)
-        PBYTE pbBuffer = bMultithreaded ? (PBYTE)concurrency::Alloc(READ_BUFFER_SIZE) : pbTheBuffer;
-#else
-        PBYTE pbBuffer = pbTheBuffer;
+        if (bMultithreaded)
+        {
+            // Allocate a read buffer (one buffer is cached per worker thread by Alloc/Free)
+            pbBuffer = (PBYTE)concurrency::Alloc(READ_BUFFER_SIZE);
+            if (pbBuffer == NULL)
+                return;
+        }
 #endif
 
+#pragma warning(push)
+#pragma warning(disable: 4700 4703)  // potentially uninitialized local pointer variable 'pbBuffer' used
 		// Get the hash
 		WorkerThreadHashFile(
 			(PCOMMONCONTEXT)phsctx,
@@ -199,7 +209,7 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 			&pItem->bValid,
 			&whctx,
 			&pItem->results,
-            pbBuffer,
+            bMultithreaded ? pbBuffer : pbTheBuffer,
 			NULL, 0,
             bMultithreaded ? &updateCritSec : NULL, &cbCurrentMaxSize
 #ifdef _TIMED
@@ -224,6 +234,7 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 		InterlockedIncrement(&phsctx->cSentMsgs);
 		PostMessage(phsctx->hWnd, HM_WORKERTHREAD_UPDATE, (WPARAM)phsctx, (LPARAM)pItem);
     };
+#pragma warning(pop)
 
 #ifdef USE_PPL
     if (bMultithreaded)
@@ -283,7 +294,7 @@ INT_PTR CALLBACK HashSaveDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 			HashSaveDlgInit(phsctx);
 
-			phsctx->ex.pfnWorkerMain = (PFNWORKERMAIN)HashSaveWorkerMain;
+			phsctx->pfnWorkerMain = (PFNWORKERMAIN)HashSaveWorkerMain;
 			phsctx->hThread = CreateThreadCRT(NULL, phsctx);
 
 			if (!phsctx->hThread || WaitForSingleObject(phsctx->hThread, 1000) != WAIT_TIMEOUT)

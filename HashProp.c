@@ -102,7 +102,13 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
 
 	// Indicate which hash types we want to calculate
     // (this is loaded earlier in HashPropDlgInit())
-    phpctx->whctx.flags = (UINT8)phpctx->opt.dwChecksums;
+    WHCTXEX whctx;
+    whctx.flags = (UINT8)phpctx->opt.dwChecksums;
+
+    // Read buffer
+    PBYTE pbBuffer = (PBYTE)VirtualAlloc(NULL, READ_BUFFER_SIZE, MEM_COMMIT, PAGE_READWRITE);
+    if (pbBuffer == NULL)
+        return;
 
 #ifdef _TIMED
     DWORD dwStarted;
@@ -116,9 +122,9 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
 			(PCOMMONCONTEXT)phpctx,
 			pItem->szPath,
 			&pItem->bValid,
-			&phpctx->whctx,
+			&whctx,
 			&pItem->results,
-			phpctx->ex.pvBuffer,
+			pbBuffer,
 			NULL, 0, NULL, NULL
 #ifdef _TIMED
           , &pItem->dwElapsed
@@ -128,7 +134,7 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
         if (phpctx->status == PAUSED)
             WaitForSingleObject(phpctx->hUnpauseEvent, INFINITE);
 		if (phpctx->status == CANCEL_REQUESTED)
-			return;
+			break;
 
 		// Update the UI
 		++phpctx->cSentMsgs;
@@ -137,6 +143,7 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
 #ifdef _TIMED
     phpctx->dwElapsed = GetTickCount() - dwStarted;
 #endif
+    VirtualFree(pbBuffer, 0, MEM_RELEASE);
 }
 
 
@@ -161,7 +168,7 @@ INT_PTR CALLBACK HashPropDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 			HashPropDlgInit(phpctx);
 
-			phpctx->ex.pfnWorkerMain = HashPropWorkerMain;
+			phpctx->pfnWorkerMain = HashPropWorkerMain;
 			phpctx->hThread = CreateThreadCRT(NULL, phpctx);
 
 			if (!phpctx->hThread)
@@ -601,7 +608,7 @@ VOID WINAPI HashPropUpdateResults( PHASHPROPCONTEXT phpctx, PHASHPROPITEM pItem 
         // Copy the results
         PTSTR pszScratchBeforeResults = pszScratchAppend;
 #define HASH_RESULT_APPEND_op(alg)                                                  \
-        if (phpctx->whctx.flags & WHEX_CHECK##alg)                                  \
+        if (phpctx->opt.dwChecksums & WHEX_CHECK##alg)                              \
             pszScratchAppend = SSChainNCpy3(                                        \
                 pszScratchAppend,                                                   \
                 HASH_RESULT_op(alg), sizeof(HASH_RESULT_op(alg))/sizeof(TCHAR) - 1, /* the "- 1" excludes the terminating NUL */ \

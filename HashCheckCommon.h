@@ -61,13 +61,6 @@ typedef volatile enum {
 	CLEANUP_COMPLETED
 } WORKERTHREADSTATUS, *PWORKERTHREADSTATUS;
 
-// Extra worker thread parameters: start function address and read buffer
-typedef union {
-	PFNWORKERMAIN pfnWorkerMain;
-	PVOID pvBuffer;
-	PTSTR pszPath;
-} WORKERTHREADEXTRA, *PWORKERTHREADEXTRA;
-
 // Worker thread context; all other contexts must start with this
 typedef struct {
 	WORKERTHREADSTATUS status;       // thread status
@@ -79,7 +72,7 @@ typedef struct {
 	HWND               hWndPBFile;   // cache of the IDC_PROG_FILE progress bar handle
 	HANDLE             hThread;      // handle of the worker thread
 	HANDLE             hUnpauseEvent;// handle of the event which signals when unpaused
-	WORKERTHREADEXTRA  ex;           // extra parameter with varying uses
+	PFNWORKERMAIN      pfnWorkerMain;// worker function executed by the (non-GUI) thread
 } COMMONCONTEXT, *PCOMMONCONTEXT;
 
 // File size

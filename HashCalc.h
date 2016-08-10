@@ -65,7 +65,7 @@ typedef struct {
 	HWND               hWndPBFile;   // cache of the IDC_PROG_FILE progress bar handle
 	HANDLE             hThread;      // handle of the worker thread
 	HANDLE             hUnpauseEvent;// handle of the event which signals when unpaused
-	WORKERTHREADEXTRA  ex;           // extra parameter with varying uses
+	PFNWORKERMAIN      pfnWorkerMain;// worker function executed by the (non-GUI) thread
 	// Members specific to HashCalc
 	HSIMPLELIST        hListRaw;     // data from IShellExtInit
 	HSIMPLELIST        hList;        // our expanded/processed data
@@ -84,7 +84,6 @@ typedef struct {
 	HASHCHECKOPTIONS   opt;          // HashCheck settings
 	OPENFILENAME       ofn;          // struct used for the save dialog; this needs to persist
 	TCHAR              szFormat[20]; // output format for wnsprintf
-	WHCTXEX            whctx;        // context for the WinHash library
 	UINT               obScratch;    // offset, in bytes, to the scratch, for update coalescing
 	HASHCALCSCRATCH    scratch;      // scratch buffers
 } HASHCALCCONTEXT, *PHASHCALCCONTEXT;
@@ -97,9 +96,8 @@ typedef struct {
 #ifdef _TIMED
 	DWORD dwElapsed;                 // time in ms taken to compute all hashes of one file
 #endif
-#pragma warning(disable: 4200)      // nonstandard zero-sized array when compiling as C++
+#pragma warning(suppress: 4200)      // nonstandard zero-sized array when compiling as C++
 	TCHAR szPath[];                  // unaltered path
-#pragma warning(default: 4200)
 } HASHCALCITEM, *PHASHCALCITEM;
 
 // Public functions

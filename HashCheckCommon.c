@@ -244,17 +244,9 @@ VOID WINAPI WorkerThreadCleanup( PCOMMONCONTEXT pcmnctx )
 
 DWORD WINAPI WorkerThreadStartup( PCOMMONCONTEXT pcmnctx )
 {
-	// Exchange the WORKERTHREADEXTRA member
-	PFNWORKERMAIN pfnWorkerMain = pcmnctx->ex.pfnWorkerMain;
-	pcmnctx->ex.pvBuffer = VirtualAlloc(NULL, READ_BUFFER_SIZE, MEM_COMMIT, PAGE_READWRITE);
-
     pcmnctx->hUnpauseEvent = CreateEvent(NULL, TRUE, TRUE, NULL);
 
-	if (pcmnctx->ex.pvBuffer)
-	{
-		pfnWorkerMain(pcmnctx);
-		VirtualFree(pcmnctx->ex.pvBuffer, 0, MEM_RELEASE);
-	}
+    pcmnctx->pfnWorkerMain(pcmnctx);
 
 	pcmnctx->status = INACTIVE;
 
