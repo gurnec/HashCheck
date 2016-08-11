@@ -1,4 +1,4 @@
-SetCompressor /FINAL /SOLID lzma
+﻿SetCompressor /FINAL /SOLID lzma
 
 !include MUI2.nsh
 !include x64.nsh
@@ -59,7 +59,7 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductVersion" "2.3.5.22"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" "Installer distributed from https://github.com/gurnec/HashCheck/releases"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" ""
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalTrademarks" ""
-VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "Copyright � Kai Liu, Christopher Gurnee, Tim Schlueter, et al. All rights reserved."
+VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "Copyright © Kai Liu, Christopher Gurnee, Tim Schlueter, et al. All rights reserved."
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "Installer (x86/x64) from https://github.com/gurnec/HashCheck/releases"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "2.3.5.22"
 
