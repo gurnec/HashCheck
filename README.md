@@ -1,5 +1,7 @@
 # HashCheck Shell Extension #
 
+[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/gurnec/HashCheck?branch=master&svg=true)](https://ci.appveyor.com/project/gurnec/HashCheck)
+
 ### Installation ###
 
 The latest installer for Windows (Vista and later) can be found here:  
