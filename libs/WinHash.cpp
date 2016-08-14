@@ -115,8 +115,8 @@ PTSTR WHAPI WHByteToHex( PBYTE pbSrc, PTSTR pszDest, UINT cchHex, UINT8 uCaseMod
 
 VOID WHAPI WHInitEx( PWHCTXEX pContext )
 {
-#define WIN_HASH_INIT_op(alg)               \
-    if (pContext->flags & WHEX_CHECK##alg)  \
+#define WIN_HASH_INIT_op(alg)                 \
+    if (pContext->dwFlags & WHEX_CHECK##alg)  \
         WHInit##alg(&pContext->ctx##alg);
     FOR_EACH_HASH(WIN_HASH_INIT_op)
 }
@@ -127,8 +127,8 @@ VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn )
     if (cbIn > 384u) {  // determined experimentally--smaller than this and multithreading doesn't help, but ymmv
 
         int cTasks = 0;
-#define WIN_HASH_UPDATE_COUNT_op(alg)           \
-        if (pContext->flags & WHEX_CHECK##alg)  \
+#define WIN_HASH_UPDATE_COUNT_op(alg)             \
+        if (pContext->dwFlags & WHEX_CHECK##alg)  \
             cTasks++;
         FOR_EACH_HASH(WIN_HASH_UPDATE_COUNT_op)
 
@@ -141,8 +141,8 @@ VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn )
 
             concurrency::structured_task_group hashing_task_group;
 
-#define WIN_HASH_UPDATE_RUN_TASK_op(alg)            \
-            if (pContext->flags & WHEX_CHECK##alg)  \
+#define WIN_HASH_UPDATE_RUN_TASK_op(alg)              \
+            if (pContext->dwFlags & WHEX_CHECK##alg)  \
                 hashing_task_group.run(task_WHUpdate##alg);
             FOR_EACH_HASH_R(WIN_HASH_UPDATE_RUN_TASK_op)
 
@@ -152,22 +152,21 @@ VOID WHAPI WHUpdateEx( PWHCTXEX pContext, PCBYTE pbIn, UINT cbIn )
     }
 #endif
 
-#define WIN_HASH_UPDATE_RUN_op(alg)         \
-    if (pContext->flags & WHEX_CHECK##alg)  \
+#define WIN_HASH_UPDATE_RUN_op(alg)           \
+    if (pContext->dwFlags & WHEX_CHECK##alg)  \
         WHUpdate##alg(&pContext->ctx##alg, pbIn, cbIn);
     FOR_EACH_HASH(WIN_HASH_UPDATE_RUN_op)
 }
 
 VOID WHAPI WHFinishEx( PWHCTXEX pContext, PWHRESULTEX pResults )
 {
-	if (pResults == NULL)
-		pResults = &pContext->results;
-
-#define WIN_HASH_FINISH_op(alg)              \
-    if (pContext->flags & WHEX_CHECK##alg)   \
-    {                                        \
-        WHFinish##alg(&pContext->ctx##alg);  \
+#define WIN_HASH_FINISH_op(alg)               \
+    if (pContext->dwFlags & WHEX_CHECK##alg)  \
+    {                                         \
+        WHFinish##alg(&pContext->ctx##alg);   \
         WHByteToHex(pContext->ctx##alg.result, pResults->szHex##alg, alg##_DIGEST_LENGTH * 2, pContext->uCaseMode);  \
     }
     FOR_EACH_HASH(WIN_HASH_FINISH_op)
+
+    pResults->dwFlags |= pContext->dwFlags;
 }

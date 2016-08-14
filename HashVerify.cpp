@@ -107,7 +107,7 @@ typedef struct {
 	DWORD              dwStarted;    // GetTickCount() start time
 	HASHVERIFYPREV     prev;         // previous update data, used for update coalescing
 	UINT               uMaxBatch;    // maximum number of updates to coalesce
-    UINT8              whctxFlags;   // WinHash library flags (which checksums to use)
+    DWORD              whctxFlags;   // WinHash library dwFlags (which checksums to use)
 	TCHAR              szStatus[4][MAX_STRINGRES];
 } HASHVERIFYCONTEXT, *PHASHVERIFYCONTEXT;
 
@@ -536,8 +536,6 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
     // concurrency::parallel_for_each(phvctx->index, phvctx->index + phvctx->cTotal, ...
     auto per_file_worker = [&](PHASHVERIFYITEM pItem)
 	{
-		BOOL bSuccess;
-
         PBYTE pbBuffer;
 #ifdef USE_PPL
         if (bMultithreaded)
@@ -571,13 +569,14 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 
 		// Part 2: Calculate the checksum
         WHCTXEX whctx;
-        whctx.flags = phvctx->whctxFlags;
+        WHRESULTEX whres;
+        whctx.dwFlags = phvctx->whctxFlags;
+        whres.dwFlags = 0;
 		WorkerThreadHashFile(
 			(PCOMMONCONTEXT)phvctx,
             (PTSTR)pbBuffer,
-			&bSuccess,
 			&whctx,
-			NULL,
+			&whres,
             pbBuffer,
 			&pItem->filesize,
             pItem->nListviewIndex,
@@ -598,13 +597,13 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 			return;
 
 		// Part 3: Do something with the results
-		if (bSuccess)
+		if (whres.dwFlags)
 		{
-			switch (whctx.flags)
+			switch (whres.dwFlags)
 			{
 #define HASH_VERIFY_COPY_RESULTS_op(alg)                                             \
                 case WHEX_CHECK##alg:                                                \
-					SSStaticCpy(pItem->szActual, whctx.results.szHex##alg);  \
+					SSStaticCpy(pItem->szActual, whres.szHex##alg);  \
 					break;
                 FOR_EACH_HASH(HASH_VERIFY_COPY_RESULTS_op)
 			}
@@ -800,7 +799,7 @@ INT_PTR CALLBACK HashVerifyDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 		case HM_WORKERTHREAD_SETSIZE:
 		{
 			phvctx = (PHASHVERIFYCONTEXT)wParam;
-			assert(lParam < phvctx->cTotal && lParam >= 0);
+			assert(lParam >= 0 && (UINT)lParam < phvctx->cTotal);
 			if (phvctx->index[lParam]->bBeenSeen)
 				ListView_RedrawItems(phvctx->hWndList, lParam, lParam);
 			return(TRUE);
@@ -939,6 +938,8 @@ VOID WINAPI HashVerifyDlgInit( PHASHVERIFYCONTEXT phvctx )
 	{
 		phvctx->uMaxBatch = (phvctx->cTotal < (0x20 << 8)) ? 0x20 : phvctx->cTotal >> 8;
 		phvctx->dwStarted = 0;
+        phvctx->hThread = NULL;
+        phvctx->hUnpauseEvent = NULL;
 	}
 }
 

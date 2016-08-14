@@ -1,7 +1,8 @@
 /**
  * SimpleList Library
- * Last modified: 2009/01/04
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Last modified: 2016/08/12
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2016 Christopher Gurnee.  All rights reserved.
  **/
 
 #include "WinIntrinsics.h"
@@ -26,7 +27,7 @@ typedef struct {
 	PVOID pvContext;        // optional user context data associated with this list
 	PSLITEM pItemStart;     // the first item; NULL if list is empty
 	PSLITEM pItemCurrent;   // the current item (used only by read/step)
-	PSLITEM pItemLast;      // the last item; NULL if list is empty (used only by add)
+	PSLITEM pItemLast;      // the last item; NULL if list is empty (used by add and GetDataLast)
 	PSLITEM pItemNew;       // the tail (used only by add)
 	PSLBLOCK pBlockCurrent; // the current block to which new items will be added
 	UINT cbRemaining;       // bytes remaining in the current block
@@ -259,6 +260,7 @@ BOOL SLFAPI SLStep( HSIMPLELIST hSimpleList )
  * SLGetDataEx
  * SLGetDataAndStep
  * SLGetDataAndStepEx
+ * SLGetDataLast
  **/
 
 PVOID SLFAPI SLGetData( HSIMPLELIST hSimpleList )
@@ -315,6 +317,19 @@ PVOID SLFAPI SLGetDataAndStepEx( HSIMPLELIST hSimpleList, PUINT pcbData )
 	}
 
 	return(NULL);
+}
+
+PVOID SLFAPI SLGetDataLast(HSIMPLELIST hSimpleList)
+{
+    CONST PSLHEADER pHeader = (PSLHEADER)hSimpleList;
+
+    if (pHeader && pHeader->pItemLast)
+    {
+        PVOID pvData = pHeader->pItemLast->data;
+        return(pvData);
+    }
+
+    return(NULL);
 }
 
 /**

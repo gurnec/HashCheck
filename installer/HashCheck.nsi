@@ -53,15 +53,15 @@ FunctionEnd
 !insertmacro MUI_LANGUAGE "Ukrainian"
 !insertmacro MUI_LANGUAGE "Catalan"
 
-VIProductVersion "2.3.5.22"
+VIProductVersion "2.3.6.23"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "HashCheck Shell Extension"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductVersion" "2.3.5.22"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductVersion" "2.3.6.23"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" "Installer distributed from https://github.com/gurnec/HashCheck/releases"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" ""
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalTrademarks" ""
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "Copyright © Kai Liu, Christopher Gurnee, Tim Schlueter, et al. All rights reserved."
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "Installer (x86/x64) from https://github.com/gurnec/HashCheck/releases"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "2.3.5.22"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "2.3.6.23"
 
 ; With solid compression, files that are required before the
 ; actual installation should be stored first in the data block,
@@ -129,7 +129,9 @@ Section
 
     abort_on_error:
         Delete $0
+        IfSilent +2
         MessageBox MB_ICONSTOP|MB_OK "An unexpected error occurred during installation"
+        Quit
 
 SectionEnd
 

@@ -28,6 +28,8 @@ HANDLE __fastcall CreateThreadCRT( PVOID pThreadProc, PVOID pvParam )
 		pcmnctx->cHandledMsgs = 0;
 		pcmnctx->hWndPBTotal = GetDlgItem(pcmnctx->hWnd, IDC_PROG_TOTAL);
 		pcmnctx->hWndPBFile = GetDlgItem(pcmnctx->hWnd, IDC_PROG_FILE);
+        if (pcmnctx->hUnpauseEvent == NULL)
+            pcmnctx->hUnpauseEvent = CreateEvent(NULL, TRUE, TRUE, NULL);
 		SendMessage(pcmnctx->hWndPBFile, PBM_SETRANGE, 0, MAKELPARAM(0, PROGRESS_BAR_STEPS));
 
 		pThreadProc = WorkerThreadStartup;
@@ -138,7 +140,8 @@ VOID WINAPI SetProgressBarPause( PCOMMONCONTEXT pcmnctx, WPARAM iState )
 		// Vista's progress bar is buggy--if you pause it while it is animating,
 		// the color will not change (but it will stop animating), so it may
 		// be necessary to send another PBM_SETSTATE to get it right
-		SetTimer(pcmnctx->hWnd, TIMER_ID_PAUSE, 750, NULL);
+        if (iState == PBST_PAUSED)
+            SetTimer(pcmnctx->hWnd, TIMER_ID_PAUSE, 750, NULL);
 	}
 }
 
@@ -188,7 +191,7 @@ VOID WINAPI WorkerThreadStop( PCOMMONCONTEXT pcmnctx )
     }
 
 	// Disable the control buttons
-	if (!(pcmnctx->dwFlags & HCF_EXIT_PENDING))
+	if (! (pcmnctx->dwFlags & (HCF_EXIT_PENDING | HCF_RESTARTING)))
 	{
 		EnableWindow(GetDlgItem(pcmnctx->hWnd, IDC_PAUSE), FALSE);
 		EnableWindow(GetDlgItem(pcmnctx->hWnd, IDC_STOP), FALSE);
@@ -203,11 +206,11 @@ VOID WINAPI WorkerThreadCleanup( PCOMMONCONTEXT pcmnctx )
 	// There are only two times this function gets called:
 	// Case 1: The worker thread has exited on its own, and this function
 	// was invoked in response to the thread's exit notification.
-	// Case 2: A forced abort was requested (app exit, system shutdown, etc.),
+	// Case 2: A forced abort was requested (app exit, settings change, etc.),
 	// where this is called right after calling WorkerThreadStop to signal the
 	// thread to exit.
 
-	if (pcmnctx->hThread)
+	if (pcmnctx->hThread != NULL)
 	{
 		if (pcmnctx->status != INACTIVE)
 		{
@@ -220,12 +223,19 @@ VOID WINAPI WorkerThreadCleanup( PCOMMONCONTEXT pcmnctx )
 		}
 
 		CloseHandle(pcmnctx->hThread);
-        CloseHandle(pcmnctx->hUnpauseEvent);
+        pcmnctx->hThread = NULL;
 	}
+
+    // If we're done with the Unpause event and it's open, close it
+    if (!(pcmnctx->dwFlags & HCF_RESTARTING) && pcmnctx->hUnpauseEvent != NULL)
+    {
+        CloseHandle(pcmnctx->hUnpauseEvent);
+        pcmnctx->hUnpauseEvent = NULL;
+    }
 
 	pcmnctx->status = CLEANUP_COMPLETED;
 
-	if (!(pcmnctx->dwFlags & HCF_EXIT_PENDING))
+	if (! (pcmnctx->dwFlags & (HCF_EXIT_PENDING | HCF_RESTARTING)))
 	{
 		static const UINT16 arCtrls[] =
 		{
@@ -244,13 +254,11 @@ VOID WINAPI WorkerThreadCleanup( PCOMMONCONTEXT pcmnctx )
 
 DWORD WINAPI WorkerThreadStartup( PCOMMONCONTEXT pcmnctx )
 {
-    pcmnctx->hUnpauseEvent = CreateEvent(NULL, TRUE, TRUE, NULL);
-
     pcmnctx->pfnWorkerMain(pcmnctx);
 
 	pcmnctx->status = INACTIVE;
 
-	if (!(pcmnctx->dwFlags & HCF_EXIT_PENDING))
+	if (! (pcmnctx->dwFlags & (HCF_EXIT_PENDING | HCF_RESTARTING)))
 		PostMessage(pcmnctx->hWnd, HM_WORKERTHREAD_DONE, (WPARAM)pcmnctx, 0);
 
 	return(0);
@@ -323,7 +331,7 @@ __inline VOID UpdateProgressBar( HWND hWndPBFile, PCRITICAL_SECTION pCritSec,
     }
 }
 
-VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL pbSuccess,
+VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath,
                                   PWHCTXEX pwhctx, PWHRESULTEX pwhres, PBYTE pbuffer,
                                   PFILESIZE pFileSize, LPARAM lParam,
                                   PCRITICAL_SECTION pUpdateCritSec, volatile ULONGLONG* pcbCurrentMaxSize
@@ -333,8 +341,6 @@ VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL 
                                 )
 {
 	HANDLE hFile;
-
-	*pbSuccess = FALSE;
 
 	// If the worker thread is working so fast that the UI cannot catch up,
 	// pause for a bit to let things settle down
@@ -346,6 +352,17 @@ VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL 
 		if (pcmnctx->status == CANCEL_REQUESTED)
 			return;
 	}
+
+    // This can happen if a user changes the hash selection in HashProp (if no
+    // new hashes were selected; we still want to run the throttling code above)
+    if (pwhctx->dwFlags == 0)
+    {
+#ifdef _TIMED
+        if (pdwElapsed)
+            *pdwElapsed = 0;
+#endif
+        return;
+    }
 
 	// Indicate that we want lower-case results (TODO: make this an option)
 	pwhctx->uCaseMode = WHFMT_LOWERCASE;
@@ -413,8 +430,11 @@ VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL 
             if (pdwElapsed)
                 *pdwElapsed = GetTickCount() - dwStarted;
 #endif
-			if (cbFileRead == cbFileSize)
-				*pbSuccess = TRUE;
+            // If we encountered a file read error
+            if (cbFileRead != cbFileSize)
+                // Clear the valid-results bits for the hashes we just calculated
+                // (they are set by WHFinishEx, but they're apparently *not* valid)
+                pwhres->dwFlags &= ~pwhctx->dwFlags;
 
 			if (bUpdateProgress)
 				UpdateProgressBar(pcmnctx->hWndPBFile, pUpdateCritSec, &bCurrentlyUpdating,

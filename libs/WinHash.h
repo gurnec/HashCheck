@@ -71,7 +71,6 @@ enum hash_algorithm {
 #define DEFAULT_HASH_ALGORITHMS (WHEX_CHECKCRC32 | WHEX_CHECKSHA1 | WHEX_CHECKSHA256 | WHEX_CHECKSHA512)
 
 // Bitwise representation of the hash algorithms
-// (up to 8 hashes is OK before WHCTXEX.flags and HASHVERIFYCONTEXT.whctxFlags need a wider types)
 #define WHEX_CHECKCRC32     (1UL << (CRC32  - 1))
 #define WHEX_CHECKMD5       (1UL << (MD5    - 1))
 #define WHEX_CHECKSHA1      (1UL << (SHA1   - 1))
@@ -280,18 +279,18 @@ typedef struct {
     TCHAR szHexSHA1[SHA1_DIGEST_STRING_LENGTH];
     TCHAR szHexSHA256[SHA256_DIGEST_STRING_LENGTH];
     TCHAR szHexSHA512[SHA512_DIGEST_STRING_LENGTH];
+    DWORD dwFlags;
 } WHRESULTEX, *PWHRESULTEX;
 
 // Align all the hash contexts to avoid false sharing (of L1/2 cache lines in multi-core systems)
 typedef struct {
-	UINT8       flags;
-	UINT8       uCaseMode;
 	__declspec(align(64)) WHCTXCRC32  ctxCRC32;
 	__declspec(align(64)) WHCTXMD5    ctxMD5;
 	__declspec(align(64)) WHCTXSHA1   ctxSHA1;
 	__declspec(align(64)) WHCTXSHA256 ctxSHA256;
 	__declspec(align(64)) WHCTXSHA512 ctxSHA512;
-	WHRESULTEX  results;
+	DWORD dwFlags;
+	UINT8 uCaseMode;
 } WHCTXEX, *PWHCTXEX;
 
 

@@ -44,7 +44,7 @@ __forceinline VOID WINAPI HashCalcSetSavePrefix( PHASHCALCCONTEXT phcctx, PTSTR 
 	Path processing
 \*============================================================================*/
 
-VOID WINAPI HashCalcPrepare( PHASHCALCCONTEXT phcctx )
+BOOL WINAPI HashCalcPrepare( PHASHCALCCONTEXT phcctx )
 {
 	PTSTR pszPrev = NULL;
 	PTSTR pszCurrent, pszCurrentEnd;
@@ -128,7 +128,7 @@ VOID WINAPI HashCalcPrepare( PHASHCALCCONTEXT phcctx )
 
 				if (pItem)
 				{
-					pItem->bValid = FALSE;
+                    pItem->results.dwFlags = 0;
 					pItem->cchPath = cchCurrent;
 					memcpy(pItem->szPath, pszCurrent, cbCurrent);
 
@@ -143,10 +143,11 @@ VOID WINAPI HashCalcPrepare( PHASHCALCCONTEXT phcctx )
         if (phcctx->status == PAUSED)
             WaitForSingleObject(phcctx->hUnpauseEvent, INFINITE);
         if (phcctx->status == CANCEL_REQUESTED)
-			return;
+			return(FALSE);
 
 		pszPrev = pszCurrent;
 	}
+    return(TRUE);
 }
 
 VOID WINAPI HashCalcWalkDirectory( PHASHCALCCONTEXT phcctx, PTSTR pszPath, UINT cchPath )
@@ -192,7 +193,7 @@ VOID WINAPI HashCalcWalkDirectory( PHASHCALCCONTEXT phcctx, PTSTR pszPath, UINT 
 
 				if (pItem)
 				{
-					pItem->bValid = FALSE;
+                    pItem->results.dwFlags = 0;
 					pItem->cchPath = cchNew;
 					memcpy(pItem->szPath, pszPath, cbPathBuffer);
 
@@ -300,8 +301,6 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 	     phcctx->ofn.nFilterIndex &&
 		 phcctx->ofn.nFilterIndex <= NUM_HASHES)
 	{
-		BOOL bSuccess = FALSE;
-
 		// Save the filter in the user's preferences
 		if (phcctx->opt.dwFilterIndex != phcctx->ofn.nFilterIndex)
 		{
@@ -330,7 +329,7 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 		// Open the file for output
 		phcctx->hFileOut = CreateFile(
 			pszFile,
-			FILE_APPEND_DATA,
+			FILE_APPEND_DATA | DELETE,
 			FILE_SHARE_READ,
 			NULL,
 			CREATE_ALWAYS,
@@ -385,19 +384,32 @@ VOID WINAPI HashCalcSetSaveFormat( PHASHCALCCONTEXT phcctx )
 
 BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 {
-	PCTSTR pszHash;
-    WCHAR szWbuffer[MAX_PATH_BUFFER];
-    CHAR  szAbuffer[MAX_PATH_BUFFER];
+	PCTSTR pszHash;                     // will be pointed to the hash name
+    WCHAR szWbuffer[MAX_PATH_BUFFER];   // wide-char buffer
+    CHAR  szAbuffer[MAX_PATH_BUFFER];   // narrow-char buffer
 #ifdef UNICODE
 #   define szTbuffer szWbuffer
 #else
 #   define szTbuffer szAbuffer
 #endif
-	PVOID pvLine;            // Will be pointed to the buffer to write out
-	size_t cchLine, cbLine;  // Length of line, in TCHARs or BYTEs, EXCLUDING the terminator
+    PTSTR szTbufferAppend = szTbuffer;  // current end of the buffer used to build output
+    size_t cchLine = MAX_PATH_BUFFER;   // starts off as count of remaining TCHARS in the buffer
+    PVOID pvLine;                       // will be pointed to the buffer to write out
+    size_t cbLine;                      // will be line length in bytes, EXCLUDING nul terminator
+    BOOL bRetval = TRUE;
 
-	if (!pItem->bValid)
-		return(FALSE);
+	// If the checksum to save isn't present in the results
+    if (! ((1 << (phcctx->ofn.nFilterIndex - 1)) & pItem->results.dwFlags))
+    {
+        // Start with a commented-out error message - "; UNREADABLE:"
+        WCHAR szUnreadable[MAX_STRINGRES];
+        LoadString(g_hModThisDll, IDS_HV_STATUS_UNREADABLE, szUnreadable, MAX_STRINGRES);
+        StringCchPrintfEx(szTbufferAppend, cchLine, &szTbufferAppend, &cchLine, 0, TEXT("; %s:\r\n"), szUnreadable);
+
+        // We'll still output a hash, but it will be all 0's, that way Verify will indicate an mismatch
+        HashCalcClearInvalid(&pItem->results, TEXT('0'));
+        bRetval = FALSE;
+    }
 
 	// Translate the filter index to a hash
 	switch (phcctx->ofn.nFilterIndex)
@@ -409,19 +421,18 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 	}
 
 	// Format the line
-	#define HashCalcFormat(a, b) StringCchPrintfEx(szTbuffer, MAX_PATH_BUFFER, NULL, &cchLine, 0, phcctx->szFormat, a, b)
+	#define HashCalcFormat(a, b) StringCchPrintfEx(szTbufferAppend, cchLine, &szTbufferAppend, &cchLine, 0, phcctx->szFormat, a, b)
 	(phcctx->ofn.nFilterIndex == 1) ?
 		HashCalcFormat(pItem->szPath + phcctx->cchAdjusted, pszHash) : // SFV
 		HashCalcFormat(pszHash, pItem->szPath + phcctx->cchAdjusted);  // everything else
 	#undef HashCalcFormat
-	// cchLine is temporarily the count of characters left in the buffer instead of the line length
 
 #ifdef _TIMED
-    StringCchPrintfEx(szTbuffer + (MAX_PATH_BUFFER-cchLine), cchLine, NULL, &cchLine, 0,
+    StringCchPrintfEx(szTbufferAppend, cchLine, NULL, &cchLine, 0,
                       _T("; Elapsed: %d ms\r\n"), pItem->dwElapsed);
 #endif
 
-	cchLine = MAX_PATH_BUFFER - cchLine;  // now it's back to being the line length
+	cchLine = MAX_PATH_BUFFER - cchLine;  // from now on cchLine is the line length in bytes, EXCLUDING nul terminator
 	if (cchLine > 0)
 	{
 		// Convert to the correct encoding
@@ -479,7 +490,45 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 	}
 	else return(FALSE);
 
-	return(TRUE);
+	return(bRetval);
+}
+
+VOID WINAPI HashCalcClearInvalid( PWHRESULTEX pwhres, WCHAR cInvalid )
+{
+#ifdef UNICODE
+#   define _tmemset wmemset
+#else
+#   define _tmemset memset
+#endif
+
+#define HASH_CLEAR_INVALID_op(alg)                                                \
+    if (! (pwhres->dwFlags & WHEX_CHECK##alg))                                    \
+    {                                                                             \
+        _tmemset(pwhres->szHex##alg, cInvalid, countof(pwhres->szHex##alg) - 1);  \
+        pwhres->szHex##alg[countof(pwhres->szHex##alg) - 1] = L'\0';              \
+    }
+    FOR_EACH_HASH(HASH_CLEAR_INVALID_op)
+}
+
+// This can only succeed on Windows Vista and later;
+// returns FALSE on failure
+BOOL WINAPI HashCalcDeleteFileByHandle(HANDLE hFile)
+{
+    if (hFile == INVALID_HANDLE_VALUE)
+        return(FALSE);
+
+    HMODULE hKernel32 = GetModuleHandle(TEXT("kernel32.dll"));
+    if (hKernel32 == NULL)
+        return(FALSE);
+
+    typedef BOOL(WINAPI* PFN_SFIBH)(_In_ HANDLE, _In_ FILE_INFO_BY_HANDLE_CLASS, _In_ LPVOID, _In_ DWORD);
+    PFN_SFIBH pfnSetFileInformationByHandle = (PFN_SFIBH)GetProcAddress(hKernel32, "SetFileInformationByHandle");
+    if (pfnSetFileInformationByHandle == NULL)
+        return(FALSE);
+
+    FILE_DISPOSITION_INFO fdi;
+    fdi.DeleteFile = TRUE;
+    return(pfnSetFileInformationByHandle(hFile, FileDispositionInfo, &fdi, sizeof(fdi)));
 }
 
 VOID WINAPI HashCalcSetSavePrefix( PHASHCALCCONTEXT phcctx, PTSTR pszSave )

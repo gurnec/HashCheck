@@ -1,7 +1,8 @@
 /**
  * SimpleList Library
- * Last modified: 2009/01/04
- * Copyright (C) Kai Liu.  All rights reserved.
+ * Last modified: 2016/08/12
+ * Original work copyright (C) Kai Liu.  All rights reserved.
+ * Modified work copyright (C) 2016 Christopher Gurnee.  All rights reserved.
  *
  * This library implements a highly efficient, fast, light-weight, and simple
  * list structure in C, with the goal of replacing the slower, heavier and
@@ -105,6 +106,9 @@ PVOID SLFAPI SLGetData( HSIMPLELIST hSimpleList );
 PVOID SLFAPI SLGetDataEx( HSIMPLELIST hSimpleList, PUINT pcbData );
 PVOID SLFAPI SLGetDataAndStep( HSIMPLELIST hSimpleList );
 PVOID SLFAPI SLGetDataAndStepEx( HSIMPLELIST hSimpleList, PUINT pcbData );
+
+// Returns a pointer to the data of the last item or NULL
+PVOID SLFAPI SLGetDataLast(HSIMPLELIST hSimpleList);
 
 /**
  * SLAddItem: Adds a block of data to the end of the list; a pointer to a

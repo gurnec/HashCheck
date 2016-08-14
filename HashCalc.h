@@ -90,7 +90,6 @@ typedef struct {
 
 // Per-file data
 typedef struct {
-	BOOL bValid;                     // FALSE if the file could not be opened
 	UINT cchPath;                    // length of path in characters, not including NULL
 	WHRESULTEX results;              // hash results
 #ifdef _TIMED
@@ -101,10 +100,12 @@ typedef struct {
 } HASHCALCITEM, *PHASHCALCITEM;
 
 // Public functions
-VOID WINAPI HashCalcPrepare( PHASHCALCCONTEXT phcctx );
+BOOL WINAPI HashCalcPrepare( PHASHCALCCONTEXT phcctx );
 VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx );
 VOID WINAPI HashCalcSetSaveFormat( PHASHCALCCONTEXT phcctx );
 BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem );
+VOID WINAPI HashCalcClearInvalid( PWHRESULTEX pwhres, WCHAR cInvalid );
+BOOL WINAPI HashCalcDeleteFileByHandle( HANDLE hFile );
 VOID WINAPI HashCalcTogglePrep( PHASHCALCCONTEXT phcctx, BOOL bState );
 
 #ifdef __cplusplus

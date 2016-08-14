@@ -103,9 +103,10 @@ DWORD WINAPI HashSaveThread( PHASHSAVECONTEXT phsctx )
 
 	if (phsctx->hFileOut != INVALID_HANDLE_VALUE)
 	{
+        BOOL bDeletionFailed = TRUE;
 		if (phsctx->hList = SLCreateEx(TRUE))
 		{
-			DialogBoxParam(
+            bDeletionFailed = ! DialogBoxParam(
 				g_hModThisDll,
 				MAKEINTRESOURCE(IDD_HASHSAVE),
 				NULL,
@@ -117,6 +118,10 @@ DWORD WINAPI HashSaveThread( PHASHSAVECONTEXT phsctx )
 		}
 
 		CloseHandle(phsctx->hFileOut);
+
+        // Should only happen on Windows XP
+        if (bDeletionFailed)
+            DeleteFile(phsctx->ofn.lpstrFile);
 	}
 
 	// This must be the last thing that we free, since this is what supports
@@ -187,7 +192,7 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
         WHCTXEX whctx;
 
         // Indicate which hash type we are after, see WHEX... values in WinHash.h
-        whctx.flags = 1 << (phsctx->ofn.nFilterIndex - 1);
+        whctx.dwFlags = 1 << (phsctx->ofn.nFilterIndex - 1);
 
         PBYTE pbBuffer;
 #ifdef USE_PPL
@@ -206,7 +211,6 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 		WorkerThreadHashFile(
 			(PCOMMONCONTEXT)phsctx,
 			pItem->szPath,
-			&pItem->bValid,
 			&whctx,
 			&pItem->results,
             bMultithreaded ? pbBuffer : pbTheBuffer,
@@ -297,11 +301,17 @@ INT_PTR CALLBACK HashSaveDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 			phsctx->pfnWorkerMain = (PFNWORKERMAIN)HashSaveWorkerMain;
 			phsctx->hThread = CreateThreadCRT(NULL, phsctx);
 
-			if (!phsctx->hThread || WaitForSingleObject(phsctx->hThread, 1000) != WAIT_TIMEOUT)
+			if (!phsctx->hThread)
 			{
 				WorkerThreadCleanup((PCOMMONCONTEXT)phsctx);
-				EndDialog(hWnd, 0);
+                BOOL bDeleted = HashCalcDeleteFileByHandle(phsctx->hFileOut);
+				EndDialog(hWnd, bDeleted);
 			}
+            if (WaitForSingleObject(phsctx->hThread, 1000) != WAIT_TIMEOUT)
+            {
+                WorkerThreadCleanup((PCOMMONCONTEXT)phsctx);
+                EndDialog(hWnd, TRUE);
+            }
 
 			return(TRUE);
 		}
@@ -337,7 +347,11 @@ INT_PTR CALLBACK HashSaveDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 					phsctx->dwFlags |= HCF_EXIT_PENDING;
 					WorkerThreadStop((PCOMMONCONTEXT)phsctx);
 					WorkerThreadCleanup((PCOMMONCONTEXT)phsctx);
-					EndDialog(hWnd, 0);
+
+                    // Don't keep partially generated checksum files
+                    BOOL bDeleted = HashCalcDeleteFileByHandle(phsctx->hFileOut);
+
+					EndDialog(hWnd, bDeleted);
 					break;
 				}
 			}
@@ -359,7 +373,7 @@ INT_PTR CALLBACK HashSaveDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		{
 			phsctx = (PHASHSAVECONTEXT)wParam;
 			WorkerThreadCleanup((PCOMMONCONTEXT)phsctx);
-			EndDialog(hWnd, 0);
+			EndDialog(hWnd, TRUE);
 			return(TRUE);
 		}
 
@@ -417,5 +431,7 @@ VOID WINAPI HashSaveDlgInit( PHASHSAVECONTEXT phsctx )
 	{
 		phsctx->dwFlags = 0;
 		phsctx->cTotal = 0;
-	}
+        phsctx->hThread = NULL;
+        phsctx->hUnpauseEvent = NULL;
+    }
 }

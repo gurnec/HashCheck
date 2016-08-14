@@ -229,7 +229,7 @@ STRINGTABLE LANGUAGE LANG_CZECH, SUBLANG_DEFAULT
 	IDS_OPT_TITLE            "HashCheck nastavení"
 	IDS_OPT_CM               "Integrace"
 	IDS_OPT_CM_ALWAYS        "&Zobraz v kontextovém menu"
-	IDS_OPT_CM_EXTENDED      "Zobraz v &rozšířeném kontextovém menu"
+	IDS_OPT_CM_EXTENDED      "Zobraz v rozšířeném &kontextovém menu"
 	IDS_OPT_CM_NEVER         "&Nezobrazuj v kontextovém menu"
 	IDS_OPT_ENCODING         "Znaková sada souboru kontrolního součtu"
 	IDS_OPT_ENCODING_UTF8    "Ulož v U&TF-8"

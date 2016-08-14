@@ -13,6 +13,7 @@
 #include "HashCalc.h"
 #include "libs/WinHash.h"
 #include <Strsafe.h>
+#include <assert.h>
 
 // Control structures, from HashCalc.h
 #define  HASHPROPSCRATCH  HASHCALCSCRATCH
@@ -29,6 +30,7 @@
 
 // Worker thread
 VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx );
+VOID WINAPI HashPropRestart( PHASHPROPCONTEXT phpctx );
 
 // Dialog general
 VOID WINAPI HashPropDlgInit( PHASHPROPCONTEXT phpctx );
@@ -44,6 +46,8 @@ VOID WINAPI HashPropFinalStatus( PHASHPROPCONTEXT phpctx );
 // Dialog commands
 VOID WINAPI HashPropFindText( PHASHPROPCONTEXT phpctx, BOOL bIncremental );
 VOID WINAPI HashPropSaveResults( PHASHPROPCONTEXT phpctx );
+VOID WINAPI HashPropDoSaveResults( PHASHPROPCONTEXT phpctx );
+VOID WINAPI HashPropSaveResultsCleanup( PHASHPROPCONTEXT phpctx );
 VOID WINAPI HashPropOptions( PHASHPROPCONTEXT phpctx );
 
 
@@ -94,16 +98,20 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
 	// be asynchronous, or else there may be a deadlock.
 
 	PHASHPROPITEM pItem;
+    WHCTXEX whctx;
 
-	// Prep: expand directories, establish prefix, etc.
-	PostMessage(phpctx->hWnd, HM_WORKERTHREAD_TOGGLEPREP, (WPARAM)phpctx, TRUE);
-	HashCalcPrepare(phpctx);
+	// Prep: if not already done, expand directories, establish prefix, etc.
+    if (! (phpctx->dwFlags & HPF_HLIST_PREPPED))
+    {
+        PostMessage(phpctx->hWnd, HM_WORKERTHREAD_TOGGLEPREP, (WPARAM)phpctx, TRUE);
+        if (HashCalcPrepare(phpctx))
+            phpctx->dwFlags |= HPF_HLIST_PREPPED;
+    }
 	PostMessage(phpctx->hWnd, HM_WORKERTHREAD_TOGGLEPREP, (WPARAM)phpctx, FALSE);
 
-	// Indicate which hash types we want to calculate
+	// Which checksum types we want to calculate
     // (this is loaded earlier in HashPropDlgInit())
-    WHCTXEX whctx;
-    whctx.flags = (UINT8)phpctx->opt.dwChecksums;
+    DWORD checksumFlags = (UINT8)phpctx->opt.dwChecksums;
 
     // Read buffer
     PBYTE pbBuffer = (PBYTE)VirtualAlloc(NULL, READ_BUFFER_SIZE, MEM_COMMIT, PAGE_READWRITE);
@@ -117,11 +125,15 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
 
 	while (pItem = SLGetDataAndStep(phpctx->hList))
 	{
+        // Some results might already be present if the user changes which checksum types
+        // to calculate and we're going through the list a second+ time for all/some items;
+        // only calculate the checksums we don't already have (usually all those requested)
+        whctx.dwFlags = checksumFlags & ~pItem->results.dwFlags;
+
 		// Get the hash
 		WorkerThreadHashFile(
 			(PCOMMONCONTEXT)phpctx,
 			pItem->szPath,
-			&pItem->bValid,
 			&whctx,
 			&pItem->results,
 			pbBuffer,
@@ -213,12 +225,14 @@ INT_PTR CALLBACK HashPropDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 (LONG_PTR)phpctx->wpResultsBox
             );
 
-			// Kill the worker thread
+			// Kill the worker thread; HCF_EXIT_PENDING indicates
+            // we don't need to do any further GUI updates
 			phpctx->dwFlags |= HCF_EXIT_PENDING;
 			WorkerThreadStop((PCOMMONCONTEXT)phpctx);
 			WorkerThreadCleanup((PCOMMONCONTEXT)phpctx);
 
 			// Cleanup
+            HashPropSaveResultsCleanup(phpctx);
 			if (phpctx->hFont) DeleteObject(phpctx->hFont);
 			if (phpctx->hList) SLRelease(phpctx->hList);
 
@@ -256,7 +270,9 @@ INT_PTR CALLBACK HashPropDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 				case IDC_STOP:
 				{
+                    phpctx->dwFlags |= HPF_INTERRUPTED;
 					WorkerThreadStop((PCOMMONCONTEXT)phpctx);
+                    HashPropSaveResultsCleanup(phpctx);
 					return(TRUE);
 				}
 
@@ -307,6 +323,8 @@ INT_PTR CALLBACK HashPropDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		{
 			phpctx = (PHASHPROPCONTEXT)wParam;
 			WorkerThreadCleanup((PCOMMONCONTEXT)phpctx);
+            if (phpctx->hFileOut != INVALID_HANDLE_VALUE)
+                HashPropDoSaveResults(phpctx);
 			HashPropFinalStatus(phpctx);
 			return(TRUE);
 		}
@@ -315,7 +333,15 @@ INT_PTR CALLBACK HashPropDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		{
 			phpctx = (PHASHPROPCONTEXT)wParam;
 			++phpctx->cHandledMsgs;
-			HashPropUpdateResults(phpctx, (PHASHPROPITEM)lParam);
+            // If we're restarting the worker thread, no need to update the GUI
+            if (phpctx->dwFlags & HCF_RESTARTING)
+            {
+                // Only restart the worker thread once we're caught up on handled messages
+                if (phpctx->cHandledMsgs >= phpctx->cSentMsgs)
+                    HashPropRestart(phpctx);
+            }
+            else
+                HashPropUpdateResults(phpctx, (PHASHPROPITEM)lParam);
 			return(TRUE);
 		}
 
@@ -443,6 +469,9 @@ VOID WINAPI HashPropDlgInit( PHASHPROPCONTEXT phpctx )
 		phpctx->cTotal = 0;
 		phpctx->cSuccess = 0;
 		phpctx->obScratch = 0;
+        phpctx->hThread = NULL;
+        phpctx->hUnpauseEvent = NULL;
+        phpctx->hFileOut = INVALID_HANDLE_VALUE;
 		ZeroMemory(&phpctx->ofn, sizeof(phpctx->ofn));
 	}
 }
@@ -560,97 +589,99 @@ VOID WINAPI HashPropUpdateResults( PHASHPROPCONTEXT phpctx, PHASHPROPITEM pItem 
 	HWND hWnd = phpctx->hWnd;
 	HWND hWndResults = GetDlgItem(hWnd, IDC_RESULTS);
 
-	if (pItem->bValid)
-	{
-		/**
-		 * It turns out that when hashing large numbers of small files, the
-		 * worker thread can far outpace the UI thread, leaving the UI thread
-		 * with a large backlog of updates; the solution is to keep track of
-		 * the size of this backlog so that steps can be taken to alleviate it.
-		 *
-		 * 1) cSentMsgs and cHandledMsgs are used to keep track of the backlog;
-		 *    cSentMsgs will always be >= to cHandledMsgs (there are no race
-		 *    conditions to worry about), and their difference is the number
-		 *    of updates pending in the queue AFTER the update currently being
-		 *    handled is completed; therefore, zero means no pending backlog.
-		 * 2) If there are more than 50 backlogged updates, the worker thread
-		 *    will throttle back enough to keep the backlog <= 50.
-		 * 3) If there is any backlog at all, results will be coalesced into
-		 *    batches to reduce the number of costly EM_REPLACESEL calls.
-		 * INVARIANT: the scratch buffer into which the results are coalesced
-		 *    has at least enough remaining space for adding the text results
-		 *    of a single file (it is cleared before returning if necessary)
-		 **/
+	/**
+	 * It turns out that when hashing large numbers of small files, the
+	 * worker thread can far outpace the UI thread, leaving the UI thread
+	 * with a large backlog of updates; the solution is to keep track of
+	 * the size of this backlog so that steps can be taken to alleviate it.
+	 *
+	 * 1) cSentMsgs and cHandledMsgs are used to keep track of the backlog;
+	 *    cSentMsgs will always be >= to cHandledMsgs (there are no race
+	 *    conditions to worry about), and their difference is the number
+	 *    of updates pending in the queue AFTER the update currently being
+	 *    handled is completed; therefore, zero means no pending backlog.
+	 * 2) If there are more than 50 backlogged updates, the worker thread
+	 *    will throttle back enough to keep the backlog <= 50.
+	 * 3) If there is any backlog at all, results will be coalesced into
+	 *    batches to reduce the number of costly EM_REPLACESEL calls.
+	 * INVARIANT: the scratch buffer into which the results are coalesced
+	 *    has at least enough remaining space for adding the text results
+	 *    of a single file (it is cleared before returning if necessary)
+	 **/
 
-		PTSTR pszScratchAppend;
-        size_t cchMaxBufferRequired = 0;  // max tchar count for text results of one file
+	PTSTR pszScratchAppend;
+    size_t cchMaxBufferRequired = 0;  // max tchar count for text results of one file
 
-		// First, we can increment the success count
+    // Check to see of any desired hashes are not present in the results
+    if (phpctx->opt.dwChecksums & ~pItem->results.dwFlags)
+        // Replace the invalid hashes with X's
+        HashCalcClearInvalid(&pItem->results, TEXT('X'));
+    else
+		// Otherwise, we can increment the success count
 		++phpctx->cSuccess;
 
-		// Get the scratch buffer; we will be using the entire scratch struct
-		// as a single monolithic buffer
-        pszScratchAppend = BYTEADD(&phpctx->scratch, phpctx->obScratch);
+	// Get the scratch buffer; we will be using the entire scratch struct
+	// as a single monolithic buffer
+    pszScratchAppend = BYTEADD(&phpctx->scratch, phpctx->obScratch);
 
-		// Copy the file label
-		pszScratchAppend += LoadString(g_hModThisDll, IDS_HP_FILELABEL,
-		                               pszScratchAppend, MAX_STRINGRES);
-        cchMaxBufferRequired += MAX_STRINGRES;
+	// Copy the file label
+	pszScratchAppend += LoadString(g_hModThisDll, IDS_HP_FILELABEL,
+		                           pszScratchAppend, MAX_STRINGRES);
+    cchMaxBufferRequired += MAX_STRINGRES;
 
-		// Copy the path, appending CRLF
-        pszScratchAppend = SSChainNCpy2(
-            pszScratchAppend,
-            pItem->szPath + phpctx->cchPrefix, pItem->cchPath - phpctx->cchPrefix,
-            CRLF, CCH_CRLF
+	// Copy the path, appending CRLF
+    pszScratchAppend = SSChainNCpy2(
+        pszScratchAppend,
+        pItem->szPath + phpctx->cchPrefix, pItem->cchPath - phpctx->cchPrefix,
+        CRLF, CCH_CRLF
+    );
+    cchMaxBufferRequired += MAX_PATH_BUFFER - phpctx->cchPrefix + CCH_CRLF;
+
+    // Copy the results
+    PTSTR pszScratchBeforeResults = pszScratchAppend;
+#define HASH_RESULT_APPEND_op(alg)                                              \
+    if (phpctx->opt.dwChecksums & WHEX_CHECK##alg)                              \
+        pszScratchAppend = SSChainNCpy3(                                        \
+            pszScratchAppend,                                                   \
+            HASH_RESULT_op(alg), sizeof(HASH_RESULT_op(alg))/sizeof(TCHAR) - 1, /* the "- 1" excludes the terminating NUL */ \
+            pItem->results.szHex##alg, alg##_DIGEST_LENGTH * 2,                 \
+            CRLF, CCH_CRLF                                                      \
         );
-        cchMaxBufferRequired += MAX_PATH_BUFFER - phpctx->cchPrefix + CCH_CRLF;
-
-        // Copy the results
-        PTSTR pszScratchBeforeResults = pszScratchAppend;
-#define HASH_RESULT_APPEND_op(alg)                                                  \
-        if (phpctx->opt.dwChecksums & WHEX_CHECK##alg)                              \
-            pszScratchAppend = SSChainNCpy3(                                        \
-                pszScratchAppend,                                                   \
-                HASH_RESULT_op(alg), sizeof(HASH_RESULT_op(alg))/sizeof(TCHAR) - 1, /* the "- 1" excludes the terminating NUL */ \
-                pItem->results.szHex##alg, alg##_DIGEST_LENGTH * 2,                 \
-                CRLF, CCH_CRLF                                                      \
-            );
-        FOR_EACH_HASH(HASH_RESULT_APPEND_op)
-        cchMaxBufferRequired += pszScratchAppend - pszScratchBeforeResults;  // always the same length
+    FOR_EACH_HASH(HASH_RESULT_APPEND_op)
+    cchMaxBufferRequired += pszScratchAppend - pszScratchBeforeResults;  // always the same length
 
 #ifndef _TIMED
-        // Append CRLF and a terminating NUL
-        pszScratchAppend = SSChainNCpy(
-            pszScratchAppend,
-            CRLF _T("\0"), CCH_CRLF + 1
-        );
-        cchMaxBufferRequired += CCH_CRLF + 1;
-        pszScratchAppend--;  // it now points to the terminating NUL
+    // Append CRLF and a terminating NUL
+    pszScratchAppend = SSChainNCpy(
+        pszScratchAppend,
+        CRLF _T("\0"), CCH_CRLF + 1
+    );
+    cchMaxBufferRequired += CCH_CRLF + 1;
+    pszScratchAppend--;  // it now points to the terminating NUL
 #else
-        StringCchPrintfEx(pszScratchAppend, 30, &pszScratchAppend, NULL, 0, _T("Elapsed: %d ms") CRLF CRLF, pItem->dwElapsed);
-        cchMaxBufferRequired += 30;
+    StringCchPrintfEx(pszScratchAppend, 30, &pszScratchAppend, NULL, 0, _T("Elapsed: %d ms") CRLF CRLF, pItem->dwElapsed);
+    cchMaxBufferRequired += 30;
 #endif
 
-		// Update the new buffer offset for use by the next update
-		phpctx->obScratch = (UINT)BYTEDIFF(pszScratchAppend, &phpctx->scratch);
+	// Update the new buffer offset for use by the next update
+	phpctx->obScratch = (UINT)BYTEDIFF(pszScratchAppend, &phpctx->scratch);
 
-		// Determine if we can skip flushing the buffer
-		if ( phpctx->cSentMsgs > phpctx->cHandledMsgs &&
-		     phpctx->obScratch + (cchMaxBufferRequired * sizeof(TCHAR)) <= sizeof(HASHPROPSCRATCH) )
-		{
-			return;
-		}
-
-		// Flush the buffer to the text box
-		phpctx->obScratch = 0;
-		SendMessage(hWndResults, EM_SETSEL, -2, -2);
-		SendMessage(hWndResults, EM_REPLACESEL, FALSE, (LPARAM)&phpctx->scratch);
-
-		// ClearType will sometimes leave artifacts, so redraw if the user will
-		// be looking at this text for a while
-		if (phpctx->cSentMsgs == phpctx->cHandledMsgs)
-			InvalidateRect(hWndResults, NULL, FALSE);
+	// Determine if we can skip flushing the buffer
+	if ( phpctx->cSentMsgs > phpctx->cHandledMsgs &&
+		 phpctx->obScratch + (cchMaxBufferRequired * sizeof(TCHAR)) <= sizeof(HASHPROPSCRATCH) )
+	{
+		return;
 	}
+
+	// Flush the buffer to the text box
+	phpctx->obScratch = 0;
+	SendMessage(hWndResults, EM_SETSEL, -2, -2);
+	SendMessage(hWndResults, EM_REPLACESEL, FALSE, (LPARAM)&phpctx->scratch);
+
+	// ClearType will sometimes leave artifacts, so redraw if the user will
+	// be looking at this text for a while
+	if (phpctx->cSentMsgs == phpctx->cHandledMsgs)
+		InvalidateRect(hWndResults, NULL, FALSE);
 
 	// Yes, this means that if we defer the text box update, we also end up
 	// deferring the progress bar update too, which is what we want; progress
@@ -688,8 +719,8 @@ VOID WINAPI HashPropFinalStatus( PHASHPROPCONTEXT phpctx )
 	EnableControl(phpctx->hWnd, IDC_SEARCHBOX, TRUE);
 	EnableControl(phpctx->hWnd, IDC_FIND_NEXT, TRUE);
 
-	// Enable the save button only if there are results to save
-	if (phpctx->cSuccess)
+	// Enable the save button only if there exists completed results to save
+	if (!(phpctx->dwFlags & HPF_INTERRUPTED) && phpctx->cSuccess > 0)
 		EnableControl(phpctx->hWnd, IDC_SAVE, TRUE);
 }
 
@@ -769,28 +800,89 @@ VOID WINAPI HashPropFindText( PHASHPROPCONTEXT phpctx, BOOL bIncremental )
 	}
 }
 
+
 VOID WINAPI HashPropSaveResults( PHASHPROPCONTEXT phpctx )
 {
-	// HashCalcInitSave will set the file handle and output format
-	HashCalcInitSave(phpctx);
-    HashCalcSetSaveFormat(phpctx);
+    assert(! (phpctx->dwFlags & HPF_INTERRUPTED));
+    assert(phpctx->cSuccess > 0);
 
-	if (phpctx->hFileOut != INVALID_HANDLE_VALUE)
+    // HashCalcInitSave will set the file handle
+    HashCalcInitSave(phpctx);
+
+    if (phpctx->hFileOut != INVALID_HANDLE_VALUE)
+    {
+        // If the last item in the list already has the desired hash computed
+        DWORD dwDesiredHash = 1 << (phpctx->ofn.nFilterIndex - 1);
+        if (((PHASHPROPITEM)SLGetDataLast(phpctx->hList))->results.dwFlags & dwDesiredHash)
+        {
+            HashPropDoSaveResults(phpctx);
+        }
+        else
+        {
+            // Ensure the desired hash is enabled, and begin generating the new hash(es)
+            assert(phpctx->status == CLEANUP_COMPLETED);
+            assert(phpctx->cHandledMsgs >= phpctx->cSentMsgs);
+            phpctx->opt.dwChecksums |= dwDesiredHash;
+            HashPropRestart(phpctx);
+            // HashPropDoSaveResults() is called when the worker thread posts a HM_WORKERTHREAD_DONE msg
+        }
+    }
+}
+
+VOID WINAPI HashPropDoSaveResults(PHASHPROPCONTEXT phpctx)
+{
+    assert(phpctx->hFileOut != INVALID_HANDLE_VALUE);
+
+	if (! (phpctx->dwFlags & HPF_INTERRUPTED))
 	{
+        HashCalcSetSaveFormat(phpctx);
+
 		PHASHPROPITEM pItem;
 
 		SLReset(phpctx->hList);
 
 		while (pItem = SLGetDataAndStep(phpctx->hList))
 			HashCalcWriteResult(phpctx, pItem);
+	}
+
+	CloseHandle(phpctx->hFileOut);
+    phpctx->hFileOut = INVALID_HANDLE_VALUE;
+}
+
+VOID WINAPI HashPropSaveResultsCleanup( PHASHPROPCONTEXT phpctx )
+{
+    if (phpctx->hFileOut != INVALID_HANDLE_VALUE)
+    {
+        // Don't keep partially generated checksum files
+        BOOL bDeleted = HashCalcDeleteFileByHandle(phpctx->hFileOut);
 
 		CloseHandle(phpctx->hFileOut);
+
+        // Should only happen on Windows XP
+        if (!bDeleted)
+            DeleteFile(phpctx->ofn.lpstrFile);
+
+        phpctx->hFileOut = INVALID_HANDLE_VALUE;
 	}
 }
+
 
 VOID WINAPI HashPropOptions( PHASHPROPCONTEXT phpctx )
 {
 	OptionsDialog(phpctx->hWnd, &phpctx->opt);
+
+    // Update the results, but only if a file save isn't in progress
+    if (phpctx->opt.dwFlags & HCOF_CHECKSUMS && phpctx->hFileOut == INVALID_HANDLE_VALUE)
+    {
+        phpctx->dwFlags |= HCF_RESTARTING;
+        WorkerThreadStop((PCOMMONCONTEXT)phpctx);
+        WorkerThreadCleanup((PCOMMONCONTEXT)phpctx);
+
+        if (phpctx->cHandledMsgs >= phpctx->cSentMsgs)
+            HashPropRestart(phpctx);
+        // Otherwise the call to HashPropRestart() is made following the
+        // last pending HM_WORKERTHREAD_UPDATE message in HashPropDlgProc()
+    }
 
 	if (phpctx->opt.dwFlags & HCOF_FONT)
 	{
@@ -803,4 +895,42 @@ VOID WINAPI HashPropOptions( PHASHPROPCONTEXT phpctx )
 			phpctx->hFont = hFont;
 		}
 	}
+}
+
+VOID WINAPI HashPropRestart( PHASHPROPCONTEXT phpctx )
+{
+    // Reset these flags back to the default
+    phpctx->dwFlags &= ~(HCF_RESTARTING | HPF_INTERRUPTED);
+
+    // Just reset the list if it's fully loaded, else reload it from scratch
+    if (phpctx->dwFlags & HPF_HLIST_PREPPED)
+        SLReset(phpctx->hList);
+    else
+    {
+        SLRelease(phpctx->hList);
+        phpctx->hList = SLCreateEx(TRUE);
+        phpctx->cTotal = 0;
+    }
+
+    // Reset the GUI to its initial state
+    EnableControl( phpctx->hWnd, IDC_SAVE,       FALSE);
+    EnableControl( phpctx->hWnd, IDC_FIND_NEXT,  FALSE);
+    EnableControl( phpctx->hWnd, IDC_SEARCHBOX,  FALSE);
+    EnableControl( phpctx->hWnd, IDC_PROG_TOTAL, TRUE);
+    EnableControl( phpctx->hWnd, IDC_PROG_FILE,  TRUE);
+    EnableControl( phpctx->hWnd, IDC_PAUSE,      TRUE);
+    EnableControl( phpctx->hWnd, IDC_STOP,       TRUE);
+    SetDlgItemText(phpctx->hWnd, IDC_RESULTS,    TEXT(""));
+    SetControlText(phpctx->hWnd, IDC_PAUSE,      IDS_HC_PAUSE);
+    SetProgressBarPause((PCOMMONCONTEXT)phpctx,  PBST_NORMAL);
+    SendMessage(phpctx->hWndPBFile,  PBM_SETPOS, 0, 0);
+    SendMessage(phpctx->hWndPBTotal, PBM_SETPOS, 0, 0);
+
+    phpctx->cSuccess = 0;
+    phpctx->obScratch = 0;
+
+    phpctx->hThread = CreateThreadCRT(NULL, phpctx);
+
+    if (!phpctx->hThread)
+        WorkerThreadCleanup((PCOMMONCONTEXT)phpctx);
 }

@@ -35,12 +35,15 @@ extern "C" {
 #define THREAD_SUSPEND_ERROR  ((DWORD)-1)
 #define TIMER_ID_PAUSE        1
 
-// Flags
-#define HCF_EXIT_PENDING      0x0001
-#define HCF_MARQUEE           0x0002
-#define HVF_HAS_SET_TYPE      0x0004
-#define HVF_ITEM_HILITE       0x0008
-#define HPF_HAS_RESIZED       0x0004
+// Flags of DWORD width (which is an unsigned long)
+#define HCF_EXIT_PENDING      0x0001UL
+#define HCF_MARQUEE           0x0002UL
+#define HCF_RESTARTING        0x0004UL
+#define HVF_HAS_SET_TYPE      0x0008UL
+#define HVF_ITEM_HILITE       0x0010UL
+#define HPF_HAS_RESIZED       0x0008UL
+#define HPF_HLIST_PREPPED     0x0010UL
+#define HPF_INTERRUPTED       0x0020UL
 
 // Messages
 #define HM_WORKERTHREAD_DONE        (WM_APP + 0)  // wParam = ctx, lParam = 0
@@ -100,7 +103,7 @@ VOID WINAPI WorkerThreadCleanup( PCOMMONCONTEXT pcmnctx );
 
 // Worker thread functions
 DWORD WINAPI WorkerThreadStartup( PCOMMONCONTEXT pcmnctx );
-VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath, PBOOL pbSuccess,
+VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath,
                                   PWHCTXEX pwhctx, PWHRESULTEX pwhres, PBYTE pbuffer,
                                   PFILESIZE pFileSize, LPARAM lParam,
                                   PCRITICAL_SECTION pUpdateCritSec, volatile ULONGLONG* pcbCurrentMaxSize
