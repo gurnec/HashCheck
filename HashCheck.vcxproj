@@ -131,7 +131,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;__i386__;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0600;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;__i386__;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0600;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;KeccakP200_excluded;KeccakP400_excluded;KeccakP800_excluded;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <WarningLevel>Level3</WarningLevel>
@@ -155,7 +155,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_TIMED;WIN32;__i386__;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0600;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_TIMED;WIN32;__i386__;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0600;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;KeccakP200_excluded;KeccakP400_excluded;KeccakP800_excluded;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <WarningLevel>Level3</WarningLevel>
@@ -179,7 +179,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN64;__amd64__;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0600;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN64;__amd64__;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0600;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;KeccakP200_excluded;KeccakP400_excluded;KeccakP800_excluded;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <WarningLevel>Level3</WarningLevel>
@@ -203,7 +203,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_TIMED;WIN64;__amd64__;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0600;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_TIMED;WIN64;__amd64__;NDEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0600;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;KeccakP200_excluded;KeccakP400_excluded;KeccakP800_excluded;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <WarningLevel>Level3</WarningLevel>
@@ -226,7 +226,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;__i386__;_DEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0600;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;__i386__;_DEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0600;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;KeccakP200_excluded;KeccakP400_excluded;KeccakP800_excluded;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
@@ -245,7 +245,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN64;__amd64__;_DEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0600;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN64;__amd64__;_DEBUG;_WINDOWS;_UNICODE;UNICODE;_USRDLL;_WIN32_WINNT=0x0600;SL_ENABLE_LGBLK;SL_SMBLK_SIZE=0x1000;BYTE_ORDER=LITTLE_ENDIAN;KeccakP200_excluded;KeccakP400_excluded;KeccakP800_excluded;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -277,6 +277,9 @@
     <ClCompile Include="libs\md5.c" />
     <ClCompile Include="libs\sha1.c" />
     <ClCompile Include="libs\sha2.c" />
+    <ClCompile Include="libs\sha3\KeccakHash.c" />
+    <ClCompile Include="libs\sha3\KeccakP-1600-opt64.c" />
+    <ClCompile Include="libs\sha3\KeccakSponge.c" />
     <ClCompile Include="libs\SimpleList.c" />
     <ClCompile Include="libs\SimpleString.c" />
     <ClCompile Include="libs\WinHash.cpp" />
@@ -302,6 +305,7 @@
     <ClInclude Include="HashCheckUI.h" />
     <ClInclude Include="IsSSD.h" />
     <ClInclude Include="libs\IsFontAvailable.h" />
+    <ClInclude Include="libs\sha3\KeccakHash.h" />
     <ClInclude Include="libs\SimpleList.h" />
     <ClInclude Include="libs\SimpleString.h" />
     <ClInclude Include="libs\BitwiseIntrinsics.h" />

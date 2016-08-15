@@ -27,18 +27,6 @@ HANDLE g_hActCtx;
 // Major and minor Windows version (declared as extern in globals.h)
 UINT16 g_uWinVer;
 
-// File extensions to associate with
-static const LPCTSTR ASSOCIATIONS[] =
-{
-	TEXT(".sfv"),
-	TEXT(".md4"),
-	TEXT(".md5"),
-	TEXT(".sha1"),
-	TEXT(".sha256"),
-	TEXT(".sha512"),
-	TEXT(".asc")
-};
-
 // Prototypes for the self-registration/install/uninstall helper functions
 STDAPI DllRegisterServerEx( LPCTSTR );
 HRESULT Install( BOOL, BOOL );
@@ -186,7 +174,7 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
-	// The actual association of .sfv/.md4/.md5/.sha1/.sha256/.sha512/.asc files with our program ID
+	// The actual association of .sfv/.md5/.sha1/.sha256/.sha512/.sha3-256/.sha3-512/.asc files with our program ID
 	// will be handled by DllInstall, not DllRegisterServer.
 
 	// Register approval

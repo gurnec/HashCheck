@@ -56,6 +56,8 @@
 #define IDC_OPT_CHK_SHA1                512
 #define IDC_OPT_CHK_SHA256              513
 #define IDC_OPT_CHK_SHA512              514
-#define IDC_OPT_FONT                    515
-#define IDC_OPT_FONT_CHANGE             516
-#define IDC_OPT_FONT_PREVIEW            517
+#define IDC_OPT_CHK_SHA3_256            515
+#define IDC_OPT_CHK_SHA3_512            516
+#define IDC_OPT_FONT                    517
+#define IDC_OPT_FONT_CHANGE             518
+#define IDC_OPT_FONT_PREVIEW            519

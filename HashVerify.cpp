@@ -107,7 +107,7 @@ typedef struct {
 	DWORD              dwStarted;    // GetTickCount() start time
 	HASHVERIFYPREV     prev;         // previous update data, used for update coalescing
 	UINT               uMaxBatch;    // maximum number of updates to coalesce
-    DWORD              whctxFlags;   // WinHash library dwFlags (which checksums to use)
+    volatile DWORD     whctxFlags;   // WinHash library dwFlags (which checksums to use)
 	TCHAR              szStatus[4][MAX_STRINGRES];
 } HASHVERIFYCONTEXT, *PHASHVERIFYCONTEXT;
 
@@ -382,13 +382,13 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 				else if (ValidateHexSequence(pszStartOfLine, 64))
 				{
 					cchChecksum = 64;
-					phvctx->whctxFlags = WHEX_ALL256;  // WHEX_CHECKSHA256
+					phvctx->whctxFlags = WHEX_ALL256;  // WHEX_CHECKSHA256 | WHEX_CHECKSHA3_256
 				}
 				// 512-bit algorithms (128-byte)
 				else if (ValidateHexSequence(pszStartOfLine, 128))
 				{
 					cchChecksum = 128;
-					phvctx->whctxFlags = WHEX_ALL512;  // WHEX_CHECKSHA512
+					phvctx->whctxFlags = WHEX_ALL512;  // WHEX_CHECKSHA512 | WHEX_CHECKSHA3_512
 				}
 			}
 
@@ -567,7 +567,7 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 			);
 		}
 
-		// Part 2: Calculate the checksum
+		// Part 2: Calculate the checksum(s)
         WHCTXEX whctx;
         WHRESULTEX whres;
         whctx.dwFlags = phvctx->whctxFlags;
@@ -599,19 +599,39 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 		// Part 3: Do something with the results
 		if (whres.dwFlags)
 		{
-			switch (whres.dwFlags)
-			{
-#define HASH_VERIFY_COPY_RESULTS_op(alg)                                             \
-                case WHEX_CHECK##alg:                                                \
-					SSStaticCpy(pItem->szActual, whres.szHex##alg);  \
-					break;
-                FOR_EACH_HASH(HASH_VERIFY_COPY_RESULTS_op)
-			}
+            UINT cHashes = 0;
+            DWORD dwMatched = 0;
+            PTSTR pszActual = NULL;
 
-			if (StrCmpI(pItem->pszExpected, pItem->szActual) == 0)
-				pItem->uStatusID = HV_STATUS_MATCH;
-			else
-				pItem->uStatusID = HV_STATUS_MISMATCH;
+#define HASH_VERIFY_ONE_HASH_op(alg)                                  \
+            if (whres.dwFlags & WHEX_CHECK##alg)                      \
+            {                                                         \
+                cHashes++;                                            \
+                if (! dwMatched)                                      \
+                {                                                     \
+                    pszActual = whres.szHex##alg;                     \
+                    if (StrCmpI(pItem->pszExpected, pszActual) == 0)  \
+                        dwMatched = WHEX_CHECK##alg;                  \
+                }                                                     \
+            }
+            FOR_EACH_HASH(HASH_VERIFY_ONE_HASH_op)
+
+            assert(cHashes > 0);  // should always be true since whres.dwFlags > 0
+            assert(pszActual);
+            if (dwMatched)
+            {
+                pItem->uStatusID = HV_STATUS_MATCH;
+                
+                StringCbCopy(pItem->szActual, sizeof(pItem->szActual), pszActual);
+                if (cHashes > 1 && phvctx->whctxFlags != dwMatched)
+                    phvctx->whctxFlags = dwMatched;
+            }
+            else
+            {
+                pItem->uStatusID = HV_STATUS_MISMATCH;
+                if (cHashes == 1)
+                    StringCbCopy(pItem->szActual, sizeof(pItem->szActual), pszActual);
+            }
 		}
 		else
 		{

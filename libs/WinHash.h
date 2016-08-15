@@ -18,6 +18,7 @@ extern "C" {
 
 #include <windows.h>
 #include <tchar.h>
+#include "sha3/KeccakHash.h"
 #include "BitwiseIntrinsics.h"
 
 #if _MSC_VER >= 1600 && !defined(NO_PPL)
@@ -43,10 +44,14 @@ typedef CONST BYTE *PCBYTE;
                             op(MD5)     \
                             op(SHA1)    \
                             op(SHA256)  \
-                            op(SHA512)
+                            op(SHA512)  \
+                            op(SHA3_256)\
+                            op(SHA3_512)
 // In approximate order from longest to shortest compute time
 #define FOR_EACH_HASH_R(op) op(SHA512)  \
                             op(SHA256)  \
+                            op(SHA3_512)\
+                            op(SHA3_256)\
                             op(SHA1)    \
                             op(CRC32)   \
                             op(MD5)
@@ -61,9 +66,11 @@ enum hash_algorithm {
     MD5,
     SHA1,
     SHA256,
-    SHA512
+    SHA512,
+    SHA3_256,
+    SHA3_512
 };
-#define NUM_HASHES SHA512
+#define NUM_HASHES SHA3_512
 
 // The default hash algorithm to use when creating a checksum file
 #define DEFAULT_HASH_ALGORITHM SHA256
@@ -76,25 +83,25 @@ enum hash_algorithm {
 #define WHEX_CHECKSHA1      (1UL << (SHA1   - 1))
 #define WHEX_CHECKSHA256    (1UL << (SHA256 - 1))
 #define WHEX_CHECKSHA512    (1UL << (SHA512 - 1))
-#define WHEX_CHECKLAST      WHEX_CHECKSHA512
+#define WHEX_CHECKSHA3_256  (1UL << (SHA3_256 - 1))
+#define WHEX_CHECKSHA3_512  (1UL << (SHA3_512 - 1))
+#define WHEX_CHECKLAST      WHEX_CHECKSHA3_512
 
 // Bitwise representation of the hash algorithms, by digest length (in bits)
 #define WHEX_ALL            ((1UL << NUM_HASHES) - 1)
 #define WHEX_ALL32          WHEX_CHECKCRC32
 #define WHEX_ALL128         WHEX_CHECKMD5
 #define WHEX_ALL160         WHEX_CHECKSHA1
-#define WHEX_ALL256         WHEX_CHECKSHA256
-#define WHEX_ALL512         WHEX_CHECKSHA512
+#define WHEX_ALL256         (WHEX_CHECKSHA256 | WHEX_CHECKSHA3_256)
+#define WHEX_ALL512         (WHEX_CHECKSHA512 | WHEX_CHECKSHA3_512)
 
-// The block lengths of the hash algorithms
-#define CRC32_BLOCK_LENGTH          1
+// The block lengths of the hash algorithms, if required below
 #define MD5_BLOCK_LENGTH            64
 #define SHA1_BLOCK_LENGTH           64
 #define SHA224_BLOCK_LENGTH         64
 #define SHA256_BLOCK_LENGTH         64
 #define SHA384_BLOCK_LENGTH         128
 #define SHA512_BLOCK_LENGTH         128
-#define MAX_BLOCK_LENGTH            SHA512_BLOCK_LENGTH
 
 // The digest lengths of the hash algorithms
 #define CRC32_DIGEST_LENGTH         4
@@ -104,6 +111,8 @@ enum hash_algorithm {
 #define SHA256_DIGEST_LENGTH        32
 #define SHA384_DIGEST_LENGTH        48
 #define SHA512_DIGEST_LENGTH        64
+#define SHA3_256_DIGEST_LENGTH      32
+#define SHA3_512_DIGEST_LENGTH      64
 #define MAX_DIGEST_LENGTH           SHA512_DIGEST_LENGTH
 
 // The minimum string length required to hold the hex digest strings
@@ -114,6 +123,8 @@ enum hash_algorithm {
 #define SHA256_DIGEST_STRING_LENGTH (SHA256_DIGEST_LENGTH * 2 + 1)
 #define SHA384_DIGEST_STRING_LENGTH (SHA384_DIGEST_LENGTH * 2 + 1)
 #define SHA512_DIGEST_STRING_LENGTH (SHA512_DIGEST_LENGTH * 2 + 1)
+#define SHA3_256_DIGEST_STRING_LENGTH (SHA3_256_DIGEST_LENGTH * 2 + 1)
+#define SHA3_512_DIGEST_STRING_LENGTH (SHA3_512_DIGEST_LENGTH * 2 + 1)
 #define MAX_DIGEST_STRING_LENGTH    SHA512_DIGEST_STRING_LENGTH
 
 // Hash file extensions
@@ -122,6 +133,8 @@ enum hash_algorithm {
 #define HASH_EXT_SHA1           _T(".sha1")
 #define HASH_EXT_SHA256         _T(".sha256")
 #define HASH_EXT_SHA512         _T(".sha512")
+#define HASH_EXT_SHA3_256       _T(".sha3-256")
+#define HASH_EXT_SHA3_512       _T(".sha3-512")
 
 // Table of supported Hash file extensions
 extern LPCTSTR g_szHashExtsTab[NUM_HASHES];
@@ -132,13 +145,17 @@ extern LPCTSTR g_szHashExtsTab[NUM_HASHES];
 #define HASH_NAME_SHA1          _T("SHA-1")
 #define HASH_NAME_SHA256        _T("SHA-256")
 #define HASH_NAME_SHA512        _T("SHA-512")
+#define HASH_NAME_SHA3_256      _T("SHA3-256")
+#define HASH_NAME_SHA3_512      _T("SHA3-512")
 
 // Right-justified Hash names
-#define HASH_RNAME_CRC32        _T(" CRC-32")
-#define HASH_RNAME_MD5          _T("    MD5")
-#define HASH_RNAME_SHA1         _T("  SHA-1")
-#define HASH_RNAME_SHA256       _T("SHA-256")
-#define HASH_RNAME_SHA512       _T("SHA-512")
+#define HASH_RNAME_CRC32        _T("  CRC-32")
+#define HASH_RNAME_MD5          _T("     MD5")
+#define HASH_RNAME_SHA1         _T("   SHA-1")
+#define HASH_RNAME_SHA256       _T(" SHA-256")
+#define HASH_RNAME_SHA512       _T(" SHA-512")
+#define HASH_RNAME_SHA3_256     _T("SHA3-256")
+#define HASH_RNAME_SHA3_512     _T("SHA3-512")
 
 // Hash OPENFILENAME filters, E.G. "MD5 (*.md5)\0*.md5\0"
 #define HASH_FILTER_op(alg)     HASH_NAME_##alg _T(" (*")   \
@@ -205,7 +222,7 @@ void SHA512Final( PSHA2_CTX pContext );
 
 typedef union {
 	UINT32 state;
-	BYTE result[4];
+	BYTE result[CRC32_DIGEST_LENGTH];
 } WHCTXCRC32, *PWHCTXCRC32;
 
 #define  WHCTXMD5  MD5_CTX
@@ -219,6 +236,16 @@ typedef union {
 
 #define  WHCTXSHA512  SHA2_CTX
 #define PWHCTXSHA512 PSHA2_CTX
+
+typedef struct {
+    Keccak_HashInstance state;
+    BYTE result[SHA3_256_DIGEST_LENGTH];
+} WHCTXSHA3_256, *PWHCTXSHA3_256;
+
+typedef struct {
+    Keccak_HashInstance state;
+    BYTE result[SHA3_512_DIGEST_LENGTH];
+} WHCTXSHA3_512, *PWHCTXSHA3_512;
 
 /**
  * Wrapper layer functions to ensure a more consistent interface
@@ -257,6 +284,36 @@ __inline void WHAPI WHFinishCRC32( PWHCTXCRC32 pContext )
 #define WHUpdateSHA512 SHA512Update
 #define WHFinishSHA512 SHA512Final
 
+__inline void WHAPI WHInitSHA3_256( PWHCTXSHA3_256 pContext )
+{
+    Keccak_HashInitialize_SHA3_256(&pContext->state);
+}
+
+__inline void WHAPI WHUpdateSHA3_256( PWHCTXSHA3_256 pContext, PCBYTE pbIn, UINT cbIn)
+{
+    Keccak_HashUpdate(&pContext->state, pbIn, cbIn * 8);
+}
+
+__inline void WHAPI WHFinishSHA3_256( PWHCTXSHA3_256 pContext )
+{
+    Keccak_HashFinal(&pContext->state, pContext->result);
+}
+
+__inline void WHAPI WHInitSHA3_512(PWHCTXSHA3_512 pContext)
+{
+    Keccak_HashInitialize_SHA3_512(&pContext->state);
+}
+
+__inline void WHAPI WHUpdateSHA3_512(PWHCTXSHA3_512 pContext, PCBYTE pbIn, UINT cbIn)
+{
+    Keccak_HashUpdate(&pContext->state, pbIn, cbIn * 8);
+}
+
+__inline void WHAPI WHFinishSHA3_512(PWHCTXSHA3_512 pContext)
+{
+    Keccak_HashFinal(&pContext->state, pContext->result);
+}
+
 /**
  * WH*To* hex string conversion functions: These require WinHash.cpp
  **/
@@ -279,6 +336,8 @@ typedef struct {
     TCHAR szHexSHA1[SHA1_DIGEST_STRING_LENGTH];
     TCHAR szHexSHA256[SHA256_DIGEST_STRING_LENGTH];
     TCHAR szHexSHA512[SHA512_DIGEST_STRING_LENGTH];
+    TCHAR szHexSHA3_256[SHA3_256_DIGEST_STRING_LENGTH];
+    TCHAR szHexSHA3_512[SHA3_512_DIGEST_STRING_LENGTH];
     DWORD dwFlags;
 } WHRESULTEX, *PWHRESULTEX;
 
@@ -289,6 +348,8 @@ typedef struct {
 	__declspec(align(64)) WHCTXSHA1   ctxSHA1;
 	__declspec(align(64)) WHCTXSHA256 ctxSHA256;
 	__declspec(align(64)) WHCTXSHA512 ctxSHA512;
+	__declspec(align(64)) WHCTXSHA3_256 ctxSHA3_256;
+	__declspec(align(64)) WHCTXSHA3_512 ctxSHA3_512;
 	DWORD dwFlags;
 	UINT8 uCaseMode;
 } WHCTXEX, *PWHCTXEX;
