@@ -921,6 +921,7 @@ VOID WINAPI HashPropRestart( PHASHPROPCONTEXT phpctx )
     EnableControl( phpctx->hWnd, IDC_PAUSE,      TRUE);
     EnableControl( phpctx->hWnd, IDC_STOP,       TRUE);
     SetDlgItemText(phpctx->hWnd, IDC_RESULTS,    TEXT(""));
+    SetControlText(phpctx->hWnd, IDC_STATUSBOX,  IDS_HP_STATUSBOX);
     SetControlText(phpctx->hWnd, IDC_PAUSE,      IDS_HC_PAUSE);
     SetProgressBarPause((PCOMMONCONTEXT)phpctx,  PBST_NORMAL);
     SendMessage(phpctx->hWndPBFile,  PBM_SETPOS, 0, 0);

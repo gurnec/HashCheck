@@ -51,7 +51,6 @@ VS_VERSION_INFO     VERSIONINFO
 	{
 		BLOCK "040904b0" // English (U.S.)
 		{
-			VALUE "CompanyName", HASHCHECK_AUTHOR_STR
 			VALUE "FileDescription", HASHCHECK_NAME_STR
 			VALUE "FileVersion", HASHCHECK_VERSION_STR ARCH_NAME_TAIL
 			VALUE "LegalCopyright", "Copyright © " HASHCHECK_COPYRIGHT_STR
