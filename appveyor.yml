@@ -1,19 +1,21 @@
-os: Visual Studio 2015
+version: 2.4.0.{build}
+
+image: Visual Studio 2015
 
 build_script:
   - cd "%APPVEYOR_BUILD_FOLDER%"
-  - msbuild "HashCheck.sln" /m /p:Configuration=Release;Platform=Win32
-  - msbuild "HashCheck.sln" /m /p:Configuration=Release;Platform=x64
+  - msbuild HashCheck.sln /p:Configuration=Release;Platform=Win32 /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - msbuild HashCheck.sln /p:Configuration=Release;Platform=x64   /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 after_build:
   - cd "%APPVEYOR_BUILD_FOLDER%\installer"
-  - '"C:\Program Files (x86)\NSIS\bin\makensis.exe" "HashCheck.nsi"'
-  - copy "HashCheckSetup.exe" "%APPVEYOR_BUILD_FOLDER%"
-  - 'powershell -Command "& { $hash = (Get-FileHash -Algorithm SHA256 "HashCheckSetup.exe").hash; Write-Host $hash " *HashCheckSetup.exe"; }" > "HashCheckSetup.exe.sha256"'
-  - copy "HashCheckSetup.exe.sha256" "%APPVEYOR_BUILD_FOLDER%"
+  - '"C:\Program Files (x86)\NSIS\makensis" HashCheck.nsi'
+  - copy HashCheckSetup-v*.exe "%APPVEYOR_BUILD_FOLDER%"
+  - ps: (Get-FileHash -Algorithm SHA256 HashCheckSetup-v*.exe).Hash.ToString().ToLower() + " *" + (dir HashCheckSetup-v*.exe).Name > ((dir HashCheckSetup-v*.exe).Name + ".sha256")
+  - copy HashCheckSetup-v*.exe.sha256 "%APPVEYOR_BUILD_FOLDER%"
 
 artifacts:
-  - path: HashCheckSetup.exe
+  - path: 'HashCheckSetup-v*.exe'
     name: installer
-  - path: HashCheckSetup.exe.sha256
+  - path: 'HashCheckSetup-v*.exe.sha256'
     name: checksum
