@@ -5,6 +5,7 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A3CCE2E5-7BD9-4381-9D92-BD06D96EA49B}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		appveyor.yml = appveyor.yml
 		installer\HashCheck.nsi = installer\HashCheck.nsi
 		license.txt = license.txt
@@ -13,22 +14,40 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HashCheck", "HashCheck.vcxproj", "{DCAD938F-9032-4AF9-BA67-8C0CF309D986}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{5BD2397A-F10B-4847-8814-E539FB04AC8F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
 		Release|Win32 = Release|Win32
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DCAD938F-9032-4AF9-BA67-8C0CF309D986}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{DCAD938F-9032-4AF9-BA67-8C0CF309D986}.Debug|Win32.ActiveCfg = Debug|Win32
 		{DCAD938F-9032-4AF9-BA67-8C0CF309D986}.Debug|Win32.Build.0 = Debug|Win32
 		{DCAD938F-9032-4AF9-BA67-8C0CF309D986}.Debug|x64.ActiveCfg = Debug|x64
 		{DCAD938F-9032-4AF9-BA67-8C0CF309D986}.Debug|x64.Build.0 = Debug|x64
+		{DCAD938F-9032-4AF9-BA67-8C0CF309D986}.Release|Any CPU.ActiveCfg = Release|x64
 		{DCAD938F-9032-4AF9-BA67-8C0CF309D986}.Release|Win32.ActiveCfg = Release|Win32
 		{DCAD938F-9032-4AF9-BA67-8C0CF309D986}.Release|Win32.Build.0 = Release|Win32
 		{DCAD938F-9032-4AF9-BA67-8C0CF309D986}.Release|x64.ActiveCfg = Release|x64
 		{DCAD938F-9032-4AF9-BA67-8C0CF309D986}.Release|x64.Build.0 = Release|x64
+		{5BD2397A-F10B-4847-8814-E539FB04AC8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BD2397A-F10B-4847-8814-E539FB04AC8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BD2397A-F10B-4847-8814-E539FB04AC8F}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{5BD2397A-F10B-4847-8814-E539FB04AC8F}.Debug|Win32.Build.0 = Debug|Any CPU
+		{5BD2397A-F10B-4847-8814-E539FB04AC8F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5BD2397A-F10B-4847-8814-E539FB04AC8F}.Debug|x64.Build.0 = Debug|Any CPU
+		{5BD2397A-F10B-4847-8814-E539FB04AC8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BD2397A-F10B-4847-8814-E539FB04AC8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BD2397A-F10B-4847-8814-E539FB04AC8F}.Release|Win32.ActiveCfg = Release|Any CPU
+		{5BD2397A-F10B-4847-8814-E539FB04AC8F}.Release|Win32.Build.0 = Release|Any CPU
+		{5BD2397A-F10B-4847-8814-E539FB04AC8F}.Release|x64.ActiveCfg = Release|Any CPU
+		{5BD2397A-F10B-4847-8814-E539FB04AC8F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

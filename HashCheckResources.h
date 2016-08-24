@@ -16,6 +16,7 @@
 #define IDD_HASHSAVE                    200
 
 // Hash calculation property sheet and controls
+// (some of these must be copied to HashProp.cs)
 #define IDD_HASHPROP                    300
 #define IDC_RESULTS                     301
 #define IDC_STATUSBOX                   302
@@ -25,6 +26,7 @@
 #define IDC_OPTIONS                     306
 
 // Hash verification dialog and controls
+// (some of these must be copied to HashVerify.cs)
 #define IDD_HASHVERF                    400
 #define IDC_LIST                        401
 #define IDC_SUMMARY                     402

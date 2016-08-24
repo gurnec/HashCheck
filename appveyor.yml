@@ -2,12 +2,56 @@ version: 2.4.0.{build}
 
 image: Visual Studio 2015
 
+cache:
+  - packages -> **\packages.config
+
+before_build:
+  - cd "%APPVEYOR_BUILD_FOLDER%"
+  - nuget restore
+
 build_script:
   - cd "%APPVEYOR_BUILD_FOLDER%"
+  # the NO_PPL (no-multithreading) debug versions
+  - msbuild HashCheck.sln /p:Configuration=Debug;Platform=Win32;TempCDefines=NO_PPL /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - msbuild HashCheck.sln /p:Configuration=Debug;Platform=x64;TempCDefines=NO_PPL   /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - copy Bin\Win32\Debug\HashCheck.dll Bin\Win32\Debug\HashCheck-no_ppl.dll
+  - copy Bin\x64\Debug\HashCheck.dll Bin\x64\Debug\HashCheck-no_ppl.dll
+  # the FORCE_PPL debug versions
+  - msbuild HashCheck.sln /p:Configuration=Debug;Platform=Win32;TempCDefines=FORCE_PPL /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - msbuild HashCheck.sln /p:Configuration=Debug;Platform=x64;TempCDefines=FORCE_PPL   /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  # the release versions
   - msbuild HashCheck.sln /p:Configuration=Release;Platform=Win32 /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
   - msbuild HashCheck.sln /p:Configuration=Release;Platform=x64   /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
-after_build:
+before_test:
+  - cd "%APPVEYOR_BUILD_FOLDER%\UnitTests"
+  - C:\Python35-x64\python get-sha-test-vectors.py
+  - C:\Python35-x64\python get-md5-test-vectors.py
+  - C:\Python35-x64\python gen-big-test-vector.py
+
+test_script:
+  - cd "%APPVEYOR_BUILD_FOLDER%"
+  # the NO_PPL versions
+  - regsvr32 /i:"NoCopy NoUninstall" /n /s Bin\Win32\Debug\HashCheck-no_ppl.dll
+  - packages\xunit.runner.console.2.1.0\tools\xunit.console.x86 UnitTests\bin\Release\UnitTests.dll -appveyor
+  - regsvr32 /i:"NoCopy NoUninstall" /n /s Bin\x64\Debug\HashCheck-no_ppl.dll
+  - packages\xunit.runner.console.2.1.0\tools\xunit.console UnitTests\bin\Release\UnitTests.dll -appveyor
+  # the FORCE_PPL versions (before each test, delete the NO_PPL version to ensure it's not under test)
+  - regsvr32 /i:"NoCopy NoUninstall" /n /s Bin\Win32\Debug\HashCheck.dll
+  - del Bin\Win32\Debug\HashCheck-no_ppl.dll
+  - packages\xunit.runner.console.2.1.0\tools\xunit.console.x86 UnitTests\bin\Release\UnitTests.dll -appveyor
+  - regsvr32 /i:"NoCopy NoUninstall" /n /s Bin\x64\Debug\HashCheck.dll
+  - del Bin\x64\Debug\HashCheck-no_ppl.dll
+  - packages\xunit.runner.console.2.1.0\tools\xunit.console UnitTests\bin\Release\UnitTests.dll -appveyor
+  # the release versions (before each test, delete the FORCE_PPL version to ensure it's not under test)
+  - regsvr32 /i /n /s Bin\Win32\Release\HashCheck.dll
+  - del Bin\Win32\Debug\HashCheck.dll
+  - packages\xunit.runner.console.2.1.0\tools\xunit.console.x86 UnitTests\bin\Release\UnitTests.dll -appveyor
+  - regsvr32 /i /n /s Bin\x64\Release\HashCheck.dll
+  - del Bin\x64\Debug\HashCheck.dll
+  - packages\xunit.runner.console.2.1.0\tools\xunit.console UnitTests\bin\Release\UnitTests.dll -appveyor
+
+after_test:
   - cd "%APPVEYOR_BUILD_FOLDER%\installer"
   - '"C:\Program Files (x86)\NSIS\makensis" HashCheck.nsi'
   - copy HashCheckSetup-v*.exe "%APPVEYOR_BUILD_FOLDER%"

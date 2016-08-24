@@ -1,9 +1,15 @@
 /HashCheck.sdf
 /HashCheck.opensdf
 *.vcxproj.user
+*.csproj.user
 *.suo
 /Bin
 /Obj
 /installer/*.exe
+/installer/*.exe.sha*
 /*.VC.db
 /*.VC.VC.opendb
+/packages
+/UnitTests/bin
+/UnitTests/obj
+/UnitTests/vectors
