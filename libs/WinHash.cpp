@@ -19,9 +19,10 @@
 // Macro to populate the extensions table. E.g. HASH_EXT_MD5,
 #define HASH_EXT_op(alg) HASH_EXT_##alg,
 
-// Table of supported Hash file extensions
-LPCTSTR g_szHashExtsTab[NUM_HASHES] = {
+// Table of supported Hash file extensions, plus .asc
+LPCTSTR g_szHashExtsTab[NUM_HASHES + 1] = {
 	FOR_EACH_HASH(HASH_EXT_op)
+	_T(".asc")
 };
 
 /**

@@ -137,8 +137,8 @@ enum hash_algorithm {
 #define HASH_EXT_SHA3_256       _T(".sha3-256")
 #define HASH_EXT_SHA3_512       _T(".sha3-512")
 
-// Table of supported Hash file extensions
-extern LPCTSTR g_szHashExtsTab[NUM_HASHES];
+// Table of supported Hash file extensions, plus .asc
+extern LPCTSTR g_szHashExtsTab[NUM_HASHES + 1];
 
 // Hash names
 #define HASH_NAME_CRC32         _T("CRC-32")
