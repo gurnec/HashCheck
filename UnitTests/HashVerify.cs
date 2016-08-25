@@ -50,8 +50,10 @@ namespace UnitTests
     public class HashVerify : IClassFixture<HashVerifySetup>
     {
         // from HashCheckResources.h
-        const string IDC_MATCH_RESULTS   = "404";
-        const string IDC_PENDING_RESULTS = "410";
+        const string IDC_MATCH_RESULTS      = "404";
+        const string IDC_MISMATCH_RESULTS   = "406";
+        const string IDC_UNREADABLE_RESULTS = "408";
+        const string IDC_PENDING_RESULTS    = "410";
 
         HashVerifySetup common;
 
@@ -61,19 +63,28 @@ namespace UnitTests
         }
 
         [Theory]
-        [InlineData("SHA1ShortMsg.rsp.sha1")]
-        [InlineData("SHA1LongMsg.rsp.sha1")]
-        [InlineData("SHA256ShortMsg.rsp.sha256")]
-        [InlineData("SHA256LongMsg.rsp.sha256")]
-        [InlineData("SHA512ShortMsg.rsp.sha512")]
-        [InlineData("SHA512LongMsg.rsp.sha512")]
-        [InlineData("SHA3_256ShortMsg.rsp.sha3-256")]
-        [InlineData("SHA3_256LongMsg.rsp.sha3-256")]
-        [InlineData("SHA3_512ShortMsg.rsp.sha3-512")]
-        [InlineData("SHA3_512LongMsg.rsp.sha3-512")]
-        [InlineData("hashcheck.md5")]
-        [InlineData("hashcheck.sha1")]
-        public void NistTest(string name)
+        [InlineData("SHA1ShortMsg.rsp.sha1",         IDC_MATCH_RESULTS)]
+        [InlineData("SHA1LongMsg.rsp.sha1",          IDC_MATCH_RESULTS)]
+        [InlineData("SHA256ShortMsg.rsp.sha256",     IDC_MATCH_RESULTS)]
+        [InlineData("SHA256LongMsg.rsp.sha256",      IDC_MATCH_RESULTS)]
+        [InlineData("SHA512ShortMsg.rsp.sha512",     IDC_MATCH_RESULTS)]
+        [InlineData("SHA512LongMsg.rsp.sha512",      IDC_MATCH_RESULTS)]
+        [InlineData("SHA3_256ShortMsg.rsp.sha3-256", IDC_MATCH_RESULTS)]
+        [InlineData("SHA3_256LongMsg.rsp.sha3-256",  IDC_MATCH_RESULTS)]
+        [InlineData("SHA3_512ShortMsg.rsp.sha3-512", IDC_MATCH_RESULTS)]
+        [InlineData("SHA3_512LongMsg.rsp.sha3-512",  IDC_MATCH_RESULTS)]
+        [InlineData("hashcheck.md5",                 IDC_MATCH_RESULTS)]
+        [InlineData("hashcheck.sha1",                IDC_MATCH_RESULTS)]
+        //
+        // tests for disambiguating vectors of the same bit length
+        [InlineData("SHA256ShortMsg.rsp.asc",        IDC_MATCH_RESULTS)]
+        [InlineData("SHA3_256ShortMsg.rsp.asc",      IDC_MATCH_RESULTS)]
+        //
+        // negative tests
+        [InlineData(@"mismatch.sha256",              IDC_MISMATCH_RESULTS)]
+        [InlineData(@"mismatch.asc",                 IDC_MISMATCH_RESULTS)]
+        [InlineData(@"unreadable.sha256",            IDC_UNREADABLE_RESULTS)]
+        public void NistTest(string name, string expected_label_id)
         {
             // This opens a HashCheck Verify window in the current process
             Process.Start(Path.Combine(common.PATH_PREFIX, name));
@@ -88,10 +99,10 @@ namespace UnitTests
                 while (! re0.IsMatch(pending_results.Text))
                     System.Threading.Thread.Sleep(0);
 
-                // On success, the hash matches should be "# of #" where the #'s are the same
+                // On success, the expected label should read "# of #" where the #'s are the same
                 Label match_results = verify_window.Get<Label>(SearchCriteria.ByNativeProperty(
-                    AutomationElement.AutomationIdProperty, IDC_MATCH_RESULTS));
-                Assert.Matches(@"\b(\d{2,3})\b.*\b\1\b", match_results.Text);
+                    AutomationElement.AutomationIdProperty, expected_label_id));
+                Assert.Matches(@"\b(\d+)\b.*\b\1\b", match_results.Text);
             }
             finally
             {

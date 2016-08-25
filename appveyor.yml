@@ -28,6 +28,13 @@ before_test:
   - C:\Python35-x64\python get-sha-test-vectors.py
   - C:\Python35-x64\python get-md5-test-vectors.py
   - C:\Python35-x64\python gen-big-test-vector.py
+  # tests for disambiguating vectors of the same bit length
+  - copy vectors\SHA256ShortMsg.rsp.sha256     vectors\SHA256ShortMsg.rsp.asc
+  - copy vectors\SHA3_256ShortMsg.rsp.sha3-256 vectors\SHA3_256ShortMsg.rsp.asc
+  # negative tests
+  - copy mismatch.sha256   vectors\
+  - copy mismatch.sha256   vectors\mismatch.asc
+  - copy unreadable.sha256 vectors\
 
 test_script:
   - cd "%APPVEYOR_BUILD_FOLDER%"
