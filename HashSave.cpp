@@ -186,6 +186,8 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
     dwStarted = GetTickCount();
 #endif
 
+    class CanceledException {};
+
     // concurrency::parallel_for_each(vecpItems.cbegin(), vecpItems.cend(), ...
     auto per_file_worker = [&](PHASHSAVEITEM pItem)
 	{
@@ -201,7 +203,7 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
             // Allocate a read buffer (one buffer is cached per worker thread by Alloc/Free)
             pbBuffer = (PBYTE)concurrency::Alloc(READ_BUFFER_SIZE);
             if (pbBuffer == NULL)
-                return;
+                throw CanceledException();
         }
 #endif
 
@@ -229,7 +231,7 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
         if (phsctx->status == PAUSED)
             WaitForSingleObject(phsctx->hUnpauseEvent, INFINITE);
 		if (phsctx->status == CANCEL_REQUESTED)
-			return;
+            throw CanceledException();
 
 		// Write the data
 		HashCalcWriteResult(phsctx, pItem);
@@ -240,12 +242,16 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
     };
 #pragma warning(pop)
 
+    try
+    {
 #ifdef USE_PPL
-    if (bMultithreaded)
-        concurrency::parallel_for_each(vecpItems.cbegin(), vecpItems.cend(), per_file_worker);
-    else
+        if (bMultithreaded)
+            concurrency::parallel_for_each(vecpItems.cbegin(), vecpItems.cend(), per_file_worker);
+        else
 #endif
-        std::for_each(vecpItems.cbegin(), vecpItems.cend(), per_file_worker);
+            std::for_each(vecpItems.cbegin(), vecpItems.cend(), per_file_worker);
+    }
+    catch (CanceledException) {}  // ignore cancellation requests
 
 #ifdef _TIMED
     if (phsctx->cTotal > 1 && phsctx->status != CANCEL_REQUESTED)

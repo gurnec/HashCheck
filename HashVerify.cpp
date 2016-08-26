@@ -533,6 +533,8 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 	// sound notification of completion when appropriate
 	phvctx->dwStarted = GetTickCount();
 
+    class CanceledException {};
+
     // concurrency::parallel_for_each(phvctx->index, phvctx->index + phvctx->cTotal, ...
     auto per_file_worker = [&](PHASHVERIFYITEM pItem)
 	{
@@ -543,7 +545,7 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
             // Allocate a read buffer (one buffer is cached per worker thread by Alloc/Free)
             pbBuffer = (PBYTE)concurrency::Alloc(READ_BUFFER_SIZE);
             if (pbBuffer == NULL)
-                return;
+                throw CanceledException();
         }
         else
 #endif
@@ -594,7 +596,7 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
         if (phvctx->status == PAUSED)
             WaitForSingleObject(phvctx->hUnpauseEvent, INFINITE);
 		if (phvctx->status == CANCEL_REQUESTED)
-			return;
+            throw CanceledException();
 
 		// Part 3: Do something with the results
 		if (whres.dwFlags)
@@ -643,18 +645,21 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 		PostMessage(phvctx->hWnd, HM_WORKERTHREAD_UPDATE, (WPARAM)phvctx, (LPARAM)pItem);
     };
 
+    try
+    {
 #ifdef USE_PPL
-    if (bMultithreaded)
-    {
-        concurrency::parallel_for_each(phvctx->index, phvctx->index + phvctx->cTotal, per_file_worker);
-        DeleteCriticalSection(&updateCritSec);
-    }
-    else
+        if (bMultithreaded)
+            concurrency::parallel_for_each(phvctx->index, phvctx->index + phvctx->cTotal, per_file_worker);
+        else
 #endif
-    {
-        std::for_each(phvctx->index, phvctx->index + phvctx->cTotal, per_file_worker);
-        VirtualFree(pbTheBuffer, 0, MEM_RELEASE);
+            std::for_each(phvctx->index, phvctx->index + phvctx->cTotal, per_file_worker);
     }
+    catch (CanceledException) {}  // ignore cancellation requests
+
+    if (bMultithreaded)
+        DeleteCriticalSection(&updateCritSec);
+    else
+        VirtualFree(pbTheBuffer, 0, MEM_RELEASE);
 
 	// Play a sound to signal the normal, successful termination of operations,
 	// but exempt operations that were nearly instantaneous
