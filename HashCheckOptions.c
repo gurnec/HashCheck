@@ -250,6 +250,22 @@ INT_PTR CALLBACK OptionsDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
 			break;
 		}
+
+        case WM_NOTIFY:
+        {
+            PNMLINK pLinkCtrl = (PNMLINK)lParam;
+            if (pLinkCtrl->hdr.idFrom == IDC_OPT_LINK)
+                switch (pLinkCtrl->hdr.code)
+                {
+                    case NM_CLICK:
+                    case NM_RETURN:
+                        ShellExecute(hWnd, NULL, pLinkCtrl->item.szUrl, NULL, NULL, SW_SHOWNORMAL);
+                        break;
+                }
+
+            break;
+        }
+
 	}
 
 	return(FALSE);

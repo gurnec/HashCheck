@@ -137,6 +137,7 @@ IDD_OPTIONS  DIALOGEX 10, 10, 200, 264
     GROUPBOX        "", IDC_OPT_FONT,            7, 202, 186, 34, WS_GROUP
     CTEXT           "", IDC_OPT_FONT_PREVIEW,   13, 215, 100, 14, SS_CENTERIMAGE | SS_SUNKEN
     PUSHBUTTON      "", IDC_OPT_FONT_CHANGE,   117, 215,  70, 14, WS_TABSTOP
+    CONTROL "<a href=""https://github.com/gurnec/HashCheck"">HashCheck</a>", IDC_OPT_LINK, "SysLink", WS_TABSTOP | WS_GROUP, 13, 244, 70, 10
     DEFPUSHBUTTON   "", IDC_OK,                 89, 243,  50, 14, WS_TABSTOP | WS_GROUP
     PUSHBUTTON      "", IDC_CANCEL,            143, 243,  50, 14, WS_TABSTOP
 }
