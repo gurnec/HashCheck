@@ -186,7 +186,7 @@ VOID __fastcall OptionsSave( PHASHCHECKOPTIONS popt )
 	if (popt->dwFlags == 0)
 		return;
 
-	if (hKey = RegOpen(HKEY_CURRENT_USER, OPTIONS_KEYNAME, NULL))
+	if (hKey = RegOpen(HKEY_CURRENT_USER, OPTIONS_KEYNAME, NULL, TRUE))
 	{
 		if (popt->dwFlags & HCOF_FILTERINDEX)
 			RegSetDW(hKey, TEXT("FilterIndex"), popt->dwFilterIndex);

@@ -13,13 +13,19 @@
 
 #define countof(x) (sizeof(x)/sizeof(x[0]))
 
-HKEY WINAPI RegOpen( HKEY hKey, LPCTSTR lpSubKey, LPCTSTR lpSubst )
+HKEY WINAPI RegOpen( HKEY hKey, LPCTSTR lpSubKey, LPCTSTR lpSubst, BOOL bCreate )
 {
 	HKEY hKeyRet = NULL;
 	TCHAR szJoinedKey[0x7F];
 	if (lpSubst) StringCchPrintf(szJoinedKey, countof(szJoinedKey), lpSubKey, lpSubst);
 
-	if (RegCreateKeyEx(hKey, (lpSubst) ? szJoinedKey : lpSubKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, &hKeyRet, NULL) == ERROR_SUCCESS)
+    LONG lResult;
+    if (bCreate)
+        lResult = RegCreateKeyEx(hKey, (lpSubst) ? szJoinedKey : lpSubKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, &hKeyRet, NULL);
+    else
+        lResult = RegOpenKeyEx(hKey, (lpSubst) ? szJoinedKey : lpSubKey, 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &hKeyRet);
+
+	if (lResult == ERROR_SUCCESS)
 	{
 		Wow64DisableRegReflection(hKeyRet);
 		return(hKeyRet);

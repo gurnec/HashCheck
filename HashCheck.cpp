@@ -16,6 +16,11 @@
 #include "libs/Wow64.h"
 #include <Strsafe.h>
 
+ // Table of formerly supported Hash file extensions to be removed during install
+LPCTSTR szFormerHashExtsTab[] = {
+    _T(".md4")
+};
+
 // Bookkeeping globals (declared as extern in globals.h)
 HMODULE g_hModThisDll;
 CREF g_cRefThisDll;
@@ -98,13 +103,13 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 	TCHAR szBuffer[MAX_PATH << 1];
 
 	// Register class
-	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("CLSID\\%s"), CLSID_STR_HashCheck))
+	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("CLSID\\%s"), CLSID_STR_HashCheck, TRUE))
 	{
 		RegSetSZ(hKey, NULL, CLSNAME_STR_HashCheck);
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
-	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("CLSID\\%s\\InprocServer32"), CLSID_STR_HashCheck))
+	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("CLSID\\%s\\InprocServer32"), CLSID_STR_HashCheck, TRUE))
 	{
 		RegSetSZ(hKey, NULL, lpszModuleName);
 		RegSetSZ(hKey, TEXT("ThreadingModel"), TEXT("Apartment"));
@@ -112,21 +117,21 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 	} else return(SELFREG_E_CLASS);
 
 	// Register context menu handler
-	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("AllFileSystemObjects\\ShellEx\\ContextMenuHandlers\\%s"), CLSNAME_STR_HashCheck))
+	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("AllFileSystemObjects\\ShellEx\\ContextMenuHandlers\\%s"), CLSNAME_STR_HashCheck, TRUE))
 	{
 		RegSetSZ(hKey, NULL, CLSID_STR_HashCheck);
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
 	// Register property sheet handler
-	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("AllFileSystemObjects\\ShellEx\\PropertySheetHandlers\\%s"), CLSNAME_STR_HashCheck))
+	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("AllFileSystemObjects\\ShellEx\\PropertySheetHandlers\\%s"), CLSNAME_STR_HashCheck, TRUE))
 	{
 		RegSetSZ(hKey, NULL, CLSID_STR_HashCheck);
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
 	// Register the HashCheck program ID
-	if (hKey = RegOpen(HKEY_CLASSES_ROOT, PROGID_STR_HashCheck, NULL))
+	if (hKey = RegOpen(HKEY_CLASSES_ROOT, PROGID_STR_HashCheck, NULL, TRUE))
 	{
 		LoadString(g_hModThisDll, IDS_FILETYPE_DESC, szBuffer, countof(szBuffer));
 		RegSetSZ(hKey, NULL, szBuffer);
@@ -140,21 +145,21 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
-	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("%s\\DefaultIcon"), PROGID_STR_HashCheck))
+	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("%s\\DefaultIcon"), PROGID_STR_HashCheck, TRUE))
 	{
 		StringCchPrintf(szBuffer, countof(szBuffer), TEXT("%s,-%u"), lpszModuleName, IDI_FILETYPE);
 		RegSetSZ(hKey, NULL, szBuffer);
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
-	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("%s\\shell\\open\\DropTarget"), PROGID_STR_HashCheck))
+	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("%s\\shell\\open\\DropTarget"), PROGID_STR_HashCheck, TRUE))
 	{
 		// The DropTarget will be the primary way in which we are invoked
 		RegSetSZ(hKey, TEXT("CLSID"), CLSID_STR_HashCheck);
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
-	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("%s\\shell\\open\\command"), PROGID_STR_HashCheck))
+	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("%s\\shell\\open\\command"), PROGID_STR_HashCheck, TRUE))
 	{
 		// This is a legacy fallback used only when DropTarget is unsupported
 		StringCchPrintf(szBuffer, countof(szBuffer), TEXT("rundll32.exe \"%s\",HashVerify_RunDLL %%1"), lpszModuleName, IDS_FILETYPE_DESC);
@@ -162,13 +167,13 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
-	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("%s\\shell\\edit\\command"), PROGID_STR_HashCheck))
+	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("%s\\shell\\edit\\command"), PROGID_STR_HashCheck, TRUE))
 	{
 		RegSetSZ(hKey, NULL, TEXT("notepad.exe %1"));
 		RegCloseKey(hKey);
 	} else return(SELFREG_E_CLASS);
 
-	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("%s\\shell"), PROGID_STR_HashCheck))
+	if (hKey = RegOpen(HKEY_CLASSES_ROOT, TEXT("%s\\shell"), PROGID_STR_HashCheck, TRUE))
 	{
 		RegSetSZ(hKey, NULL, TEXT("open"));
 		RegCloseKey(hKey);
@@ -178,7 +183,7 @@ STDAPI DllRegisterServerEx( LPCTSTR lpszModuleName )
 	// will be handled by DllInstall, not DllRegisterServer.
 
 	// Register approval
-	if (hKey = RegOpen(HKEY_LOCAL_MACHINE, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Approved"), NULL))
+	if (hKey = RegOpen(HKEY_LOCAL_MACHINE, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Approved"), NULL, TRUE))
 	{
 		RegSetSZ(hKey, CLSID_STR_HashCheck, CLSNAME_STR_HashCheck);
 		RegCloseKey(hKey);
@@ -229,7 +234,7 @@ STDAPI DllUnregisterServer( )
 	}
 
 	// Unregister approval
-	if (hKey = RegOpen(HKEY_LOCAL_MACHINE, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Approved"), NULL))
+	if (hKey = RegOpen(HKEY_LOCAL_MACHINE, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Approved"), NULL, FALSE))
 	{
 		LONG lResult = RegDeleteValue(hKey, CLSID_STR_HashCheck);
 		bApprovalRemoved = (lResult == ERROR_SUCCESS || lResult == ERROR_FILE_NOT_FOUND);
@@ -299,12 +304,12 @@ HRESULT Install( BOOL bRegisterUninstaller, BOOL bCopyFile )
 			// Associate file extensions
 			for (UINT i = 0; i < countof(g_szHashExtsTab); ++i)
 			{
-				if (hKey = RegOpen(HKEY_CLASSES_ROOT, g_szHashExtsTab[i], NULL))
+				if (hKey = RegOpen(HKEY_CLASSES_ROOT, g_szHashExtsTab[i], NULL, TRUE))
 				{
 					RegSetSZ(hKey, NULL, PROGID_STR_HashCheck);
 					RegSetSZ(hKey, TEXT("PerceivedType"), TEXT("text"));
 
-					if (hKeySub = RegOpen(hKey, TEXT("PersistentHandler"), NULL))
+					if (hKeySub = RegOpen(hKey, TEXT("PersistentHandler"), NULL, TRUE))
 					{
 						RegSetSZ(hKeySub, NULL, TEXT("{5e941d80-bf96-11cd-b579-08002b30bfeb}"));
 						RegCloseKey(hKeySub);
@@ -314,10 +319,29 @@ HRESULT Install( BOOL bRegisterUninstaller, BOOL bCopyFile )
 				}
 			}
 
+            // Disassociate former file extensions; see the comment in DllUnregisterServer for
+            // why this step is skipped for Wow64 processes
+            if (!Wow64CheckProcess())
+            {
+                for (UINT i = 0; i < countof(szFormerHashExtsTab); ++i)
+                {
+                    HKEY hKey;
+
+                    if (hKey = RegOpen(HKEY_CLASSES_ROOT, szFormerHashExtsTab[i], NULL, FALSE))
+                    {
+                        TCHAR szTemp[countof(PROGID_STR_HashCheck)];
+                        RegGetSZ(hKey, NULL, szTemp, sizeof(szTemp));
+                        if (_tcscmp(szTemp, PROGID_STR_HashCheck) == 0)
+                            RegDeleteValue(hKey, NULL);
+                        RegCloseKey(hKey);
+                    }
+                }
+            }
+
 			// Uninstaller entries
 			RegDelete(HKEY_LOCAL_MACHINE, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%s"), CLSNAME_STR_HashCheck);
 
-			if (bRegisterUninstaller && (hKey = RegOpen(HKEY_LOCAL_MACHINE, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%s"), CLSNAME_STR_HashCheck)))
+			if (bRegisterUninstaller && (hKey = RegOpen(HKEY_LOCAL_MACHINE, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%s"), CLSNAME_STR_HashCheck, TRUE)))
 			{
 				TCHAR szUninstall[MAX_PATH << 1];
 				StringCchPrintf(szUninstall, countof(szUninstall), TEXT("regsvr32.exe /u /i /n \"%s\""), lpszTargetPath);
@@ -463,10 +487,12 @@ HRESULT Uninstall( )
 		{
 			HKEY hKey;
 
-			if (hKey = RegOpen(HKEY_CLASSES_ROOT, g_szHashExtsTab[i], NULL))
+			if (hKey = RegOpen(HKEY_CLASSES_ROOT, g_szHashExtsTab[i], NULL, FALSE))
 			{
-				RegDeleteValue(hKey, NULL);
-				RegCloseKey(hKey);
+                RegGetSZ(hKey, NULL, szTemp, sizeof(szTemp));
+                if (_tcscmp(szTemp, PROGID_STR_HashCheck) == 0)
+                    RegDeleteValue(hKey, NULL);
+                RegCloseKey(hKey);
 			}
 		}
 	}
