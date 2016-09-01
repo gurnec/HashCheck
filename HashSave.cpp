@@ -329,6 +329,10 @@ INT_PTR CALLBACK HashSaveDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		}
 
 		case WM_ENDSESSION:
+        {
+            if (wParam == FALSE)  // if TRUE, fall through to WM_CLOSE
+                break;
+        }
 		case WM_CLOSE:
 		{
 			phsctx = (PHASHSAVECONTEXT)GetWindowLongPtr(hWnd, DWLP_USER);

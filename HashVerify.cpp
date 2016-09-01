@@ -711,6 +711,10 @@ INT_PTR CALLBACK HashVerifyDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 		}
 
 		case WM_ENDSESSION:
+        {
+            if (wParam == FALSE)  // if TRUE, fall through to WM_CLOSE
+                break;
+        }
 		case WM_CLOSE:
 		{
 			phvctx = (PHASHVERIFYCONTEXT)GetWindowLongPtr(hWnd, DWLP_USER);

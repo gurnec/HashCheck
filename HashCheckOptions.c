@@ -225,6 +225,10 @@ INT_PTR CALLBACK OptionsDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		}
 
 		case WM_ENDSESSION:
+        {
+            if (wParam == FALSE)  // if TRUE, fall through to WM_CLOSE
+                break;
+        }
 		case WM_CLOSE:
 		{
 			goto end_dialog;
@@ -260,7 +264,7 @@ INT_PTR CALLBACK OptionsDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                     case NM_CLICK:
                     case NM_RETURN:
                         ShellExecute(hWnd, NULL, pLinkCtrl->item.szUrl, NULL, NULL, SW_SHOWNORMAL);
-                        break;
+                        return(TRUE);
                 }
 
             break;

@@ -207,6 +207,10 @@ INT_PTR CALLBACK HashPropDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		}
 
 		case WM_ENDSESSION:
+        {
+            if (wParam == FALSE)  // if TRUE, fall through to WM_DESTROY
+                break;
+        }
 		case WM_DESTROY:
 		{
 			phpctx = (PHASHPROPCONTEXT)GetWindowLongPtr(hWnd, DWLP_USER);
