@@ -19,6 +19,7 @@
 #include <algorithm>
 #ifdef USE_PPL
 #include <ppl.h>
+#include <concurrent_vector.h>
 #endif
 
 #define HV_COL_FILENAME 0
@@ -511,6 +512,11 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
         phvctx->index[0]->pszDisplayName[1] == TEXT(':') ?
         phvctx->index[0]->pszDisplayName :
         phvctx->pszPath);
+
+    concurrency::concurrent_vector<void*> vecBuffers;  // a vector of all allocated read buffers (one per thread)
+    DWORD dwBufferTlsIndex = TlsAlloc();               // TLS index of the current thread's read buffer
+    if (dwBufferTlsIndex == TLS_OUT_OF_INDEXES)
+        return;
 #else
     constexpr bool bMultithreaded = false;
 #endif
@@ -542,10 +548,17 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
 #ifdef USE_PPL
         if (bMultithreaded)
         {
-            // Allocate a read buffer (one buffer is cached per worker thread by Alloc/Free)
-            pbBuffer = (PBYTE)concurrency::Alloc(READ_BUFFER_SIZE);
+            // Allocate or retrieve the already-allocated read buffer for the current thread
+            pbBuffer = (PBYTE)TlsGetValue(dwBufferTlsIndex);
             if (pbBuffer == NULL)
-                throw CanceledException();
+            {
+                pbBuffer = (PBYTE)VirtualAlloc(NULL, READ_BUFFER_SIZE, MEM_COMMIT, PAGE_READWRITE);
+                if (pbBuffer == NULL)
+                    throw CanceledException();
+                // Cache the read buffer for the current thread
+                vecBuffers.push_back(pbBuffer);
+                TlsSetValue(dwBufferTlsIndex, pbBuffer);
+            }
         }
         else
 #endif
@@ -587,11 +600,6 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
           , NULL
 #endif
         );
-
-#ifdef USE_PPL
-        if (bMultithreaded)
-            concurrency::Free(pbBuffer);
-#endif
 
         if (phvctx->status == PAUSED)
             WaitForSingleObject(phvctx->hUnpauseEvent, INFINITE);
@@ -656,9 +664,15 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
     }
     catch (CanceledException) {}  // ignore cancellation requests
 
+#ifdef USE_PPL
     if (bMultithreaded)
+    {
+        for (void* pBuffer : vecBuffers)
+            VirtualFree(pBuffer, 0, MEM_RELEASE);
         DeleteCriticalSection(&updateCritSec);
+    }
     else
+#endif
         VirtualFree(pbTheBuffer, 0, MEM_RELEASE);
 
 	// Play a sound to signal the normal, successful termination of operations,

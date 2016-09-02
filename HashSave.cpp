@@ -19,6 +19,7 @@
 #include <algorithm>
 #ifdef USE_PPL
 #include <ppl.h>
+#include <concurrent_vector.h>
 #endif
 
 // Control structures, from HashCalc.h
@@ -163,6 +164,10 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 
 #ifdef USE_PPL
     const bool bMultithreaded = vecpItems.size() > 1 && IsSSD(vecpItems[0]->szPath);
+    concurrency::concurrent_vector<void*> vecBuffers;  // a vector of all allocated read buffers (one per thread)
+    DWORD dwBufferTlsIndex = TlsAlloc();               // TLS index of the current thread's read buffer
+    if (dwBufferTlsIndex == TLS_OUT_OF_INDEXES)
+        return;
 #else
     constexpr bool bMultithreaded = false;
 #endif
@@ -200,10 +205,17 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 #ifdef USE_PPL
         if (bMultithreaded)
         {
-            // Allocate a read buffer (one buffer is cached per worker thread by Alloc/Free)
-            pbBuffer = (PBYTE)concurrency::Alloc(READ_BUFFER_SIZE);
+            // Allocate or retrieve the already-allocated read buffer for the current thread
+            pbBuffer = (PBYTE)TlsGetValue(dwBufferTlsIndex);
             if (pbBuffer == NULL)
-                throw CanceledException();
+            {
+                pbBuffer = (PBYTE)VirtualAlloc(NULL, READ_BUFFER_SIZE, MEM_COMMIT, PAGE_READWRITE);
+                if (pbBuffer == NULL)
+                    throw CanceledException();
+                // Cache the read buffer for the current thread
+                vecBuffers.push_back(pbBuffer);
+                TlsSetValue(dwBufferTlsIndex, pbBuffer);
+            }
         }
 #endif
 
@@ -222,11 +234,6 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
           , &pItem->dwElapsed
 #endif
         );
-
-#ifdef USE_PPL
-        if (bMultithreaded)
-            concurrency::Free(pbBuffer);
-#endif
 
         if (phsctx->status == PAUSED)
             WaitForSingleObject(phsctx->hUnpauseEvent, INFINITE);
@@ -274,9 +281,15 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
     }
 #endif
 
+#ifdef USE_PPL
     if (bMultithreaded)
+    {
+        for (void* pBuffer : vecBuffers)
+            VirtualFree(pBuffer, 0, MEM_RELEASE);
         DeleteCriticalSection(&updateCritSec);
+    }
     else
+#endif
         VirtualFree(pbTheBuffer, 0, MEM_RELEASE);
 }
 
