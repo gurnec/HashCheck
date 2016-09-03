@@ -10,10 +10,14 @@
 #define IDS_HC_CANCEL                   0x4107
 
 #define IDS_HS_MENUTEXT                 0x4200
-#define IDS_HS_TITLE_FMT                0x4201
+#define IDS_HS_MENUTEXT_SEP             0x4201
+#define IDS_HS_TITLE_FMT                0x4202
 #define IDS_HS_PAUSE                    IDS_HC_PAUSE
 #define IDS_HS_RESUME                   IDS_HC_RESUME
 #define IDS_HS_CANCEL                   IDS_HC_CANCEL
+
+#define IDS_SEP_OK                      IDS_HC_OK
+#define IDS_SEP_CANCEL                  IDS_HC_CANCEL
 
 #define IDS_HP_TITLE                    0x4300
 #define IDS_HP_STATUSBOX                0x4301

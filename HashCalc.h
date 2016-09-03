@@ -69,6 +69,8 @@ typedef struct {
 	// Members specific to HashCalc
 	HSIMPLELIST        hListRaw;     // data from IShellExtInit
 	HSIMPLELIST        hList;        // our expanded/processed data
+    BOOL               bSeparateFiles;// true iff saving to separate files
+    MSGCOUNT           cFileOutErrors;// count of HashSave checksum files having write errors
 	HANDLE             hFileOut;     // handle of the output file
 	HFONT              hFont;        // fixed-width font for the results box: handle
 	WNDPROC            wpSearchBox;  // original WNDPROC for the HashProp search box
@@ -102,8 +104,9 @@ typedef struct {
 // Public functions
 BOOL WINAPI HashCalcPrepare( PHASHCALCCONTEXT phcctx );
 VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx );
+VOID WINAPI HashCalcInitSaveSeparate( PHASHCALCCONTEXT phcctx );
 VOID WINAPI HashCalcSetSaveFormat( PHASHCALCCONTEXT phcctx );
-BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem );
+BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, HANDLE hFile, PHASHCALCITEM pItem );
 VOID WINAPI HashCalcClearInvalid( PWHRESULTEX pwhres, WCHAR cInvalid );
 BOOL WINAPI HashCalcDeleteFileByHandle( HANDLE hFile );
 VOID WINAPI HashCalcTogglePrep( PHASHCALCCONTEXT phcctx, BOOL bState );

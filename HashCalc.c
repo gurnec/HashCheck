@@ -11,9 +11,11 @@
 #include "globals.h"
 #include "HashCheckCommon.h"
 #include "HashCalc.h"
+#include "SetAppID.h"
 #include "UnicodeHelpers.h"
 #include "libs/WinHash.h"
 #include <Strsafe.h>
+#include <assert.h>
 
 static const TCHAR SAVE_DEFAULT_NAME[] = TEXT("checksums");
 
@@ -124,7 +126,8 @@ BOOL WINAPI HashCalcPrepare( PHASHCALCCONTEXT phcctx )
 			}
 			else
 			{
-				PHASHCALCITEM pItem = SLAddItem(phcctx->hList, NULL, sizeof(HASHCALCITEM) + cbCurrent);
+				PHASHCALCITEM pItem = SLAddItem(phcctx->hList, NULL, sizeof(HASHCALCITEM) + cbCurrent +
+                    (phcctx->bSeparateFiles ? MAX_FILE_EXT_LEN * sizeof(TCHAR) : 0));
 
 				if (pItem)
 				{
@@ -189,7 +192,8 @@ VOID WINAPI HashCalcWalkDirectory( PHASHCALCCONTEXT phcctx, PTSTR pszPath, UINT 
 			{
 				// File: Add to the list
 				UINT cbPathBuffer = (cchNew + 1) * sizeof(TCHAR);
-				PHASHCALCITEM pItem = SLAddItem(phcctx->hList, NULL, sizeof(HASHCALCITEM) + cbPathBuffer);
+				PHASHCALCITEM pItem = SLAddItem(phcctx->hList, NULL, sizeof(HASHCALCITEM) + cbPathBuffer +
+                    (phcctx->bSeparateFiles ? MAX_FILE_EXT_LEN * sizeof(TCHAR) : 0));
 
 				if (pItem)
 				{
@@ -241,7 +245,7 @@ BOOL WINAPI IsDoubleSlashPath( PCTSTR pszPath )
 
 
 /*============================================================================*\
-	Save dialog
+	Save dialogs
 \*============================================================================*/
 
 VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
@@ -266,7 +270,7 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 		phcctx->ofn.lpstrFilter = HASH_FILE_FILTERS;
 		phcctx->ofn.nFilterIndex = phcctx->opt.dwFilterIndex;
 		phcctx->ofn.lpstrFile = pszFile;
-		phcctx->ofn.nMaxFile = MAX_PATH_BUFFER + 10;
+		phcctx->ofn.nMaxFile = MAX_PATH_BUFFER + MAX_FILE_EXT_LEN;
 		phcctx->ofn.Flags = OFN_DONTADDTORECENT | OFN_NOCHANGEDIR | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
 		phcctx->ofn.lpstrDefExt = TEXT("");
 
@@ -310,7 +314,7 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 		}
 
 		// Extension fixup: Correct the extension to match the selected
-		// type, but only if the extension was one of the 5 in the list
+		// type, but only if the extension was one of those in the list
 		if (phcctx->ofn.nFileExtension)
 		{
 			PTSTR pszExt = pszFile + phcctx->ofn.nFileExtension - 1;
@@ -329,7 +333,7 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 		// Open the file for output
 		phcctx->hFileOut = CreateFile(
 			pszFile,
-			FILE_APPEND_DATA | DELETE,
+			FILE_APPEND_DATA,
 			FILE_SHARE_READ,
 			NULL,
 			CREATE_ALWAYS,
@@ -352,11 +356,116 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 		}
 		else
 		{
-			TCHAR szMessage[MAX_STRINGMSG];
-			LoadString(g_hModThisDll, IDS_HC_SAVE_ERROR, szMessage, countof(szMessage));
-			MessageBox(hWnd, szMessage, NULL, MB_OK | MB_ICONERROR);
+			TCHAR szFormat[MAX_STRINGMSG], szMessageBuffer[MAX_STRINGMSG], *pszMessage;
+			LoadString(g_hModThisDll, IDS_HC_SAVE_ERROR, szFormat, countof(szFormat));
+            if (StrStr(szFormat, TEXT("%d")) != NULL)
+            {
+                StringCchPrintf(szMessageBuffer, countof(szMessageBuffer), szFormat, 1);
+                pszMessage = szMessageBuffer;
+            }
+            else
+            {
+                pszMessage = szFormat;
+            }
+			MessageBox(hWnd, pszMessage, NULL, MB_OK | MB_ICONERROR);
 		}
 	}
+}
+
+// input:   dwInitParam is the (1-based) hash id to pre-select (from the hash_algorithm enum in WinHash.h)
+// returns: the (1-based) hash id chosen by the user, or 0 if canceled
+INT_PTR CALLBACK HashCalcDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+    switch (uMsg)
+    {
+        case WM_INITDIALOG:
+            SetAppIDForWindow(hWnd, TRUE);
+
+            // Set the window's title w/o any of the characters added for the menu access keys
+            TCHAR szTitle[MAX_STRINGMSG];
+            LoadString(g_hModThisDll, IDS_HS_MENUTEXT_SEP, szTitle, countof(szTitle));
+            LPTSTR lpszSrc = szTitle, lpszDest = szTitle;
+            while (*lpszSrc && *lpszSrc != '(' && *lpszSrc != '.')
+            {
+                if (*lpszSrc != '&')
+                {
+                    *lpszDest = *lpszSrc;
+                    ++lpszDest;
+                }
+                ++lpszSrc;
+            }
+            *lpszDest = 0;
+            SendMessage(hWnd, WM_SETTEXT, 0, (LPARAM)szTitle);
+
+            // Set the window's icon and buttons text
+            SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(g_hModThisDll, MAKEINTRESOURCE(IDI_FILETYPE)));
+            SetControlText(hWnd, IDC_OK,     IDS_SEP_OK);
+            SetControlText(hWnd, IDC_CANCEL, IDS_SEP_CANCEL);
+
+            // Tick the pre-selected hash
+            if (lParam >= 1 && lParam <= NUM_HASHES)
+                SendDlgItemMessage(hWnd, IDC_SEP_CHK_FIRSTID + (int)lParam - 1, BM_SETCHECK, BST_CHECKED, 0);
+
+            return(TRUE);
+
+        case WM_DESTROY:
+            SetAppIDForWindow(hWnd, FALSE);
+            break;
+
+        case WM_ENDSESSION:
+            if (wParam == FALSE)  // if TRUE, fall through to WM_CLOSE
+                break;
+        case WM_CLOSE:
+            goto end_dialog;
+
+        case WM_COMMAND:
+            switch (LOWORD(wParam))
+            {
+                int i;
+                case IDC_OK:
+                    for (i = 0; i < NUM_HASHES; i++)
+                    {
+                        if (SendDlgItemMessage(hWnd, IDC_SEP_CHK_FIRSTID + i, BM_GETCHECK, 0, 0) == BST_CHECKED)
+                        {
+                            EndDialog(hWnd, i + 1);
+                            break;
+                        }
+                    }
+                    return(TRUE);
+
+                case IDC_CANCEL:
+                    end_dialog: EndDialog(hWnd, 0);
+                    return(TRUE);
+            }
+            break;
+    }
+    return(FALSE);
+}
+
+VOID WINAPI HashCalcInitSaveSeparate(PHASHCALCCONTEXT phcctx)
+{
+    // Load settings
+    phcctx->opt.dwFlags = HCOF_FILTERINDEX | HCOF_SAVEENCODING;
+    OptionsLoad(&phcctx->opt);
+
+    DWORD dwOrigFilterIndex = phcctx->opt.dwFilterIndex;
+    phcctx->ofn.nFilterIndex = (DWORD)DialogBoxParam(
+        g_hModThisDll,
+        MAKEINTRESOURCE(IDD_HASHSAVE_SEP),
+        NULL,
+        HashCalcDlgProc,
+        dwOrigFilterIndex
+    );
+    if (phcctx->ofn.nFilterIndex && phcctx->ofn.nFilterIndex != dwOrigFilterIndex)
+    {
+        // Save modified setting
+        phcctx->opt.dwFilterIndex = phcctx->ofn.nFilterIndex;
+        phcctx->opt.dwFlags = HCOF_FILTERINDEX;
+        OptionsSave(&phcctx->opt);
+    }
+
+    // The actual format will be set when HashCalcWriteResult is called
+    phcctx->szFormat[0] = 0;
 }
 
 VOID WINAPI HashCalcSetSaveFormat( PHASHCALCCONTEXT phcctx )
@@ -368,12 +477,15 @@ VOID WINAPI HashCalcSetSaveFormat( PHASHCALCCONTEXT phcctx )
 		// The reason we tracked cchMax was because of this idiotic format
 		if (phcctx->ofn.nFilterIndex == 1)
 		{
-			StringCchPrintf(
-				phcctx->szFormat,
-				countof(phcctx->szFormat),
-				TEXT("%%-%ds %%s\r\n"),
-				phcctx->cchMax - phcctx->cchAdjusted
-			);
+            if (! phcctx->bSeparateFiles)  // if there's a single output file
+                StringCchPrintf(
+                    phcctx->szFormat,
+                    countof(phcctx->szFormat),
+                    TEXT("%%-%ds %%s\r\n"),
+                    phcctx->cchMax - phcctx->cchAdjusted
+                );
+            else  // else each hash is in its own file with no SFV padding
+                SSStaticCpy(phcctx->szFormat, TEXT("%s %s\r\n"));
 		}
 		else
 		{
@@ -382,7 +494,7 @@ VOID WINAPI HashCalcSetSaveFormat( PHASHCALCCONTEXT phcctx )
 	}
 }
 
-BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
+BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, HANDLE hFileOut, PHASHCALCITEM pItem )
 {
 	PCTSTR pszHash;                     // will be pointed to the hash name
     WCHAR szWbuffer[MAX_PATH_BUFFER];   // wide-char buffer
@@ -396,7 +508,6 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
     size_t cchLine = MAX_PATH_BUFFER;   // starts off as count of remaining TCHARS in the buffer
     PVOID pvLine;                       // will be pointed to the buffer to write out
     size_t cbLine;                      // will be line length in bytes, EXCLUDING nul terminator
-    BOOL bRetval = TRUE;
 
 	// If the checksum to save isn't present in the results
     if (! ((1 << (phcctx->ofn.nFilterIndex - 1)) & pItem->results.dwFlags))
@@ -408,7 +519,6 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 
         // We'll still output a hash, but it will be all 0's, that way Verify will indicate an mismatch
         HashCalcClearInvalid(&pItem->results, TEXT('0'));
-        bRetval = FALSE;
     }
 
 	// Translate the filter index to a hash
@@ -417,14 +527,35 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 #define HASH_INDEX_TO_RESULTS_op(alg) \
         case alg:  pszHash = pItem->results.szHex##alg;  break;
         FOR_EACH_HASH(HASH_INDEX_TO_RESULTS_op)
-		default: return(FALSE);
+
+		default:
+            assert(FALSE);
+            return(FALSE);
 	}
 
 	// Format the line
+    LPCTSTR pszPathAdjusted;  // will point to the path about to be written out
+    //
+    // If there's a single output file
+    if (! phcctx->bSeparateFiles)
+        // The path common to all files (including the output file) is removed
+        pszPathAdjusted = pItem->szPath + phcctx->cchAdjusted;
+    //
+    // Otherwise if it's one output file per file hashed, remove everything but the base filename
+    else
+    {
+        for (pszPathAdjusted = pItem->szPath + pItem->cchPath - 1; pszPathAdjusted > pItem->szPath; pszPathAdjusted--)
+            if (*pszPathAdjusted == TEXT('\\') || *pszPathAdjusted == TEXT('/'))
+            {
+                pszPathAdjusted++;
+                break;
+            }
+    }
+    //
 	#define HashCalcFormat(a, b) StringCchPrintfEx(szTbufferAppend, cchLine, &szTbufferAppend, &cchLine, 0, phcctx->szFormat, a, b)
 	(phcctx->ofn.nFilterIndex == 1) ?
-		HashCalcFormat(pItem->szPath + phcctx->cchAdjusted, pszHash) : // SFV
-		HashCalcFormat(pszHash, pItem->szPath + phcctx->cchAdjusted);  // everything else
+		HashCalcFormat(pszPathAdjusted, pszHash) : // SFV
+		HashCalcFormat(pszHash, pszPathAdjusted);  // everything else
 	#undef HashCalcFormat
 
 #ifdef _TIMED
@@ -477,20 +608,30 @@ BOOL WINAPI HashCalcWriteResult( PHASHCALCCONTEXT phcctx, PHASHCALCITEM pItem )
 				break;
 			}
 
-			default: return(FALSE);
+			default:
+                assert(FALSE);
+                return(FALSE);
 		}
 
 		if (cbLine > 0)
 		{
-			INT cbWritten;
-			WriteFile(phcctx->hFileOut, pvLine, (DWORD)cbLine, &cbWritten, NULL);
-			if (cbLine != cbWritten) return(FALSE);
+			DWORD cbWritten;
+			if (! WriteFile(hFileOut, pvLine, (DWORD)cbLine, &cbWritten, NULL) || cbLine != cbWritten)
+                return(FALSE);
 		}
-		else return(FALSE);
+		else 
+        {
+            assert(FALSE);
+            return(FALSE);
+        }
 	}
-	else return(FALSE);
+	else
+    {
+        assert(FALSE);
+        return(FALSE);
+    }
 
-	return(bRetval);
+	return(TRUE);
 }
 
 VOID WINAPI HashCalcClearInvalid( PWHRESULTEX pwhres, WCHAR cInvalid )

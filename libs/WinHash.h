@@ -136,6 +136,7 @@ enum hash_algorithm {
 #define HASH_EXT_SHA512         _T(".sha512")
 #define HASH_EXT_SHA3_256       _T(".sha3-256")
 #define HASH_EXT_SHA3_512       _T(".sha3-512")
+#define MAX_FILE_EXT_LEN        countof(HASH_EXT_SHA3_512)
 
 // Table of supported Hash file extensions, plus .asc
 extern LPCTSTR g_szHashExtsTab[NUM_HASHES + 1];

@@ -60,6 +60,7 @@ STDMETHODIMP CHashCheck::Initialize( LPCITEMIDLIST pidlFolder, LPDATAOBJECT pdto
 	// Make sure that we are working with a fresh list
 	SLRelease(m_hList);
 	m_hList = SLCreate();
+	m_cItems = 0;
 
 	// This indent exists to facilitate diffing against the CmdOpen source
 	{
@@ -77,7 +78,8 @@ STDMETHODIMP CHashCheck::Initialize( LPCITEMIDLIST pidlFolder, LPDATAOBJECT pdto
 			{
 				if (DragQueryFile(hDrop, uDrop, szPath, countof(szPath)))
 				{
-					SLAddStringI(m_hList, szPath);
+					if (SLAddStringI(m_hList, szPath))
+						m_cItems++;
 				}
 			}
 
@@ -87,9 +89,8 @@ STDMETHODIMP CHashCheck::Initialize( LPCITEMIDLIST pidlFolder, LPDATAOBJECT pdto
 		ReleaseStgMedium(&medium);
 	}
 
-
 	// If there was any failure, the list would be empty...
-	return((SLCheck(m_hList)) ? S_OK : E_INVALIDARG);
+	return(m_cItems ? S_OK : E_INVALIDARG);
 }
 
 STDMETHODIMP CHashCheck::QueryContextMenu( HMENU hmenu, UINT indexMenu, UINT idCmdFirst, UINT idCmdLast, UINT uFlags )
@@ -111,36 +112,81 @@ STDMETHODIMP CHashCheck::QueryContextMenu( HMENU hmenu, UINT indexMenu, UINT idC
 	if (opt.dwMenuDisplay == 2 || (opt.dwMenuDisplay == 1 && !(uFlags & CMF_EXTENDEDVERBS)))
 		return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0));
 
-	// Load the localized menu text
-	TCHAR szMenuText[MAX_STRINGMSG];
-	LoadString(g_hModThisDll, IDS_HS_MENUTEXT, szMenuText, countof(szMenuText));
+    WORD maxIdOffsetPlusOne = 0;  // what must be returned as per the QueryContextMenu specs
 
     MENUITEMINFO mii;
     mii.cbSize     = sizeof(mii);
-    mii.fMask      = MIIM_FTYPE | MIIM_ID | MIIM_STRING;
+    mii.fMask      = MIIM_FTYPE | MIIM_ID | MIIM_STRING;  // which mii members are set
     if (g_uWinVer >= 0x0600)  // prior to Vista, 32-bit bitmaps w/alpha channels don't render correctly in menus
         mii.fMask |= MIIM_BITMAP;
-    mii.fType      = MFT_STRING;
-    mii.wID        = idCmdFirst;
-    mii.dwTypeData = szMenuText;
+    mii.fType      = MFT_STRING;  // specifies the dwTypeData member is a pointer to a nul-terminated string
     mii.hbmpItem   = m_hMenuBitmap;
-	if (! InsertMenuItem(hmenu, indexMenu, TRUE, &mii))
-		return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0));
 
-    InsertMenu(hmenu, indexMenu + 1, MF_SEPARATOR | MF_BYPOSITION, 0, NULL);
+	// Load the localized menu text
+	TCHAR szMenuText[MAX_STRINGMSG];
+	LoadString(g_hModThisDll, IDS_HS_MENUTEXT, szMenuText, countof(szMenuText));  // "Create Chec&ksum file..."
 
-	return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 1));
+    mii.wID        = idCmdFirst + VERB_CHECKSUM_ID;
+    mii.dwTypeData = szMenuText;
+    if (mii.wID > idCmdLast || ! InsertMenuItem(hmenu, indexMenu++, TRUE, &mii))
+        goto done;
+    maxIdOffsetPlusOne = max(maxIdOffsetPlusOne, VERB_CHECKSUM_ID + 1);
+
+    // If multiple items (or a folder) were selected
+    if (m_cItems > 1 || m_cItems && PathIsDirectory((LPTSTR)SLGetData(m_hList)))
+    {
+        // Load the localized menu text
+        LoadString(g_hModThisDll, IDS_HS_MENUTEXT_SEP, szMenuText, countof(szMenuText));  // "Create se&parate Checksum files..."
+
+        mii.wID        = idCmdFirst + VERB_CHECKSUM_SEPARATE_ID;
+        mii.dwTypeData = szMenuText;
+        if (mii.wID > idCmdLast || ! InsertMenuItem(hmenu, indexMenu++, TRUE, &mii))
+            goto done;
+        maxIdOffsetPlusOne = max(maxIdOffsetPlusOne, VERB_CHECKSUM_SEPARATE_ID + 1);
+    }
+
+    InsertMenu(hmenu, indexMenu, MF_SEPARATOR | MF_BYPOSITION, 0, NULL);
+
+    done:
+	return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, maxIdOffsetPlusOne));
 }
 
 STDMETHODIMP CHashCheck::InvokeCommand( LPCMINVOKECOMMANDINFO pici )
 {
-	// Ignore string verbs (high word must be zero)
-	// The only valid command index is 0 (low word must be zero)
-	if (pici->lpVerb)
-		return(E_INVALIDARG);
+    BOOL bSeparateFiles;
+    if (IS_INTRESOURCE(pici->lpVerb))
+    {
+        if ((UINT_PTR)pici->lpVerb > VERB_CHECKSUM_MAX_ID)
+            return(E_FAIL);
+        bSeparateFiles = (UINT_PTR)pici->lpVerb == VERB_CHECKSUM_SEPARATE_ID;
+    }
+    else
+    {
+        LPCMINVOKECOMMANDINFOEX picix =
+            pici->cbSize == sizeof(LPCMINVOKECOMMANDINFOEX) ?
+            (LPCMINVOKECOMMANDINFOEX)pici : NULL;
+        if (picix && (picix->fMask & CMIC_MASK_UNICODE))
+        {
+            if (StrCmpICW(picix->lpVerbW, VERB_CHECKSUM_W) == 0)
+                bSeparateFiles = FALSE;
+            else if (StrCmpICW(picix->lpVerbW, VERB_CHECKSUM_SEPARATE_W) == 0)
+                bSeparateFiles = TRUE;
+            else
+                return(E_FAIL);
+        }
+        else
+        {
+            if (StrCmpICA(pici->lpVerb, VERB_CHECKSUM_A) == 0)
+                bSeparateFiles = FALSE;
+            else if (StrCmpICA(pici->lpVerb, VERB_CHECKSUM_SEPARATE_A) == 0)
+                bSeparateFiles = TRUE;
+            else
+                return(E_FAIL);
+        }
+    }
 
 	// Hand things over to HashSave, where all the work is done...
-	HashSaveStart(pici->hwnd, m_hList);
+	HashSaveStart(pici->hwnd, m_hList, bSeparateFiles);
 
 	// HaveSave has AddRef'ed and now owns our list
 	SLRelease(m_hList);
@@ -151,10 +197,12 @@ STDMETHODIMP CHashCheck::InvokeCommand( LPCMINVOKECOMMANDINFO pici )
 
 STDMETHODIMP CHashCheck::GetCommandString( UINT_PTR idCmd, UINT uFlags, UINT *pwReserved, LPSTR pszName, UINT cchMax )
 {
-	static const  CHAR szVerbA[] =  "cksum";
-	static const WCHAR szVerbW[] = L"cksum";
+	static const  CHAR szVerbA[] = VERB_CHECKSUM_A;
+	static const WCHAR szVerbW[] = VERB_CHECKSUM_W;
+	static const  CHAR szVerbSepA[] = VERB_CHECKSUM_SEPARATE_A;
+	static const WCHAR szVerbSepW[] = VERB_CHECKSUM_SEPARATE_W;
 
-	if (idCmd != 0 || cchMax < countof(szVerbW))
+	if (idCmd > VERB_CHECKSUM_MAX_ID || cchMax < countof(szVerbSepW))
 		return(E_INVALIDARG);
 
 	switch (uFlags)
@@ -164,7 +212,10 @@ STDMETHODIMP CHashCheck::GetCommandString( UINT_PTR idCmd, UINT uFlags, UINT *pw
 
 		case GCS_HELPTEXTA:
 		{
-			LoadStringA(g_hModThisDll, IDS_HS_MENUTEXT, (LPSTR)pszName, cchMax);
+			if (idCmd == 0)
+				LoadStringA(g_hModThisDll, IDS_HS_MENUTEXT, (LPSTR)pszName, cchMax);
+			else
+				LoadStringA(g_hModThisDll, IDS_HS_MENUTEXT_SEP, (LPSTR)pszName, cchMax);
 
 			LPSTR lpszSrcA = (LPSTR)pszName;
 			LPSTR lpszDestA = (LPSTR)pszName;
@@ -186,7 +237,10 @@ STDMETHODIMP CHashCheck::GetCommandString( UINT_PTR idCmd, UINT uFlags, UINT *pw
 
 		case GCS_HELPTEXTW:
 		{
-			LoadStringW(g_hModThisDll, IDS_HS_MENUTEXT, (LPWSTR)pszName, cchMax);
+			if (idCmd == 0)
+				LoadStringW(g_hModThisDll, IDS_HS_MENUTEXT, (LPWSTR)pszName, cchMax);
+			else
+				LoadStringW(g_hModThisDll, IDS_HS_MENUTEXT_SEP, (LPWSTR)pszName, cchMax);
 
 			LPWSTR lpszSrcW = (LPWSTR)pszName;
 			LPWSTR lpszDestW = (LPWSTR)pszName;
@@ -208,13 +262,19 @@ STDMETHODIMP CHashCheck::GetCommandString( UINT_PTR idCmd, UINT uFlags, UINT *pw
 
 		case GCS_VERBA:
 		{
-			SSStaticCpyA((LPSTR)pszName, szVerbA);
+			if (idCmd == 0)
+				SSStaticCpyA((LPSTR)pszName, szVerbA);
+			else
+				SSStaticCpyA((LPSTR)pszName, szVerbSepA);
 			return(S_OK);
 		}
 
 		case GCS_VERBW:
 		{
-			SSStaticCpyW((LPWSTR)pszName, szVerbW);
+			if (idCmd == 0)
+				SSStaticCpyW((LPWSTR)pszName, szVerbW);
+			else
+				SSStaticCpyW((LPWSTR)pszName, szVerbSepW);
 			return(S_OK);
 		}
 	}

@@ -354,7 +354,7 @@ HRESULT Install( BOOL bRegisterUninstaller, BOOL bCopyFile )
 				RegSetSZ(hKey, TEXT("DisplayIcon"), lpszTargetPath);
 				RegSetSZ(hKey, TEXT("DisplayName"), TEXT(HASHCHECK_NAME_STR));
 				RegSetSZ(hKey, TEXT("DisplayVersion"), TEXT(HASHCHECK_VERSION_STR));
-				RegSetDW(hKey, TEXT("EstimatedSize"), 896);
+				RegSetDW(hKey, TEXT("EstimatedSize"), 1024);
 				RegSetSZ(hKey, TEXT("HelpLink"), szURLFull);
 				RegSetDW(hKey, TEXT("NoModify"), 1);
 				RegSetDW(hKey, TEXT("NoRepair"), 1);

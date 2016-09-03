@@ -18,7 +18,7 @@ extern "C" {
 HANDLE __fastcall CreateThreadCRT( PVOID pThreadProc, PVOID pvParam );
 
 // HashSave
-VOID WINAPI HashSaveStart( HWND hWndOwner, HSIMPLELIST hListInput );
+VOID WINAPI HashSaveStart( HWND hWndOwner, HSIMPLELIST hListInput, BOOL bSeparateFiles );
 
 // HashProp
 UINT CALLBACK HashPropCallback( HWND hWnd, UINT uMsg, LPPROPSHEETPAGE ppsp );

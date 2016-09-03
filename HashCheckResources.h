@@ -16,6 +16,18 @@
 // Hash creation/save (context menu) dialog
 #define IDD_HASHSAVE                    200
 
+// Save separate checksum files dialog
+#define IDD_HASHSAVE_SEP                600
+#define IDC_SEP_CHK                     601
+#define IDC_SEP_CHK_CRC32               602
+#define IDC_SEP_CHK_MD5                 603
+#define IDC_SEP_CHK_SHA1                604
+#define IDC_SEP_CHK_SHA256              605
+#define IDC_SEP_CHK_SHA512              606
+#define IDC_SEP_CHK_SHA3_256            607
+#define IDC_SEP_CHK_SHA3_512            608
+#define IDC_SEP_CHK_FIRSTID             IDC_SEP_CHK_CRC32
+
 // Hash calculation property sheet and controls
 // (some of these must be copied to HashProp.cs)
 #define IDD_HASHPROP                    300

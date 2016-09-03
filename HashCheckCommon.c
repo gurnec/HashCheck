@@ -331,6 +331,21 @@ __inline VOID UpdateProgressBar( HWND hWndPBFile, PCRITICAL_SECTION pCritSec,
     }
 }
 
+// If the worker thread is working so fast that the UI cannot catch up,
+// pause for a bit to let things settle down
+BOOL WINAPI WorkerThreadThrottleForUI( PCOMMONCONTEXT pcmnctx )
+{
+	while (pcmnctx->cSentMsgs > pcmnctx->cHandledMsgs + 50)
+	{
+		Sleep(50);
+        if (pcmnctx->status == PAUSED)
+            WaitForSingleObject(pcmnctx->hUnpauseEvent, INFINITE);
+		if (pcmnctx->status == CANCEL_REQUESTED)
+			return(FALSE);
+	}
+    return(TRUE);
+}
+
 VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath,
                                   PWHCTXEX pwhctx, PWHRESULTEX pwhres, PBYTE pbuffer,
                                   PFILESIZE pFileSize, LPARAM lParam,
@@ -341,17 +356,6 @@ VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath,
                                 )
 {
 	HANDLE hFile;
-
-	// If the worker thread is working so fast that the UI cannot catch up,
-	// pause for a bit to let things settle down
-	while (pcmnctx->cSentMsgs > pcmnctx->cHandledMsgs + 50)
-	{
-		Sleep(50);
-        if (pcmnctx->status == PAUSED)
-            WaitForSingleObject(pcmnctx->hUnpauseEvent, INFINITE);
-		if (pcmnctx->status == CANCEL_REQUESTED)
-			return;
-	}
 
     // This can happen if a user changes the hash selection in HashProp (if no
     // new hashes were selected; we still want to run the throttling code above)

@@ -15,12 +15,13 @@ STRINGTABLE LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 	IDS_HC_STOP              "&Stop"
 	IDS_HC_RESULT_FMT        "%u of %u file"           // %u, %u == count, total; prefix with "!" to reverse the order (singular version)
 	IDS_HC_RESULTS_FMT       "%u of %u files"          // %u, %u == count, total; prefix with "!" to reverse the order (plural version)
-	IDS_HC_SAVE_ERROR        "Cannot open checksum file for writing."
+	IDS_HC_SAVE_ERROR        "Could not create %d of the checksum file(s)."  // optional %d == failed checksum file count
 	IDS_HC_OK                "OK"
 	IDS_HC_CANCEL            "Cancel"
 
 	// Strings used exclusively in the HashSave module (context menu)
-	IDS_HS_MENUTEXT          "Create Chec&ksum File..."
+	IDS_HS_MENUTEXT          "Create Chec&ksum file..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Creating ""%s""..."      // %s == name of the checksum file
 
 	// Strings used exclusively in the HashProp module (file properties tab)
@@ -82,6 +83,7 @@ STRINGTABLE LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_TRADITIONAL
 	IDS_HC_CANCEL            "取消"
 
 	IDS_HS_MENUTEXT          "建立校驗檔案(&K)..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "正在建立 ""%s""..."
 
 	IDS_HP_TITLE             "檔案校驗"
@@ -140,6 +142,7 @@ STRINGTABLE LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 	IDS_HC_CANCEL            "取消"
 
 	IDS_HS_MENUTEXT          "创建校验信息文件(&K)..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "正在创建 ""%s""..."
 
 	IDS_HP_TITLE             "文件校验"
@@ -198,6 +201,7 @@ STRINGTABLE LANGUAGE LANG_CZECH, SUBLANG_DEFAULT
 	IDS_HC_CANCEL            "Storno"
 
 	IDS_HS_MENUTEXT          "Vytvoř soubor &kontrolního součtu..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Vytvářím ""%s""..."
 
 	IDS_HP_TITLE             "Kontrolní součty"
@@ -256,6 +260,7 @@ STRINGTABLE LANGUAGE LANG_GERMAN, SUBLANG_NEUTRAL
 	IDS_HC_CANCEL            "Abbrechen"
 
 	IDS_HS_MENUTEXT          "Erstelle &Prüfsummen-Datei..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Erstelle ""%s""..."
 
 	IDS_HP_TITLE             "Prüfsummen"
@@ -314,6 +319,7 @@ STRINGTABLE LANGUAGE LANG_GREEK, SUBLANG_DEFAULT
 	IDS_HC_CANCEL            "Άκυρο"
 
 	IDS_HS_MENUTEXT          "Δημιουργία αρχείου chec&ksum..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Δημιουργία του «%s»..."
 
 	IDS_HP_TITLE             "Αρχεία Checksum"
@@ -367,11 +373,12 @@ STRINGTABLE LANGUAGE LANG_SPANISH, SUBLANG_NEUTRAL
 	IDS_HC_STOP              "&Detener"
 	IDS_HC_RESULT_FMT        "%u de %u archivo"
 	IDS_HC_RESULTS_FMT       "%u de %u archivos"
-	IDS_HC_SAVE_ERROR        "No se puede escribir el archivo de checksum."
+	IDS_HC_SAVE_ERROR        "No se puede escribir el archivo(s) de checksum."
 	IDS_HC_OK                "Aceptar"
 	IDS_HC_CANCEL            "Cancelar"
 
 	IDS_HS_MENUTEXT          "Crear archivo chec&ksum..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Creando ""%s""..."
 
 	IDS_HP_TITLE             "Checksum"
@@ -430,6 +437,7 @@ STRINGTABLE LANGUAGE LANG_FRENCH, SUBLANG_NEUTRAL
 	IDS_HC_CANCEL            "Annuler"
 
 	IDS_HS_MENUTEXT          "Créer un fichier de vérification..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Création de ""%s""..."
 
 	IDS_HP_TITLE             "Hachages"
@@ -488,6 +496,7 @@ STRINGTABLE LANGUAGE LANG_ITALIAN, SUBLANG_NEUTRAL
 	IDS_HC_CANCEL            "Annulla"
 
 	IDS_HS_MENUTEXT          "Crea file di chec&ksum..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Creazione di ""%s""..."
 
 	IDS_HP_TITLE             "Checksum"
@@ -546,6 +555,7 @@ STRINGTABLE LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 	IDS_HC_CANCEL            "キャンセル"
 
 	IDS_HS_MENUTEXT          "チェックサムファイルの作成(&K)..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         """%s"" を作成します..."
 
 	IDS_HP_TITLE             "ハッシュ"
@@ -604,6 +614,7 @@ STRINGTABLE LANGUAGE LANG_KOREAN, SUBLANG_DEFAULT
 	IDS_HC_CANCEL            "취소"
 
 	IDS_HS_MENUTEXT          "체크섬 파일 만들기(&K)..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         """%s"" 생성중..."
 
 	IDS_HP_TITLE             "체크섬"
@@ -662,6 +673,7 @@ STRINGTABLE LANGUAGE LANG_DUTCH, SUBLANG_NEUTRAL
 	IDS_HC_CANCEL            "Annuleren"
 
 	IDS_HS_MENUTEXT          "&Creëer controlegetalbestand..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Voortgang ""%s""..."
 
 	IDS_HP_TITLE             "Controlegetallen"
@@ -720,6 +732,7 @@ STRINGTABLE LANGUAGE LANG_POLISH, SUBLANG_DEFAULT
 	IDS_HC_CANCEL            "Anuluj"
 
 	IDS_HS_MENUTEXT          "Utwórz plik sumy &kontrolnej..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Tworzę ""%s""..."
 
 	IDS_HP_TITLE             "Sumy kontrolne"
@@ -778,6 +791,7 @@ STRINGTABLE LANGUAGE LANG_PORTUGUESE, SUBLANG_PORTUGUESE_BRAZILIAN
 	IDS_HC_CANCEL            "Cancelar"
 
 	IDS_HS_MENUTEXT          "Criar Arquivo de Chec&ksum ..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Criando ""%s""..."
 
 	IDS_HP_TITLE             "Identificação digital"
@@ -836,6 +850,7 @@ STRINGTABLE LANGUAGE LANG_PORTUGUESE, SUBLANG_PORTUGUESE
 	IDS_HC_CANCEL            "Cancelar"
 
 	IDS_HS_MENUTEXT          "Criar ficheiro de Chec&ksum..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Criando ""%s""..."
 
 	IDS_HP_TITLE             "Checksums"
@@ -894,6 +909,7 @@ STRINGTABLE LANGUAGE LANG_ROMANIAN, SUBLANG_DEFAULT
 	IDS_HC_CANCEL            "Renunţă"
 
 	IDS_HS_MENUTEXT          "Crează fişier cu su&me de control..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Creez ""%s""..."
 
 	IDS_HP_TITLE             "Sume de control"
@@ -952,6 +968,7 @@ STRINGTABLE LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 	IDS_HC_CANCEL            "Отмена"
 
 	IDS_HS_MENUTEXT          "Создать &файл контрольной суммы..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Создание ""%s""..."
 
 	IDS_HP_TITLE             "Контрольные суммы"
@@ -1010,6 +1027,7 @@ STRINGTABLE LANGUAGE LANG_SWEDISH, SUBLANG_NEUTRAL
 	IDS_HC_CANCEL            "Avbryt"
 
 	IDS_HS_MENUTEXT          "Skapa chec&ksum-fil..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Skapar ""%s""..."
 
 	IDS_HP_TITLE             "Checksums"
@@ -1068,6 +1086,7 @@ STRINGTABLE LANGUAGE LANG_TURKISH, SUBLANG_DEFAULT
 	IDS_HC_CANCEL            "İptal"
 
 	IDS_HS_MENUTEXT          "Chec&ksum oluştur..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         """%s"" oluşturuluyor..."
 
 	IDS_HP_TITLE             "Dosya Hash'leri"
@@ -1126,6 +1145,7 @@ STRINGTABLE LANGUAGE LANG_UKRAINIAN, SUBLANG_DEFAULT
 	IDS_HC_CANCEL            "Скасувати"
 
 	IDS_HS_MENUTEXT          "Створити &файл контрольної суми..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Створення ""%s""..."
 
 	IDS_HP_TITLE             "Контрольні суми"
@@ -1184,6 +1204,7 @@ STRINGTABLE LANGUAGE LANG_CATALAN, SUBLANG_CATALAN_CATALAN
 	IDS_HC_CANCEL            "Cancel·la"
 
 	IDS_HS_MENUTEXT          "Crea fitxer de verificació..."
+	IDS_HS_MENUTEXT_SEP      "Create se&parate Checksum files..."
 	IDS_HS_TITLE_FMT         "Creant ""%s""..."
 
 	IDS_HP_TITLE             "Checksums"

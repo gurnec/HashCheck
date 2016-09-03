@@ -11,12 +11,21 @@
 
 #include "globals.h"
 
+#define VERB_CHECKSUM_ID          0
+#define VERB_CHECKSUM_SEPARATE_ID 1
+#define VERB_CHECKSUM_MAX_ID      VERB_CHECKSUM_SEPARATE_ID
+#define VERB_CHECKSUM_A           "cksum"
+#define VERB_CHECKSUM_W          L"cksum"
+#define VERB_CHECKSUM_SEPARATE_A  "cksumsep"
+#define VERB_CHECKSUM_SEPARATE_W L"cksumsep"
+
 class CHashCheck : public IShellExtInit, IContextMenu, IShellPropSheetExt, IDropTarget
 {
 	protected:
 		CREF m_cRef;
 		HSIMPLELIST m_hList;
-        HBITMAP m_hMenuBitmap;
+		HBITMAP m_hMenuBitmap;
+		UINT m_cItems;
 
 	public:
 		CHashCheck( );

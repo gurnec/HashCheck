@@ -285,14 +285,14 @@ VOID WINAPI HashVerifyParseData( PHASHVERIFYCONTEXT phvctx )
 		{
             do  // loops once; only here so there's something to break out of
             {
-#define HASH_VERIFY_EXT_TYPE(alg)                           \
+#define HASH_VERIFY_EXT_TYPE_op(alg)                        \
                 if (StrCmpI(pszExt, HASH_EXT_##alg) == 0)   \
                 {                                           \
                     phvctx->whctxFlags = WHEX_CHECK##alg;   \
                     cchChecksum = alg##_DIGEST_LENGTH * 2;  \
                     break;                                  \
                 }
-                FOR_EACH_HASH(HASH_VERIFY_EXT_TYPE)
+                FOR_EACH_HASH(HASH_VERIFY_EXT_TYPE_op)
             } while (FALSE);
 
             // Special case for CRC-32
@@ -563,6 +563,9 @@ VOID __fastcall HashVerifyWorkerMain( PHASHVERIFYCONTEXT phvctx )
         else
 #endif
             pbBuffer = pbTheBuffer;
+
+        if (! WorkerThreadThrottleForUI((PCOMMONCONTEXT)phvctx))
+            throw CanceledException();
 
 		// Part 1: Build the path
 		{

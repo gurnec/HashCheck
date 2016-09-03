@@ -126,6 +126,9 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
 
 	while (pItem = SLGetDataAndStep(phpctx->hList))
 	{
+        if (! WorkerThreadThrottleForUI((PCOMMONCONTEXT)phpctx))
+            break;
+
         // Some results might already be present if the user changes which checksum types
         // to calculate and we're going through the list a second+ time for all/some items;
         // only calculate the checksums we don't already have (usually all those requested)
@@ -476,6 +479,7 @@ VOID WINAPI HashPropDlgInit( PHASHPROPCONTEXT phpctx )
 		phpctx->obScratch = 0;
         phpctx->hThread = NULL;
         phpctx->hUnpauseEvent = NULL;
+        phpctx->bSeparateFiles = FALSE;  // TRUE is unsupported in HashProp
         phpctx->hFileOut = INVALID_HANDLE_VALUE;
 		ZeroMemory(&phpctx->ofn, sizeof(phpctx->ofn));
 	}
@@ -847,7 +851,7 @@ VOID WINAPI HashPropDoSaveResults(PHASHPROPCONTEXT phpctx)
 		SLReset(phpctx->hList);
 
 		while (pItem = SLGetDataAndStep(phpctx->hList))
-			HashCalcWriteResult(phpctx, pItem);
+			HashCalcWriteResult(phpctx, phpctx->hFileOut, pItem);
 	}
 
 	CloseHandle(phpctx->hFileOut);

@@ -103,6 +103,7 @@ VOID WINAPI WorkerThreadCleanup( PCOMMONCONTEXT pcmnctx );
 
 // Worker thread functions
 DWORD WINAPI WorkerThreadStartup( PCOMMONCONTEXT pcmnctx );
+BOOL WINAPI WorkerThreadThrottleForUI( PCOMMONCONTEXT pcmnctx );
 VOID WINAPI WorkerThreadHashFile( PCOMMONCONTEXT pcmnctx, PCTSTR pszPath,
                                   PWHCTXEX pwhctx, PWHRESULTEX pwhres, PBYTE pbuffer,
                                   PFILESIZE pFileSize, LPARAM lParam,
