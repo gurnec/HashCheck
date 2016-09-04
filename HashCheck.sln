@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		installer\HashCheck.nsi = installer\HashCheck.nsi
 		license.txt = license.txt
 		README.md = README.md
+		update-version.py = update-version.py
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HashCheck", "HashCheck.vcxproj", "{DCAD938F-9032-4AF9-BA67-8C0CF309D986}"

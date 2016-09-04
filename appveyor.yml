@@ -1,4 +1,4 @@
-version: 2.4.0.{build}
+version: 2.4.0.42-beta
 
 image: Visual Studio 2015
 

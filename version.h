@@ -23,7 +23,7 @@
 #endif
 
 // Tail portion of the copyright string for the version resource
-#define HASHCHECK_COPYRIGHT_STR "Kai Liu, Christopher Gurnee, Tim Schlueter, et al. All rights reserved."
+#define HASHCHECK_COPYRIGHT_STR "2008-2016 Kai Liu, Christopher Gurnee, Tim Schlueter, et al. All rights reserved."
 
 // Name of the DLL
 #define HASHCHECK_FILENAME_STR "HashCheck.dll"
