@@ -10,6 +10,14 @@
 #include "HashCheckUI.h"
 #include "HashCheckOptions.h"
 
+CHashCheck::CHashCheck( )
+{
+    InterlockedIncrement(&g_cRefThisDll);
+    m_cRef = 1;
+    m_hList = NULL;
+    m_hMenuBitmap = (HBITMAP)LoadImage(g_hModThisDll, MAKEINTRESOURCE(IDI_MENUBITMAP), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+}
+
 STDMETHODIMP CHashCheck::QueryInterface( REFIID riid, LPVOID *ppv )
 {
 	if (IsEqualIID(riid, IID_IUnknown))
@@ -105,10 +113,20 @@ STDMETHODIMP CHashCheck::QueryContextMenu( HMENU hmenu, UINT indexMenu, UINT idC
 	TCHAR szMenuText[MAX_STRINGMSG];
 	LoadString(g_hModThisDll, IDS_HS_MENUTEXT, szMenuText, countof(szMenuText));
 
-	if (InsertMenu(hmenu, indexMenu, MF_STRING | MF_BYPOSITION, idCmdFirst, szMenuText))
+    MENUITEMINFO mii;
+    mii.cbSize     = sizeof(mii);
+    mii.fMask      = MIIM_FTYPE | MIIM_ID | MIIM_STRING | MIIM_BITMAP;
+    mii.fType      = MFT_STRING;
+    mii.wID        = idCmdFirst;
+    mii.dwTypeData = szMenuText;
+    mii.hbmpItem   = m_hMenuBitmap;
+	if (! InsertMenuItem(hmenu, indexMenu, TRUE, &mii))
+		return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0));
+
+	if (! InsertMenu(hmenu, indexMenu + 1, MF_SEPARATOR | MF_BYPOSITION, 0, NULL))
 		return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 1));
 
-	return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0));
+	return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 2));
 }
 
 STDMETHODIMP CHashCheck::InvokeCommand( LPCMINVOKECOMMANDINFO pici )

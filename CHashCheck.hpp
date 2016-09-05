@@ -16,10 +16,11 @@ class CHashCheck : public IShellExtInit, IContextMenu, IShellPropSheetExt, IDrop
 	protected:
 		CREF m_cRef;
 		HSIMPLELIST m_hList;
+        HBITMAP m_hMenuBitmap;
 
 	public:
-		CHashCheck( ) { InterlockedIncrement(&g_cRefThisDll); m_cRef = 1; m_hList = NULL; }
-		~CHashCheck( ) { InterlockedDecrement(&g_cRefThisDll); SLRelease(m_hList); }
+		CHashCheck( );
+		~CHashCheck() { InterlockedDecrement(&g_cRefThisDll); SLRelease(m_hList); DeleteObject(m_hMenuBitmap); }
 
 		// IUnknown members
 		STDMETHODIMP QueryInterface( REFIID, LPVOID * );

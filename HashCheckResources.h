@@ -3,12 +3,13 @@
 #define IDR_RT_MANIFEST                 ISOLATIONAWARE_MANIFEST_RESOURCE_ID
 
 #define IDI_FILETYPE                    100
+#define IDI_MENUBITMAP                  101
 
 // Controls common to multiple dialogs
-#define IDC_PROG_TOTAL                  101
-#define IDC_PROG_FILE                   102
-#define IDC_PAUSE                       103
-#define IDC_STOP                        104
+#define IDC_PROG_TOTAL                  102
+#define IDC_PROG_FILE                   103
+#define IDC_PAUSE                       104
+#define IDC_STOP                        105
 #define IDC_OK                          IDOK
 #define IDC_CANCEL                      IDCANCEL
 

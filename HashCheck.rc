@@ -144,5 +144,6 @@ IDD_OPTIONS  DIALOGEX 10, 10, 200, 264
 
 IDR_RT_MANIFEST         RT_MANIFEST             "HashCheck.manifest"
 IDI_FILETYPE            ICON                    "HashCheck.ico"
+IDI_MENUBITMAP          BITMAP                  "HashCheck.bmp"
 
 #include "HashCheckTranslations.rc"
