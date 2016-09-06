@@ -15,9 +15,23 @@ CHashCheck::CHashCheck( )
     InterlockedIncrement(&g_cRefThisDll);
     m_cRef = 1;
     m_hList = NULL;
-    m_hMenuBitmap = g_uWinVer >= 0x0600 ?  // Vista+
-        (HBITMAP)LoadImage(g_hModThisDll, MAKEINTRESOURCE(IDI_MENUBITMAP), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION) :
-        NULL;
+    if (g_uWinVer >= 0x0600)
+    {
+        m_hbitmapMenu    = (HBITMAP)LoadImage(g_hModThisDll, MAKEINTRESOURCE(IDI_MENUBITMAP),    IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+        m_hbitmapMenuSep = (HBITMAP)LoadImage(g_hModThisDll, MAKEINTRESOURCE(IDI_MENUBITMAPSEP), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+    }
+    else
+        m_hbitmapMenu = m_hbitmapMenuSep = NULL;
+}
+
+CHashCheck::~CHashCheck()
+{
+    InterlockedDecrement(&g_cRefThisDll);
+    SLRelease(m_hList);
+    if (m_hbitmapMenu)
+        DeleteObject(m_hbitmapMenu);
+    if (m_hbitmapMenuSep)
+        DeleteObject(m_hbitmapMenuSep);
 }
 
 STDMETHODIMP CHashCheck::QueryInterface( REFIID riid, LPVOID *ppv )
@@ -120,7 +134,6 @@ STDMETHODIMP CHashCheck::QueryContextMenu( HMENU hmenu, UINT indexMenu, UINT idC
     if (g_uWinVer >= 0x0600)  // prior to Vista, 32-bit bitmaps w/alpha channels don't render correctly in menus
         mii.fMask |= MIIM_BITMAP;
     mii.fType      = MFT_STRING;  // specifies the dwTypeData member is a pointer to a nul-terminated string
-    mii.hbmpItem   = m_hMenuBitmap;
 
 	// Load the localized menu text
 	TCHAR szMenuText[MAX_STRINGMSG];
@@ -128,6 +141,7 @@ STDMETHODIMP CHashCheck::QueryContextMenu( HMENU hmenu, UINT indexMenu, UINT idC
 
     mii.wID        = idCmdFirst + VERB_CHECKSUM_ID;
     mii.dwTypeData = szMenuText;
+    mii.hbmpItem   = m_hbitmapMenu;
     if (mii.wID > idCmdLast || ! InsertMenuItem(hmenu, indexMenu++, TRUE, &mii))
         goto done;
     maxIdOffsetPlusOne = max(maxIdOffsetPlusOne, VERB_CHECKSUM_ID + 1);
@@ -140,6 +154,7 @@ STDMETHODIMP CHashCheck::QueryContextMenu( HMENU hmenu, UINT indexMenu, UINT idC
 
         mii.wID        = idCmdFirst + VERB_CHECKSUM_SEPARATE_ID;
         mii.dwTypeData = szMenuText;
+        mii.hbmpItem   = m_hbitmapMenuSep;
         if (mii.wID > idCmdLast || ! InsertMenuItem(hmenu, indexMenu++, TRUE, &mii))
             goto done;
         maxIdOffsetPlusOne = max(maxIdOffsetPlusOne, VERB_CHECKSUM_SEPARATE_ID + 1);

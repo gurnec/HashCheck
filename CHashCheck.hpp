@@ -24,12 +24,12 @@ class CHashCheck : public IShellExtInit, IContextMenu, IShellPropSheetExt, IDrop
 	protected:
 		CREF m_cRef;
 		HSIMPLELIST m_hList;
-		HBITMAP m_hMenuBitmap;
+		HBITMAP m_hbitmapMenu, m_hbitmapMenuSep;
 		UINT m_cItems;
 
 	public:
 		CHashCheck( );
-		~CHashCheck() { InterlockedDecrement(&g_cRefThisDll); SLRelease(m_hList); if (m_hMenuBitmap) DeleteObject(m_hMenuBitmap); }
+		~CHashCheck( );
 
 		// IUnknown members
 		STDMETHODIMP QueryInterface( REFIID, LPVOID * );
