@@ -8,6 +8,7 @@
 
 using Xunit;
 using TestStack.White;
+using TestStack.White.Configuration;
 using TestStack.White.UIItems;
 using TestStack.White.UIItems.WindowItems;
 using TestStack.White.UIItems.Finders;
@@ -56,12 +57,13 @@ namespace UnitTests
             sei.nShow = 1;           // SW_SHOWNORMAL
             ShellExecuteExW(ref sei);
 
-            TestStack.White.Configuration.CoreAppXmlConfiguration.Instance.FindWindowTimeout = 1500;  // 1.5 sec.
-
             // Find the file properties sheet window
             Window prop_window = null;
 
             // Prior to Windows 10, the file properties sheet opens in the curent process
+            int orig_timeout = CoreAppXmlConfiguration.Instance.FindWindowTimeout;
+            if ((int)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "CurrentMajorVersionNumber", 0) >= 10)
+                CoreAppXmlConfiguration.Instance.FindWindowTimeout = 1500;  // likely to fail on Windows 10+, so use a short timeout (1.5s) in that case
             if (! is_com_surrogate)
             {
                 Application app = Application.Attach(Process.GetCurrentProcess());
@@ -89,6 +91,7 @@ namespace UnitTests
                 Assert.NotNull(prop_window);
                 is_com_surrogate = true;
             }
+            CoreAppXmlConfiguration.Instance.FindWindowTimeout = orig_timeout;
 
             return prop_window;
         }
