@@ -127,10 +127,9 @@ STDMETHODIMP CHashCheck::QueryContextMenu( HMENU hmenu, UINT indexMenu, UINT idC
 	if (! InsertMenuItem(hmenu, indexMenu, TRUE, &mii))
 		return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0));
 
-	if (! InsertMenu(hmenu, indexMenu + 1, MF_SEPARATOR | MF_BYPOSITION, 0, NULL))
-		return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 1));
+    InsertMenu(hmenu, indexMenu + 1, MF_SEPARATOR | MF_BYPOSITION, 0, NULL);
 
-	return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 2));
+	return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 1));
 }
 
 STDMETHODIMP CHashCheck::InvokeCommand( LPCMINVOKECOMMANDINFO pici )
