@@ -20,7 +20,7 @@ class CHashCheck : public IShellExtInit, IContextMenu, IShellPropSheetExt, IDrop
 
 	public:
 		CHashCheck( );
-		~CHashCheck() { InterlockedDecrement(&g_cRefThisDll); SLRelease(m_hList); DeleteObject(m_hMenuBitmap); }
+		~CHashCheck() { InterlockedDecrement(&g_cRefThisDll); SLRelease(m_hList); if (m_hMenuBitmap) DeleteObject(m_hMenuBitmap); }
 
 		// IUnknown members
 		STDMETHODIMP QueryInterface( REFIID, LPVOID * );

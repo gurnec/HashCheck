@@ -15,7 +15,9 @@ CHashCheck::CHashCheck( )
     InterlockedIncrement(&g_cRefThisDll);
     m_cRef = 1;
     m_hList = NULL;
-    m_hMenuBitmap = (HBITMAP)LoadImage(g_hModThisDll, MAKEINTRESOURCE(IDI_MENUBITMAP), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+    m_hMenuBitmap = g_uWinVer >= 0x0600 ?  // Vista+
+        (HBITMAP)LoadImage(g_hModThisDll, MAKEINTRESOURCE(IDI_MENUBITMAP), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION) :
+        NULL;
 }
 
 STDMETHODIMP CHashCheck::QueryInterface( REFIID riid, LPVOID *ppv )
@@ -115,7 +117,9 @@ STDMETHODIMP CHashCheck::QueryContextMenu( HMENU hmenu, UINT indexMenu, UINT idC
 
     MENUITEMINFO mii;
     mii.cbSize     = sizeof(mii);
-    mii.fMask      = MIIM_FTYPE | MIIM_ID | MIIM_STRING | MIIM_BITMAP;
+    mii.fMask      = MIIM_FTYPE | MIIM_ID | MIIM_STRING;
+    if (g_uWinVer >= 0x0600)  // prior to Vista, 32-bit bitmaps w/alpha channels don't render correctly in menus
+        mii.fMask |= MIIM_BITMAP;
     mii.fType      = MFT_STRING;
     mii.wID        = idCmdFirst;
     mii.dwTypeData = szMenuText;
