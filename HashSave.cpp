@@ -150,7 +150,8 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
 
 	// Prep: expand directories, max path, etc. (prefix was set by earlier call)
 	PostMessage(phsctx->hWnd, HM_WORKERTHREAD_TOGGLEPREP, (WPARAM)phsctx, TRUE);
-	HashCalcPrepare(phsctx);
+	if (! HashCalcPrepare(phsctx))
+        return;
     HashCalcSetSaveFormat(phsctx);
 	PostMessage(phsctx->hWnd, HM_WORKERTHREAD_TOGGLEPREP, (WPARAM)phsctx, FALSE);
 

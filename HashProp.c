@@ -104,8 +104,9 @@ VOID __fastcall HashPropWorkerMain( PHASHPROPCONTEXT phpctx )
     if (! (phpctx->dwFlags & HPF_HLIST_PREPPED))
     {
         PostMessage(phpctx->hWnd, HM_WORKERTHREAD_TOGGLEPREP, (WPARAM)phpctx, TRUE);
-        if (HashCalcPrepare(phpctx))
-            phpctx->dwFlags |= HPF_HLIST_PREPPED;
+        if (! HashCalcPrepare(phpctx))
+            return;
+        phpctx->dwFlags |= HPF_HLIST_PREPPED;
     }
 	PostMessage(phpctx->hWnd, HM_WORKERTHREAD_TOGGLEPREP, (WPARAM)phpctx, FALSE);
 
