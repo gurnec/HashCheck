@@ -128,6 +128,9 @@ STDMETHODIMP CHashCheck::QueryContextMenu( HMENU hmenu, UINT indexMenu, UINT idC
 
     WORD maxIdOffsetPlusOne = 0;  // what must be returned as per the QueryContextMenu specs
 
+    if (! InsertMenu(hmenu, indexMenu++, MF_SEPARATOR | MF_BYPOSITION, 0, NULL))
+        goto done;
+
     MENUITEMINFO mii;
     mii.cbSize     = sizeof(mii);
     mii.fMask      = MIIM_FTYPE | MIIM_ID | MIIM_STRING;  // which mii members are set
