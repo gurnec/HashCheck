@@ -111,6 +111,9 @@ STDMETHODIMP CHashCheck::QueryContextMenu( HMENU hmenu, UINT indexMenu, UINT idC
 	if (opt.dwMenuDisplay == 2 || (opt.dwMenuDisplay == 1 && !(uFlags & CMF_EXTENDEDVERBS)))
 		return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0));
 
+    if (! InsertMenu(hmenu, indexMenu, MF_SEPARATOR | MF_BYPOSITION, 0, NULL))
+        return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0));
+
 	// Load the localized menu text
 	TCHAR szMenuText[MAX_STRINGMSG];
 	LoadString(g_hModThisDll, IDS_HS_MENUTEXT, szMenuText, countof(szMenuText));
@@ -124,10 +127,10 @@ STDMETHODIMP CHashCheck::QueryContextMenu( HMENU hmenu, UINT indexMenu, UINT idC
     mii.wID        = idCmdFirst;
     mii.dwTypeData = szMenuText;
     mii.hbmpItem   = m_hMenuBitmap;
-	if (! InsertMenuItem(hmenu, indexMenu, TRUE, &mii))
+	if (! InsertMenuItem(hmenu, indexMenu + 1, TRUE, &mii))
 		return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 0));
 
-    InsertMenu(hmenu, indexMenu + 1, MF_SEPARATOR | MF_BYPOSITION, 0, NULL);
+    InsertMenu(hmenu, indexMenu + 2, MF_SEPARATOR | MF_BYPOSITION, 0, NULL);
 
 	return(MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 1));
 }
