@@ -71,6 +71,7 @@ typedef struct {
 	HSIMPLELIST        hList;        // our expanded/processed data
     BOOL               bSeparateFiles;// true iff saving to separate files
     MSGCOUNT           cFileOutErrors;// count of HashSave checksum files having write errors
+    WORD               wIfExists;    // iff bSeparateFiles, one of the IFEXISTS_* constants (below)
 	HANDLE             hFileOut;     // handle of the output file
 	HFONT              hFont;        // fixed-width font for the results box: handle
 	WNDPROC            wpSearchBox;  // original WNDPROC for the HashProp search box
@@ -89,6 +90,11 @@ typedef struct {
 	UINT               obScratch;    // offset, in bytes, to the scratch, for update coalescing
 	HASHCALCSCRATCH    scratch;      // scratch buffers
 } HASHCALCCONTEXT, *PHASHCALCCONTEXT;
+
+// These must start at 0, and must be in the same numeric order as IDC_SEP_EX_* in HashCheckResources.h
+#define IFEXISTS_KEEP        0
+#define IFEXISTS_OVERWRITE   1
+#define IFEXISTS_TREATNORMAL 2
 
 // Per-file data
 typedef struct {

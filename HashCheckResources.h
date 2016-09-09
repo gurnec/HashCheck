@@ -28,6 +28,12 @@
 #define IDC_SEP_CHK_SHA3_256            607
 #define IDC_SEP_CHK_SHA3_512            608
 #define IDC_SEP_CHK_FIRSTID             IDC_SEP_CHK_CRC32
+#define IDC_SEP_EX                      609
+#define IDC_SEP_EX_KEEP                 610
+#define IDC_SEP_EX_OVERWRITE            611
+#define IDC_SEP_EX_NOTSPECIAL           612
+#define IDC_SEP_EX_FIRSTID              IDC_SEP_EX_KEEP
+#define IDC_SEP_EX_COUNT                3
 
 // Hash calculation property sheet and controls
 // (some of these must be copied to HashProp.cs)

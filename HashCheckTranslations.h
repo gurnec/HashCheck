@@ -16,6 +16,11 @@
 #define IDS_HS_RESUME                   IDS_HC_RESUME
 #define IDS_HS_CANCEL                   IDS_HC_CANCEL
 
+#define IDS_SEP_CHK                     0x4600
+#define IDS_SEP_EX                      0x4601
+#define IDS_SEP_EX_KEEP                 0x4602
+#define IDS_SEP_EX_OVERWRITE            0x4603
+#define IDS_SEP_EX_TREATNORMAL          0x4604
 #define IDS_SEP_OK                      IDS_HC_OK
 #define IDS_SEP_CANCEL                  IDS_HC_CANCEL
 

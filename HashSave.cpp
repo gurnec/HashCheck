@@ -269,7 +269,7 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
                 FILE_APPEND_DATA,
                 FILE_SHARE_READ,
                 NULL,
-                CREATE_NEW,
+                ! phsctx->bSeparateFiles || phsctx->wIfExists == IFEXISTS_OVERWRITE ? CREATE_ALWAYS : CREATE_NEW,
                 FILE_ATTRIBUTE_NORMAL,
                 NULL
             );
@@ -277,7 +277,10 @@ VOID __fastcall HashSaveWorkerMain( PHASHSAVECONTEXT phsctx )
             pItem->szPath[pItem->cchPath] = '\0';  // remove the temporary file extension
             if (hFileOut == INVALID_HANDLE_VALUE)
             {
-                InterlockedIncrement(&phsctx->cFileOutErrors);
+                if (phsctx->bSeparateFiles && phsctx->wIfExists == IFEXISTS_KEEP && GetLastError() == ERROR_FILE_EXISTS)
+                    ;  // there's no error if the user specified that existing files *shouldn't* be overwritten
+                else
+                    InterlockedIncrement(&phsctx->cFileOutErrors);
                 goto update_ui;
             }
 

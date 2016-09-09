@@ -46,6 +46,23 @@ __forceinline VOID WINAPI HashCalcSetSavePrefix( PHASHCALCCONTEXT phcctx, PTSTR 
 	Path processing
 \*============================================================================*/
 
+// Checks if pszPath of length cchPathLen (excluding the nul terminator) ends in a recognized checksum extension
+__inline BOOL WINAPI HasChecksumExt( LPCTSTR pszPath, UINT cchPathLen )
+{
+    // array of lengths in TCHARS (w/o the terminating nul) of extensions (e.g 5 for _T(".sha1")), excluding .asc
+    static UINT cchHashExtsLenTab[NUM_HASHES] = {
+#define HASH_CALC_EXT_LEN_op(alg) countof(HASH_EXT_##alg) - 1,
+        FOR_EACH_HASH(HASH_CALC_EXT_LEN_op)
+    };
+
+    for (UINT i = 0; i < NUM_HASHES; i++)
+    {
+        if (cchPathLen > cchHashExtsLenTab[i] && _tcscmp(pszPath + cchPathLen - cchHashExtsLenTab[i], g_szHashExtsTab[i]) == 0)
+            return(TRUE);
+    }
+    return(FALSE);
+}
+
 BOOL WINAPI HashCalcPrepare( PHASHCALCCONTEXT phcctx )
 {
 	PTSTR pszPrev = NULL;
@@ -116,7 +133,7 @@ BOOL WINAPI HashCalcPrepare( PHASHCALCCONTEXT phcctx )
 		{
 			// Finally, we can do the actual work that's needed!
 
-			if (GetFileAttributes(pszCurrent) & FILE_ATTRIBUTE_DIRECTORY)
+			if (PathIsDirectory(pszCurrent))
 			{
 				if (cchCurrent < MAX_PATH_BUFFER - 2)
 				{
@@ -126,6 +143,12 @@ BOOL WINAPI HashCalcPrepare( PHASHCALCCONTEXT phcctx )
 			}
 			else
 			{
+                if (phcctx->bSeparateFiles && phcctx->wIfExists != IFEXISTS_TREATNORMAL &&
+                    HasChecksumExt(pszCurrent, cchCurrent))
+                {
+                    continue;
+                }
+
 				PHASHCALCITEM pItem = SLAddItem(phcctx->hList, NULL, sizeof(HASHCALCITEM) + cbCurrent +
                     (phcctx->bSeparateFiles ? MAX_FILE_EXT_LEN * sizeof(TCHAR) : 0));
 
@@ -190,6 +213,12 @@ VOID WINAPI HashCalcWalkDirectory( PHASHCALCCONTEXT phcctx, PTSTR pszPath, UINT 
 			}
 			else
 			{
+                if (phcctx->bSeparateFiles && phcctx->wIfExists != IFEXISTS_TREATNORMAL &&
+                    HasChecksumExt(pszPath, cchNew))
+                {
+                    continue;
+                }
+
 				// File: Add to the list
 				UINT cbPathBuffer = (cchNew + 1) * sizeof(TCHAR);
 				PHASHCALCITEM pItem = SLAddItem(phcctx->hList, NULL, sizeof(HASHCALCITEM) + cbPathBuffer +
@@ -373,7 +402,9 @@ VOID WINAPI HashCalcInitSave( PHASHCALCCONTEXT phcctx )
 }
 
 // input:   dwInitParam is the (1-based) hash id to pre-select (from the hash_algorithm enum in WinHash.h)
-// returns: the (1-based) hash id chosen by the user, or 0 if canceled
+// returns: (from DialogBoxParam()) 0 if canceled, otherwise:
+//          in the LOWORD: the (1-based) hash id chosen by the user
+//          in the HIWORD: IFEXISTS_KEEP (0), IFEXISTS_OVERWRITE (1), or IFEXISTS_TREATNORMAL (2)
 INT_PTR CALLBACK HashCalcDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
     switch (uMsg)
@@ -397,14 +428,20 @@ INT_PTR CALLBACK HashCalcDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
             *lpszDest = 0;
             SendMessage(hWnd, WM_SETTEXT, 0, (LPARAM)szTitle);
 
-            // Set the window's icon and buttons text
+            // Set the window's icon and localized text
             SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(g_hModThisDll, MAKEINTRESOURCE(IDI_FILETYPE)));
-            SetControlText(hWnd, IDC_OK,     IDS_SEP_OK);
-            SetControlText(hWnd, IDC_CANCEL, IDS_SEP_CANCEL);
+            SetControlText(hWnd, IDC_SEP_CHK,           IDS_SEP_CHK);
+            SetControlText(hWnd, IDC_SEP_EX,            IDS_SEP_EX);
+            SetControlText(hWnd, IDC_SEP_EX_KEEP,       IDS_SEP_EX_KEEP);
+            SetControlText(hWnd, IDC_SEP_EX_OVERWRITE,  IDS_SEP_EX_OVERWRITE);
+            SetControlText(hWnd, IDC_SEP_EX_NOTSPECIAL, IDS_SEP_EX_TREATNORMAL);
+            SetControlText(hWnd, IDC_OK,                IDS_SEP_OK);
+            SetControlText(hWnd, IDC_CANCEL,            IDS_SEP_CANCEL);
 
-            // Tick the pre-selected hash
+            // Tick the pre-selected hash and default if-exists options
             if (lParam >= 1 && lParam <= NUM_HASHES)
                 SendDlgItemMessage(hWnd, IDC_SEP_CHK_FIRSTID + (int)lParam - 1, BM_SETCHECK, BST_CHECKED, 0);
+            SendDlgItemMessage(hWnd, IDC_SEP_EX_KEEP, BM_SETCHECK, BST_CHECKED, 0);
 
             return(TRUE);
 
@@ -421,16 +458,31 @@ INT_PTR CALLBACK HashCalcDlgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
         case WM_COMMAND:
             switch (LOWORD(wParam))
             {
-                int i;
+                WORD i, wHashSelected, wExistsSelected;
                 case IDC_OK:
-                    for (i = 0; i < NUM_HASHES; i++)
-                    {
+                    
+                    // Retrieve the selected hash
+                    for (wHashSelected = i = 0; i < NUM_HASHES; i++)
                         if (SendDlgItemMessage(hWnd, IDC_SEP_CHK_FIRSTID + i, BM_GETCHECK, 0, 0) == BST_CHECKED)
                         {
-                            EndDialog(hWnd, i + 1);
+                            wHashSelected = i + 1;
                             break;
                         }
+                    if (!wHashSelected)  // shouldn't happen
+                    {
+                        assert(FALSE);
+                        goto end_dialog;
                     }
+
+                    // Retrieve the selected if-exists option
+                    for (wExistsSelected = i = 0; i < IDC_SEP_EX_COUNT; i++)
+                        if (SendDlgItemMessage(hWnd, IDC_SEP_EX_FIRSTID + i, BM_GETCHECK, 0, 0) == BST_CHECKED)
+                        {
+                            wExistsSelected = i;
+                            break;
+                        }
+
+                    EndDialog(hWnd, MAKELONG(wHashSelected, wExistsSelected));
                     return(TRUE);
 
                 case IDC_CANCEL:
@@ -449,13 +501,16 @@ VOID WINAPI HashCalcInitSaveSeparate(PHASHCALCCONTEXT phcctx)
     OptionsLoad(&phcctx->opt);
 
     DWORD dwOrigFilterIndex = phcctx->opt.dwFilterIndex;
-    phcctx->ofn.nFilterIndex = (DWORD)DialogBoxParam(
+    INT_PTR nDialogRet = DialogBoxParam(
         g_hModThisDll,
         MAKEINTRESOURCE(IDD_HASHSAVE_SEP),
         NULL,
         HashCalcDlgProc,
         dwOrigFilterIndex
     );
+    phcctx->ofn.nFilterIndex = LOWORD(nDialogRet);
+    phcctx->wIfExists        = HIWORD(nDialogRet);
+
     if (phcctx->ofn.nFilterIndex && phcctx->ofn.nFilterIndex != dwOrigFilterIndex)
     {
         // Save modified setting
