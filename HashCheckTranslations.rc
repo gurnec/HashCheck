@@ -1374,3 +1374,68 @@ STRINGTABLE LANGUAGE LANG_CATALAN, SUBLANG_CATALAN_CATALAN
 	IDS_OPT_FONT             "Tipus de lletra"
 	IDS_OPT_FONT_CHANGE      "&Canvia..."
 }
+
+// български
+STRINGTABLE LANGUAGE LANG_BULGARIAN, SUBLANG_DEFAULT
+{
+	IDS_FILETYPE_DESC        "Контролна сума"
+
+	IDS_HC_PAUSE             "&Пауза"
+	IDS_HC_RESUME            "П&родължи"
+	IDS_HC_STOP              "&Стоп"
+	IDS_HC_RESULT_FMT        "%u от %u файл"
+	IDS_HC_RESULTS_FMT       "%u от %u файла"
+	IDS_HC_SAVE_ERROR        "Не може да се отвори файла за запис на контролната сума."
+	IDS_HC_OK                "Добре"
+	IDS_HC_CANCEL            "Отказ"
+	
+	IDS_HS_MENUTEXT          "&Контролна сума..."
+	IDS_HS_MENUTEXT_SEP      "&Отделни контролни суми..."
+	IDS_HS_TITLE_FMT         "Създаване ""%s""..."
+	
+	IDS_SEP_CHK              "Контролна сума"
+	IDS_SEP_EX               "Ако файлът вече съществува"
+	IDS_SEP_EX_KEEP          "Без презаписване (пропускане)"
+	IDS_SEP_EX_OVERWRITE     "&Презаписване"
+	IDS_SEP_EX_TREATNORMAL   "&Третиране като всеки друг (не е препоръчит.)"
+
+	IDS_HP_TITLE             "Контролни суми"
+	IDS_HP_STATUSBOX         "Напредък"
+	IDS_HP_STATUSTEXT_FMT    "%s успешно хеширан(и)"
+	IDS_HP_FIND              "&Търсене"
+	IDS_HP_FIND_NOSTRING     "Въведете текст за търсене"
+	IDS_HP_FIND_NOTFOUND     "Текста не е намерен"
+	IDS_HP_SAVE              "&Запис..."
+	IDS_HP_OPTIONS           "&Опции"
+	IDS_HP_FILELABEL         "    Файл: "
+
+	IDS_HV_LOADERROR_FMT     "Не може да зареди ""%s""" 
+	IDS_HV_SUMMARY           "Резултат"
+	IDS_HV_MATCH             "Съвпадат:"
+	IDS_HV_MISMATCH          "Не съвпадат:"
+	IDS_HV_UNREADABLE        "Липсват:"
+	IDS_HV_PENDING           "Остават:"
+	IDS_HV_EXIT              "И&зход"
+	IDS_HV_COL_FILENAME      "Име на файл"
+	IDS_HV_COL_SIZE          "Размер"
+	IDS_HV_COL_STATUS        "Състояние"
+	IDS_HV_COL_EXPECTED      "Очаквана сума"
+	IDS_HV_COL_ACTUAL        "Реална сума"
+	IDS_HV_STATUS_MATCH      "Съвпада"
+	IDS_HV_STATUS_MISMATCH   "Не съвпада"
+	IDS_HV_STATUS_UNREADABLE "Липсва"
+	
+	IDS_OPT_TITLE            "HashCheck опции"
+	IDS_OPT_CM               "Интегриране в обвивката"
+	IDS_OPT_CM_ALWAYS        "&Показване в контекстното меню"
+	IDS_OPT_CM_EXTENDED      "Показване в &разширеното контекстно меню"
+	IDS_OPT_CM_NEVER         "&Без показване в контекстното меню"
+	IDS_OPT_ENCODING         "Кодировка на символите във файла със суми"
+	IDS_OPT_ENCODING_UTF8    "U&TF-8"
+	IDS_OPT_ENCODING_UTF16   "&UTF-16 Little Endian"
+	IDS_OPT_ENCODING_ANSI    "&ANSI"
+	IDS_OPT_CHK              "Прозорец със &свойства"
+	IDS_OPT_CHK_ERROR        "Моля, изберете поне една контролна сума"
+	IDS_OPT_FONT             "Шрифт на прозореца със свойства"
+	IDS_OPT_FONT_CHANGE      "&Промяна..."
+}
