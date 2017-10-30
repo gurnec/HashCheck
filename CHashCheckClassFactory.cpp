@@ -35,10 +35,14 @@ STDMETHODIMP CHashCheckClassFactory::CreateInstance( LPUNKNOWN pUnkOuter, REFIID
 
 	if (pUnkOuter) return(CLASS_E_NOAGGREGATION);
 
-	LPCHASHCHECK lpHashCheck = new CHashCheck;
-	if (lpHashCheck == NULL) return(E_OUTOFMEMORY);
-
-	HRESULT hr = lpHashCheck->QueryInterface(riid, ppv);
-	lpHashCheck->Release();
-	return(hr);
+	try {
+		LPCHASHCHECK lpHashCheck = new CHashCheck;
+		HRESULT hr = lpHashCheck->QueryInterface(riid, ppv);
+		lpHashCheck->Release();
+		return(hr);
+	}
+	catch (std::bad_alloc& ba)
+	{
+		return(E_OUTOFMEMORY);
+	}
 }
