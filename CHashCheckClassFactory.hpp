@@ -10,6 +10,7 @@
 #define __CHASHCHECKCLASSFACTORY_HPP__
 
 #include "globals.h"
+#include <new>
 
 class CHashCheckClassFactory : public IClassFactory
 {
