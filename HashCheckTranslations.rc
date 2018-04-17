@@ -244,7 +244,7 @@ STRINGTABLE LANGUAGE LANG_CZECH, SUBLANG_DEFAULT
 // Deutsch
 STRINGTABLE LANGUAGE LANG_GERMAN, SUBLANG_NEUTRAL
 {
-	IDS_FILETYPE_DESC        "Checksum Datei"
+	IDS_FILETYPE_DESC        "Prüfsummen-Datei"
 
 	IDS_HC_PAUSE             "&Pause"
 	IDS_HC_RESUME            "&Weiter"
@@ -289,12 +289,12 @@ STRINGTABLE LANGUAGE LANG_GERMAN, SUBLANG_NEUTRAL
 	IDS_OPT_CM_ALWAYS        "HashCheck im &Kontext-Menü"
 	IDS_OPT_CM_EXTENDED      "HashCheck im er&weiterten Kontext-Menü"
 	IDS_OPT_CM_NEVER         "HashCheck &nicht im Kontext-Menü"
-	IDS_OPT_ENCODING         "Zeichencodierung"
+	IDS_OPT_ENCODING         "Zeichenkodierung"
 	IDS_OPT_ENCODING_UTF8    "Speichere in U&TF-8"
 	IDS_OPT_ENCODING_UTF16   "Speichere in &UTF-16LE"
 	IDS_OPT_ENCODING_ANSI    "Speichere in &ANSI"
 	IDS_OPT_CHK              "Dialogfeld Prüfsummen"
-	IDS_OPT_CHK_ERROR        "Please select at least one checksum"
+	IDS_OPT_CHK_ERROR        "Bitte wähle mindestens eine Prüfsumme"
 	IDS_OPT_FONT             "Dialogfeld Dateieigenschaften"
 	IDS_OPT_FONT_CHANGE      "&Schriftart..."
 }
