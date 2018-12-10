@@ -19,7 +19,9 @@ Tim Schlueter
 
 #### Compiler ####
 
-Microsoft Visual Studio 2015 (the free Community edition works well).
+Microsoft Visual Studio 2015 (the free Community edition works well).  
+<https://visualstudio.microsoft.com/vs/community/>  
+<https://visualstudio.microsoft.com/vs/older-downloads/>
 
 #### Localizations ####
 
