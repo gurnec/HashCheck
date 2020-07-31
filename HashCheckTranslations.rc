@@ -1226,3 +1226,61 @@ STRINGTABLE LANGUAGE LANG_CATALAN, SUBLANG_CATALAN_CATALAN
 	IDS_OPT_FONT             "Tipus de lletra"
 	IDS_OPT_FONT_CHANGE      "&Canvia..."
 }
+
+// Bahasa Indonesia
+STRINGTABLE LANGUAGE LANG_INDONESIA, SUBLANG_BAHASA_INDONESIA
+{
+	IDS_FILETYPE_DESC        "Checksum Berkas"
+
+	IDS_HC_PAUSE             "&Jeda"
+	IDS_HC_RESUME            "&Lanjut"
+	IDS_HC_STOP              "&Berhenti"
+	IDS_HC_RESULT_FMT        "%u dari %u berkas"
+	IDS_HC_RESULTS_FMT       "%u dari %u berkas"
+	IDS_HC_SAVE_ERROR        "Tidak bisa membuka berkas untuk ditulis."
+	IDS_HC_OK                "OK"
+	IDS_HC_CANCEL            "Batal"
+
+	IDS_HS_MENUTEXT          "Membuat berkas Chec&ksum..."
+	IDS_HS_TITLE_FMT         "Membuat ""%s""..."
+
+	IDS_HP_TITLE             "Checksums"
+	IDS_HP_STATUSBOX         "Kemajuan"
+	IDS_HP_STATUSTEXT_FMT    "%s telah sukses diberi hash"
+	IDS_HP_FIND              "&Cari"
+	IDS_HP_FIND_NOSTRING     "Masukkan teks yang dicari."
+	IDS_HP_FIND_NOTFOUND     "Teks tidak ditemukan."
+	IDS_HP_SAVE              "&Simpan..."
+	IDS_HP_OPTIONS           "&Opsi"
+	IDS_HP_FILELABEL         "    Berkas: "
+
+	IDS_HV_LOADERROR_FMT     "Tidak bisa memuat ""%s"""
+	IDS_HV_SUMMARY           "Ringkasan"
+	IDS_HV_MATCH             "Kecocokan:"
+	IDS_HV_MISMATCH          "Ketidakcocokan:"
+	IDS_HV_UNREADABLE        "Tidak bisa dibaca:"
+	IDS_HV_PENDING           "Sisa:"
+	IDS_HV_EXIT              "&Keluar"
+	IDS_HV_COL_FILENAME      "Nama berkas"
+	IDS_HV_COL_SIZE          "Ukuran"
+	IDS_HV_COL_STATUS        "Status"
+	IDS_HV_COL_EXPECTED      "Checksum yang diharap"
+	IDS_HV_COL_ACTUAL        "Checksum yang sebenarnya"
+	IDS_HV_STATUS_MATCH      "KECOCOKAN"
+	IDS_HV_STATUS_MISMATCH   "KETIDAKCOCOKAN"
+	IDS_HV_STATUS_UNREADABLE "TIDAK BISA DIBACA"
+
+	IDS_OPT_TITLE            "Opsi HashCheck"
+	IDS_OPT_CM               "Integrasi Shell"
+	IDS_OPT_CM_ALWAYS        "&Tampilkan HashCheck dalam menu shortcut"
+	IDS_OPT_CM_EXTENDED      "&Tampilkan HashCheck dalam &extended shortcut menu"
+	IDS_OPT_CM_NEVER         "&Jangan tampilkan HashCheck dalam menu shortcut"
+	IDS_OPT_ENCODING         "Pengkodean karakter berkas Checksum"
+	IDS_OPT_ENCODING_UTF8    "Simpan dengan U&TF-8"
+	IDS_OPT_ENCODING_UTF16   "Simpan dengan &UTF-16LE"
+	IDS_OPT_ENCODING_ANSI    "Simpan dengan &ANSI"
+	IDS_OPT_CHK              "Properti berkas checksums"
+	IDS_OPT_CHK_ERROR        "Silakan pilih setidaknya salah satu checksum"
+	IDS_OPT_FONT             "Properti berkas checksums font"
+	IDS_OPT_FONT_CHANGE      "&Ubah..."
+}
