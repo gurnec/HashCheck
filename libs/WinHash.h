@@ -74,7 +74,7 @@ enum hash_algorithm {
 
 // The default hash algorithm to use when creating a checksum file
 #define DEFAULT_HASH_ALGORITHM SHA256
-// and when viewing checksums in the explorer file propery sheet
+// and when viewing checksums in the explorer file property sheet
 // (if this is changed, also update the test in HashProp.cs)
 #define DEFAULT_HASH_ALGORITHMS (WHEX_CHECKCRC32 | WHEX_CHECKSHA1 | WHEX_CHECKSHA256 | WHEX_CHECKSHA512)
 
